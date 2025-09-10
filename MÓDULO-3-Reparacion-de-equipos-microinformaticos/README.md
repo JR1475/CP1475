@@ -3,141 +3,114 @@
 > 🌟 Este repositorio contiene el material completo para los módulos de montaje, instalación y reparación de equipos microinformáticos.  
 > 📂 Organizado por módulos, capítulos y prácticas detalladas.
 
----
-
+-----
 ![Logo del Proyecto](./../imgs/m3.png)
+-----
 
+## 🗂️ Estructura del Proyecto
 
-├── 🔧 MÓDULO-3-Reparacion-de-equipos-microinformaticos
-│   ├── ⚡ CAPITULO_1_ELECTRICIDAD_ELECTRONICA_APLICADA
-│   │   ├── ⚡ 1.1_La_electricidad
-│   │   │   └── 🔧 1.1.1_Conceptos_basicos_de_electricidad
-│   │   ├── 🔌 1.2_La_electronica
-│   │   │   └── 🔢 1.2.1_La_electronica_digital
-│   │   └── 🛠️ 1.3_Utilizacion_de_instrumentacion_basica
-│   │   ├── 📏 1.3.1_El_multimetro_o_polimetro
-│   │   ├── 🔥 1.3.2_El_soldador
-│   │   ├── 🔌 1.3.3_Tester_de_fuentes_de_alimentacion
-│   │   └── 🧰 1.3.4_Otros_instrumentos_y_herramientas
-│   ├── 🔧 CAPITULO_2_FUNCIONAMIENTO_DE_DISPOSITIVOS
-│   │   ├── 🔌 2.1_Los_componentes_electronicos
-│   │   │   ├── 🧱 2.1.1_Componentes_pasivos
-│   │   │   └── 🔋 2.1.2_Componentes_activos
-│   │   ├── 🔌 2.2_Dispositivos_que_proporcionan_energia_al_equipo
-│   │   │   ├── 🔌 2.2.1_La_fuente_de_alimentacion
-│   │   │   └── 🔌 2.2.2_El_transformador_del_portatil
-│   │   ├── 🔋 2.3_Funcionamiento_del_sistema_de_carga_de_un_portatil
-│   │   │   └── 🔋 2.3.1_El_ciclo_de_carga
-│   │   └── 💾 2.4_Dispositivos_magneticos
-│   │   ├── 🧲 2.4.1_De_que_estan_compuestos_los_dispositivos_magneticos
-│   │   ├── 💿 2.4.2_El_disco_duro
-│   │   └── 📂 2.4.3_Estructura_logica_de_un_disco
-│   ├── ⚠️ CAPITULO_3_TIPOS_DE_AVERIAS
-│   │   ├── 🔥 3.1_Factores_que_pueden_afectar_a_la_durabilidad_de_los_componentes
-│   │   │   ├── 🔥 3.1.1_La_temperatura
-│   │   │   ├── 🌫️ 3.1.2_Polvo_y_particulas
-│   │   │   ├── 💧 3.1.3_Humedad_y_corrosion
-│   │   │   ├── 🌀 3.1.4_Impactos_y_vibraciones
-│   │   │   ├── ⚡ 3.1.5_Energia_electrostatica_descargas_electrostaticas
-│   │   │   └── 🧲 3.1.6_Magnetismo
-│   │   ├── 🛠️ 3.2_Causas_sintomas_y_soluciones_a_posibles_averias
-│   │   ├── ❌ 3.3_Fallos_comunes_por_componentes
-│   │   │   ├── 🔌 3.3.1_Fuente_de_alimentacion
-│   │   │   ├── 🖳 3.3.2_Fallos_en_la_caja
-│   │   │   ├── 🧠 3.3.3_Microprocesador
-│   │   │   ├── 🖥️ 3.3.4_Placa_base
-│   │   │   ├── 🧠 3.3.5_Memoria
-│   │   │   ├── 🔌 3.3.6_Tarjetas_de_expansion
-│   │   │   ├── 💿 3.3.7_Discos_duros
-│   │   │   ├── 📀 3.3.8_Unidades_opticas
-│   │   │   └── 🔌 3.3.9_Cables_de_datos
-│   │   ├── 💻 3.4_Averias_en_ordenadores_portatiles
-│   │   │   ├── 🔌 3.4.1_Fallos_en_la_alimentacion
-│   │   │   ├── ⌨️ 3.4.2_Fallos_en_el_teclado
-│   │   │   ├── 🧠 3.4.3_Memoria
-│   │   │   ├── 📀 3.4.4_Unidades_opticas
-│   │   │   ├── 💿 3.4.5_Disco_duro
-│   │   │   ├── 🖥️ 3.4.6_Placa_base
-│   │   │   └── 🖥️ 3.4.7_Fallos_en_la_pantalla
-│   │   └── 🤔 3.5_Mitos_con_respecto_a_los_discos_duros
-│   ├── 🔍 CAPITULO_4_DIAGNOSTICO_Y_LOCALIZACION_DE_AVERIAS
-│   │   ├── 🛠️ 4.1_Procedimiento_de_localizacion_de_averias
-│   │   ├── 💡 4.2_12_mas_1_consejos_practicos_al_encontrarse_con_una_averia
-│   │   ├── 🔍 4.3_Deteccion_de_averias_en_un_equipo_informatico
-│   │   │   ├── ✅ 4.3.1_Comprobaciones_al_montar_o_reparar_un_equipo_informatico
-│   │   │   ├── 🔌 4.3.2_Inicio_de_la_computadora_por_primera_vez
-│   │   │   └── ❌ 4.3.3_Problemas_en_la_instalacion_actualizacion_de_un_equipo
-│   │   ├── 🔊 4.4_Senales_de_aviso_luminosas_y_acusticas
-│   │   │   ├── 🔊 4.4.1_Senales_acusticas_de_la_BIOS
-│   │   │   ├── 📺 4.4.2_Mensajes_de_error_de_la_BIOS_por_pantalla
-│   │   │   └── 💡 4.4.3_Senales_luminosas_del_equipo
-│   │   ├── 🛠️ 4.5_Software_de_diagnostico
-│   │   │   ├── 🖥️ 4.5.1_Monitorizacion_de_la_placa_base
-│   │   │   ├── 💿 4.5.2_SMART
-│   │   │   ├── 📂 4.5.3_Utilidades_para_la_recuperacion_de_ficheros
-│   │   │   ├── 💾 4.5.4_Utilidades_de_disco
-│   │   │   └── 🛠️ 4.5.5_Utilidades_del_sistema
-│   │   └── 🔌 4.6_El_conexionado_interno_y_externo_de_los_equipos_informaticos
-│   │   ├── 🔌 4.6.1_Conectores_externos
-│   │   └── 🔌 4.6.2_Conectores_internos
-│   ├── 🔧 CAPITULO_5_LA_REPARACION_EN_EQUIPOS_INFORMATICOS
-│   │   ├── 🪑 5.1_El_puesto_de_reparacion
-│   │   ├── 💰 5.2_El_presupuesto_de_reparacion
-│   │   ├── 💵 5.3_Criterios_de_tarificacion
-│   │   │   ├── 🔧 5.3.1_Piezas_de_reparacion
-│   │   │   └── 🧾 5.3.2_Factura
-│   │   └── 🛠️ 5.4_El_procedimiento_de_reparacion
-│   │   └── 🛡️ 5.4.1_Garantia_de_las_reparaciones
-│   ├── 🦠 CAPITULO_6_VIRUS_Y_ANTIVIRUS
-│   │   ├── 🦠 6.1_Tipos_de_malware
-│   │   ├── ⚠️ 6.2_Como_actua_un_virus_informatico
-│   │   ├── 🛡️ 6.3_Que_es_un_antivirus
-│   │   ├── 🔐 6.4_Precauciones_para_evitar_una_infeccion
-│   │   └── 🛠️ 6.5_Como_funciona_un_antivirus
-│   │   ├── 🔍 6.5.1_Tecnica_de_scanning
-│   │   ├── 🤖 6.5.2_Tecnicas_heuristicas
-│   │   └── 🧹 6.5.3_Como_se_elimina_un_virus
-│   ├── ➕ CAPITULO_7_AMPLIACION_DE_UN_EQUIPO
-│   │   └── 🧩 7.1_Ampliaciones_de_hardware
-│   │   ├── 🖥️ 7.1.1_Ampliaciones_tipicas_en_equipos_sobremesa_servidores_y_workstations
-│   │   ├── 💻 7.1.2_Limitaciones_en_la_ampliacion_de_los_portatiles
-│   │   └── 💻 7.1.3_Ampliaciones_en_portatiles
-│   └── 🖨️ CAPITULO_8_REPARACION_DE_IMPRESORAS
-│   ├── 🖨️ 8.1_La_impresora
-│   │   └── 🖨️ 8.1.1_Tipos_de_impresoras
-│   ├── 🖨️ 8.2_Las_multifuncionales
-│   ├── 🏷️ 8.3_Marcas_y_modelos_mas_usuales
-│   ├── ⚙️ 8.4_Funcionamiento_y_detalles_tecnicos
-│   │   ├── 🔥 8.4.1_Funcionamiento_de_las_impresoras_termicas
-│   │   └── 🖨️ 8.4.2_Funcionamiento_de_las_impresoras_laser
-│   └── 🔍 8.5_Deteccion_y_solucion_de_problemas
+  * **MÓDULO-3-Reparacion-de-equipos-microinformaticos**
+      * **CAPITULO\_1\_ELECTRICIDAD\_ELECTRONICA\_APLICADA**
+          * 1.1\_La\_electricidad
+              * 1.1.1\_Conceptos\_basicos\_de\_electricidad
+          * 1.2\_La\_electronica
+              * 1.2.1\_La\_electronica\_digital
+          * 1.3\_Utilizacion\_de\_instrumentacion\_basica
+              * 1.3.1\_El\_multimetro\_o\_polimetro
+              * 1.3.2\_El\_soldador
+              * 1.3.3\_Tester\_de\_fuentes\_de\_alimentacion
+              * 1.3.4\_Otros\_instrumentos\_y\_herramientas
+      * **CAPITULO\_2\_FUNCIONAMIENTO\_DE\_DISPOSITIVOS**
+          * 2.1\_Los\_componentes\_electronicos
+              * 2.1.1\_Componentes\_pasivos
+              * 2.1.2\_Componentes\_activos
+          * 2.2\_Dispositivos\_que\_proporcionan\_energia\_al\_equipo
+              * 2.2.1\_La\_fuente\_de\_alimentacion
+              * 2.2.2\_El\_transformador\_del\_portatil
+          * 2.3\_Funcionamiento\_del\_sistema\_de\_carga\_de\_un\_portatil
+              * 2.3.1\_El\_ciclo\_de\_carga
+          * 2.4\_Dispositivos\_magneticos
+              * 2.4.1\_De\_que\_estan\_compuestos\_los\_dispositivos\_magneticos
+              * 2.4.2\_El\_disco\_duro
+              * 2.4.3\_Estructura\_logica\_de\_un\_disco
+      * **CAPITULO\_3\_TIPOS\_DE\_AVERIAS**
+          * 3.1\_Factores\_que\_pueden\_afectar\_a\_la\_durabilidad\_de\_los\_componentes
+              * 3.1.1\_La\_temperatura
+              * 3.1.2\_Polvo\_y\_particulas
+              * 3.1.3\_Humedad\_y\_corrosion
+              * 3.1.4\_Impactos\_y\_vibraciones
+              * 3.1.5\_Energia\_electrostatica\_descargas\_electrostaticas
+              * 3.1.6\_Magnetismo
+          * 3.2\_Causas\_sintomas\_y\_soluciones\_a\_posibles\_averias
+          * 3.3\_Fallos\_comunes\_por\_componentes
+              * 3.3.1\_Fuente\_de\_alimentacion
+              * 3.3.2\_Fallos\_en\_la\_caja
+              * 3.3.3\_Microprocesador
+              * 3.3.4\_Placa\_base
+              * 3.3.5\_Memoria
+              * 3.3.6\_Tarjetas\_de\_expansion
+              * 3.3.7\_Discos\_duros
+              * 3.3.8\_Unidades\_opticas
+              * 3.3.9\_Cables\_de\_datos
+          * 3.4\_Averias\_en\_ordenadores\_portatiles
+              * 3.4.1\_Fallos\_en\_la\_alimentacion
+              * 3.4.2\_Fallos\_en\_el\_teclado
+              * 3.4.3\_Memoria
+              * 3.4.4\_Unidades\_opticas
+              * 3.4.5\_Disco\_duro
+              * 3.4.6\_Placa\_base
+              * 3.4.7\_Fallos\_en\_la\_pantalla
+          * 3.5\_Mitos\_con\_respecto\_a\_los\_discos\_duros
+      * **CAPITULO\_4\_DIAGNOSTICO\_Y\_LOCALIZACION\_DE\_AVERIAS**
+          * 4.1\_Procedimiento\_de\_localizacion\_de\_averias
+          * 4.2\_12\_mas\_1\_consejos\_practicos\_al\_encontrarse\_con\_una\_averia
+          * 4.3\_Deteccion\_de\_averias\_en\_un\_equipo\_informatico
+              * 4.3.1\_Comprobaciones\_al\_montar\_o\_reparar\_un\_equipo\_informatico
+              * 4.3.2\_Inicio\_de\_la\_computadora\_por\_primera\_vez
+              * 4.3.3\_Problemas\_en\_la\_instalacion\_actualizacion\_de\_un\_equipo
+          * 4.4\_Senales\_de\_aviso\_luminosas\_y\_acusticas
+              * 4.4.1\_Senales\_acusticas\_de\_la\_BIOS
+              * 4.4.2\_Mensajes\_de\_error\_de\_la\_BIOS\_por\_pantalla
+              * 4.4.3\_Senales\_luminosas\_del\_equipo
+          * 4.5\_Software\_de\_diagnostico
+              * 4.5.1\_Monitorizacion\_de\_la\_placa\_base
+              * 4.5.2\_SMART
+              * 4.5.3\_Utilidades\_para\_la\_recuperacion\_de\_ficheros
+              * 4.5.4\_Utilidades\_de\_disco
+              * 4.5.5\_Utilidades\_del\_sistema
+          * 4.6\_El\_conexionado\_interno\_y\_externo\_de\_los\_equipos\_informaticos
+              * 4.6.1\_Conectores\_externos
+              * 4.6.2\_Conectores\_internos
+      * **CAPITULO\_5\_LA\_REPARACION\_EN\_EQUIPOS\_INFORMATICOS**
+          * 5.1\_El\_puesto\_de\_reparacion
+          * 5.2\_El\_presupuesto\_de\_reparacion
+          * 5.3\_Criterios\_de\_tarificacion
+              * 5.3.1\_Piezas\_de\_reparacion
+              * 5.3.2\_Factura
+          * 5.4\_El\_procedimiento\_de\_reparacion
+              * 5.4.1\_Garantia\_de\_las\_reparaciones
+      * **CAPITULO\_6\_VIRUS\_Y\_ANTIVIRUS**
+          * 6.1\_Tipos\_de\_malware
+          * 6.2\_Como\_actua\_un\_virus\_informatico
+          * 6.3\_Que\_es\_un\_antivirus
+          * 6.4\_Precauciones\_para\_evitar\_una\_infeccion
+          * 6.5\_Como\_funciona\_un\_antivirus
+              * 6.5.1\_Tecnica\_de\_scanning
+              * 6.5.2\_Tecnicas\_heuristicas
+              * 6.5.3\_Como\_se\_elimina\_un\_virus
+      * **CAPITULO\_7\_AMPLIACION\_DE\_UN\_EQUIPO**
+          * 7.1\_Ampliaciones\_de\_hardware
+              * 7.1.1\_Ampliaciones\_tipicas\_en\_equipos\_sobremesa\_servidores\_y\_workstations
+              * 7.1.2\_Limitaciones\_en\_la\_ampliacion\_de\_los\_portatiles
+              * 7.1.3\_Ampliaciones\_en\_portatiles
+      * **CAPITULO\_8\_REPARACION\_DE\_IMPRESORAS**
+          * 8.1\_La\_impresora
+              * 8.1.1\_Tipos\_de\_impresoras
+          * 8.2\_Las\_multifuncionales
+          * 8.3\_Marcas\_y\_modelos\_mas\_usuales
+          * 8.4\_Funcionamiento\_y\_detalles\_tecnicos
+              * 8.4.1\_Funcionamiento\_de\_las\_impresoras\_termicas
+              * 8.4.2\_Funcionamiento\_de\_las\_impresoras\_laser
+          * 8.5\_Deteccion\_y\_solucion\_de\_problemas
 
-
-
----
-
-## 🎯 Objetivos del Curso
-
-Este curso está diseñado para:
-- 🧰 Aprender a montar equipos informáticos desde cero.
-- ⚙️ Instalar y configurar sistemas operativos modernos.
-- 🔧 Diagnosticar y reparar averías comunes en hardware y software.
-- 🛡️ Aplicar normas de seguridad y buenas prácticas en entornos técnicos.
-
----
-
-## 📁 ¿Cómo usar este repositorio?
-
-1. 📂 Navega por los módulos y capítulos.
-2. 📄 Abre los archivos `.md` o `.pdf` en cada carpeta.
-3. 🛠️ Realiza las prácticas incluidas.
-
----
-
-## 📬 Contacto
-
-¿Tienes dudas o sugerencias?  
-📧  `ricardo.instructor.formacion@gmail.com`
-
----
-
+-----

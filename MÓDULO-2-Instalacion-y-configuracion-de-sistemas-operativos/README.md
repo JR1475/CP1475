@@ -3,156 +3,157 @@
 > 🌟 Este repositorio contiene el material completo para los módulos de montaje, instalación y reparación de equipos microinformáticos.  
 > 📂 Organizado por módulos, capítulos y prácticas detalladas.
 
----
-
+-----
 ![Logo del Proyecto](./../imgs/m2.png)
+-----
 
+## 🗂️ Estructura del Proyecto
 
-├── 📂 MÓDULO-2-Instalacion-y-configuracion-de-sistemas-operativos
-│   ├── 🔧 CAPITULO_10_CONFIGURACION_DE_LAS_OPCIONES_DE_ACCESIBILIDAD
-│   │   ├── 🧩 10.1_El_centro_de_accesibilidad
-│   │   │   ├── 👀 10.1.1_Opciones_para_facilitar_la_visualizacion_de_la_pantalla
-│   │   │   ├── 🎤 10.1.2_Uso_de_narradores
-│   │   │   ├── 🖱️ 10.1.3_Opciones_para_hacer_mas_facil_el_uso_del_teclado_o_del_raton
-│   │   │   └── 🔊 10.1.4_Uso_de_alternativas_visuales_y_de_texto_para_personas_con_dificultades_auditivas
-│   │   └── 🎤 10.2_Reconocimiento_de_voz
-│   ├── ⚙️ CAPITULO_11_CONFIGURACION_DEL_SISTEMA_INFORMATICO
-│   │   ├── 🖥️ 11.1_Configuracion_del_entorno_de_trabajo
-│   │   │   └── 🎨 11.1.1_Personalizacion_del_entorno_visual
-│   │   ├── 🌍 11.2_Cambiar_la_configuracion_regional_del_sistema
-│   │   ├── 🖱️ 11.3_Personalizacion_de_los_perifericos_basicos
-│   │   │   ├── 🖨️ 11.3.1_Como_agregar_una_impresora_local
-│   │   │   └── ⚙️ 11.3.2_Como_configurar_las_propiedades_de_la_impresora
-│   │   └── 🖨️ 11.4_Administrador_de_impresion
-│   │   └── 📥 11.4.1_Administrando_documentos_de_la_cola_de_impresion
-│   ├── 🧠 CAPITULO_1_ARQUITECTURAS_DE_UN_SISTEMA_MICROINFORMATICO
-│   │   ├── 🧩 1.1_Esquema_funcional_de_un_ordenador
-│   │   ├── 🧠 1.2_La_unidad_central_de_procesamiento_y_sus_elementos
-│   │   │   ├── 🧠 1.2.1_La_memoria_interna
-│   │   │   └── 🖼️ 1.2.2_La_memoria_de_video_o_grafica
-│   │   ├── 🖱️ 1.3_Las_unidades_de_entrada_y_salida
-│   │   │   └── 🖱️ 1.3.1_Los_perifericos
-│   │   ├── 💾 1.4_Las_unidades_de_almacenamiento_secundario
-│   │   │   ├── 💿 1.4.1_Disco_duro
-│   │   │   ├── 📀 1.4.2_Lector_grabador_de_discos_opticos_y_soportes_opticos
-│   │   │   └── 📱 1.4.3_Tarjetas_de_memoria_flash
-│   │   ├── 🔌 1.5_Las_tarjetas_de_expansion
-│   │   │   └── 🖼️ 1.5.1_La_tarjeta_grafica
-│   │   ├── 🚆 1.6_Buses_y_ranuras_de_expansion
-│   │   │   └── 🔌 1.6.1_Puertos_y_conectores
-│   │   └── 🔄 1.7_Correspondencia_entre_subsistemas
-│   ├── ⚙️ CAPITULO_2_FUNCIONES_DEL_SISTEMA_OPERATIVO
-│   │   ├── 🔄 2.1.1_Los_procesos
-│   │   ├── 📁 2.1.2_Los_archivos
-│   │   ├── 🔄 2.1.3_Las_llamadas_al_sistema
-│   │   ├── 🧠 2.1.4_El_nucleo_del_sistema_operativo
-│   │   ├── 🖥️ 2.1.5_El_interprete_de_comandos
-│   │   ├── 📘 2.1_Conceptos_basicos
-│   │   └── ⚙️ 2.2_Funciones_del_sistema_operativo
-│   ├── 🧠 CAPITULO_3_ELEMENTOS_DE_UN_SISTEMA_OPERATIVO
-│   │   ├── 🔄 3.1_La_gestion_de_procesos
-│   │   │   ├── 📅 3.1.1_La_planificacion_de_procesos
-│   │   │   ├── 🧮 3.1.2_Planificacion_de_CPU_multiprocesamiento
-│   │   │   ├── 🔄 3.1.3_Algoritmos_de_planificacion
-│   │   │   ├── 🔒 3.1.4_Sincronizacion_de_procesos
-│   │   │   └── ⚠️ 3.1.5_Bloqueos
-│   │   ├── 🧠 3.2_La_gestion_de_la_memoria
-│   │   │   ├── 🧩 3.2.1_Fragmentacion
-│   │   │   ├── 📦 3.2.2_Segmentacion
-│   │   │   ├── 🌀 3.2.3_Memoria_virtual
-│   │   │   ├── 📄 3.2.4_Paginacion
-│   │   │   └── 🔄 3.2.5_Algoritmos_de_reemplazo_de_paginas
-│   │   ├── 🖱️ 3.3_El_sistema_de_entrada_y_salida
-│   │   │   ├── 📥 3.3.1_Acceso_directo_a_memoria
-│   │   │   └── 🧩 3.3.2_Manejadores_de_dispositivos
-│   │   ├── 📂 3.4_sistema_de_archivos
-│   │   ├── 🔐 3.5_sistema_de_proteccion
-│   │   ├── 📡 3.6_sistema_de_comunicaciones
-│   │   ├── 🖥️ 3.7_sistema_interpretacion_ordenes
-│   │   └── 🧩 3.8_Programas_de_sistema
-│   ├── 🧩 CAPITULO_4_SISTEMAS_OPERATIVOS_ACTUALES
-│   │   ├── 📊 4.1_Clasificacion_de_los_sistemas_operativos
-│   │   │   ├── 🧩 4.1.1_Por_los_servicios_ofrecidos
-│   │   │   ├── 🧩 4.1.2_Por_la_forma_de_ofrecer_los_servicios
-│   │   │   └── 🌐 4.1.3_Por_su_disponibilidad
-│   │   ├── 🚀 4.2_Gestores_de_arranque
-│   │   ├── 🖥️ 4.3_Varios_SSSOO_ordenador
-│   │   └── ⚙️ 4.4_Caracteristicas_de_los_sistemas_operativos
-│   │   ├── 🪟 4.4.1_Windows_8
-│   │   ├── 🪟 4.4.2_Windows_10
-│   │   └── 🐧 4.4.3_Linux
-│   ├── 🔧 CAPITULO_5_INSTALACION_Y_CONFIGURACION_DE_SISTEMAS_OPERATIVOS
-│   │   ├── 🧩 5.1_Requisitos_para_la_instalacion
-│   │   │   ├── 🪟 5.1.1_Windows_8
-│   │   │   ├── 🪟 5.1.2_Windows_10
-│   │   │   └── 🐧 5.1.3_Ubuntu
-│   │   ├── ⚠️ 5.2_consideraciones_previas
-│   │   ├── 📦 5.3_Tipos_de_instalación
-│   │   ├── 🪟 5.4_instalación_windows
-│   │   ├── 🪟 5.5_activacion_windows
-│   │   ├── 📄 5.6_documentacion_instalacion
-│   │   └── 🛠️ Prácticas
-│   ├── 🔁 CAPITULO_6_REPLICACION_FISICA_DE_PARTICIONES_Y_DISCOS_DUROS
-│   │   ├── 💾 6.1_copias_de_seguridad
-│   │   ├── 🔁 6.2_clonacion
-│   │   ├── 🔄 6.3_funcionalidad_de_la_replicacion
-│   │   ├── 🔐 6.4_Seguridad_y_prevencion_en_el_proceso_de_replicacion
-│   │   │   └── 🛡️ 6.4.1_Recomendaciones_sobre_el_plan_de_contingencia
-│   │   ├── 📁 6.5_Particiones_de_discos
-│   │   │   ├── 📁 6.5.1_Tipos_de_particiones
-│   │   │   └── 🛠️ 6.5.2_Herramientas_de_gestion
-│   │   ├── 🧰 6.6_Herramientas_de_creacion_e_implantacion_de_imagenes
-│   │   │   ├── 💾 6.6.1_Como_realizar_una_copia_de_seguridad
-│   │   │   ├── 🖼️ 6.6.2_Como_crear_una_imagen_del_sistema
-│   │   │   ├── 🛠️ 6.6.3_Como_crear_un_disco_de_reparacion_del_sistema
-│   │   │   ├── 🔙 6.6.4_Como_crear_un_punto_de_restauracion_del_sistema
-│   │   │   └── 🔙 6.6.5_Como_restaurar_una_copia_de_seguridad
-│   │   └── 🛠️ Prácticas
-│   ├── 🔄 CAPITULO_7_ACTUALIZACION_DEL_SISTEMA_OPERATIVO
-│   │   ├── 🌐 7.1_fuentes_de_actualización
-│   │   ├── 🔄 7.2_actualizaciones_automáticas
-│   │   ├── 🆘 7.3_centros de ayuda y soporte
-│   │   ├── 🔄 7.4_actualizacion_de_sistemas_operativos
-│   │   ├── 🔄 7.5_actualizacion_de_componentes_software
-│   │   ├── 🛠️ 7.6_Procedimientos_de_actualizacion
-│   │   │   ├── 🪟 7.6.1_Windows_Update
-│   │   │   ├── ➕ 7.6.2_La_instalacion_de_nuevos_programas
-│   │   │   ├── ➖ 7.6.3_La_desinstalacion_de_programas
-│   │   │   └── 🧩 7.6.4_Instalacion_de_controladores
-│   │   └── 🧩 7.7_Administrador_de_dispositivos
-│   ├── 🧰 CAPITULO_8_UTILIDADES_DEL_SISTEMA_OPERATIVO
-│   │   ├── ⚙️ 8.1_Caracteristicas_y_funciones
-│   │   │   └── 🖥️ 8.1.1_La_utilidad_Sistema
-│   │   ├── 🗂️ 8.2_Administracion_y_gestion_de_los_sistemas_de_archivos
-│   │   │   ├── ➕ 8.2.1_Como_crear_una_particion
-│   │   │   ├── ➕ 8.2.2_Como_aumentar_el_tamano_de_una_particion
-│   │   │   ├── ➖ 8.2.3_Como_disminuir_el_tamano_de_una_particion
-│   │   │   ├── 🧹 8.2.4_Liberar_espacio_en_disco
-│   │   │   ├── 🚀 8.2.5_Agilizar_el_acceso_a_los_datos
-│   │   │   └── 🛠️ 8.2.6_Detectar_y_reparar_errores_de_disco
-│   │   └── 🔄 8.3_Gestion_de_procesos_y_recursos
-│   │   ├── 📊 8.3.1_El_administrador_de_tareas
-│   │   ├── 📝 8.3.2_El_visor_de_eventos
-│   │   ├── 🧩 8.3.3_Como_administrar_los_servicios_de_un_equipo
-│   │   ├── 📈 8.3.4_El_monitor_de_rendimiento
-│   │   └── 📁 8.3.5_El_registro_de_Windows
-│   ├── 📁 CAPITULO_9_ORGANIZACION_DEL_DISCO_Y_SISTEMAS_DE_ARCHIVOS
-│   │   ├── 📂 9.1_El_sistema_de_archivos
-│   │   ├── 📁 9.2_unidades_lógicas_de_almacenamiento
-│   │   ├── 📦 9.3_Estructuracion_de_los_datos
-│   │   │   ├── 📁 9.3.1_Los_directorios
-│   │   │   ├── 📄 9.3.2_Los_archivos
-│   │   │   └── 🔤 9.3.3_Tipos_de_archivos
-│   │   ├── 🛠️ 9.4_carpetas_y_archivos_del_sistema
-│   │   ├── 🧩 9.5_operaciones_comunes_con_archivos
-│   │   ├── 🖼️ 9.6_El_explorador_de_archivos
-│   │   │   ├── ✅ 9.6.1_Seleccionando_archivos_y_carpetas
-│   │   │   ├── ➕ 9.6.2_Crear_archivos_y_carpetas
-│   │   │   ├── ❌ 9.6.3_Eliminar_elementos_del_equipo
-│   │   │   ├── ✏️ 9.6.4_Cambiar_el_nombre_de_un_elemento
-│   │   │   ├── 🔁 9.6.5_Copiar_y_mover_elementos
-│   │   │   ├── ⚙️ 9.6.6_Las_propiedades
-│   │   │   ├── 📊 9.6.7_Ordenar_y_agrupar
-│   │   │   └── ⚙️ 9.6.8_Opciones_de_carpeta
-│   │   └── 🔍 9.7_busqueda_de_archivos
-│   └── 🛠️ Practica
+  * **MÓDULO-2-Instalacion-y-configuracion-de-sistemas-operativos**
+      * **CAPITULO\_10\_CONFIGURACION\_DE\_LAS\_OPCIONES\_DE\_ACCESIBILIDAD**
+          * 10.1\_El\_centro\_de\_accesibilidad
+              * 10.1.1\_Opciones\_para\_facilitar\_la\_visualizacion\_de\_la\_pantalla
+              * 10.1.2\_Uso\_de\_narradores
+              * 10.1.3\_Opciones\_para\_hacer\_mas\_facil\_el\_uso\_del\_teclado\_o\_del\_raton
+              * 10.1.4\_Uso\_de\_alternativas\_visuales\_y\_de\_texto\_para\_personas\_con\_dificultades\_auditivas
+          * 10.2\_Reconocimiento\_de\_voz
+      * **CAPITULO\_11\_CONFIGURACION\_DEL\_SISTEMA\_INFORMATICO**
+          * 11.1\_Configuracion\_del\_entorno\_de\_trabajo
+              * 11.1.1\_Personalizacion\_del\_entorno\_visual
+          * 11.2\_Cambiar\_la\_configuracion\_regional\_del\_sistema
+          * 11.3\_Personalizacion\_de\_los\_perifericos\_basicos
+              * 11.3.1\_Como\_agregar\_una\_impresora\_local
+              * 11.3.2\_Como\_configurar\_las\_propiedades\_de\_la\_impresora
+          * 11.4\_Administrador\_de\_impresion
+          * 11.4.1\_Administrando\_documentos\_de\_la\_cola\_de\_impresion
+      * **CAPITULO\_1\_ARQUITECTURAS\_DE\_UN\_SISTEMA\_MICROINFORMATICO**
+          * 1.1\_Esquema\_funcional\_de\_un\_ordenador
+          * 1.2\_La\_unidad\_central\_de\_procesamiento\_y\_sus\_elementos
+              * 1.2.1\_La\_memoria\_interna
+              * 1.2.2\_La\_memoria\_de\_video\_o\_grafica
+          * 1.3\_Las\_unidades\_de\_entrada\_y\_salida
+              * 1.3.1\_Los\_perifericos
+          * 1.4\_Las\_unidades\_de\_almacenamiento\_secundario
+              * 1.4.1\_Disco\_duro
+              * 1.4.2\_Lector\_grabador\_de\_discos\_opticos\_y\_soportes\_opticos
+              * 1.4.3\_Tarjetas\_de\_memoria\_flash
+          * 1.5\_Las\_tarjetas\_de\_expansion
+              * 1.5.1\_La\_tarjeta\_grafica
+          * 1.6\_Buses\_y\_ranuras\_de\_expansion
+              * 1.6.1\_Puertos\_y\_conectores
+          * 1.7\_Correspondencia\_entre\_subsistemas
+      * **CAPITULO\_2\_FUNCIONES\_DEL\_SISTEMA\_OPERATIVO**
+          * 2.1.1\_Los\_procesos
+          * 2.1.2\_Los\_archivos
+          * 2.1.3\_Las\_llamadas\_al\_sistema
+          * 2.1.4\_El\_nucleo\_del\_sistema\_operativo
+          * 2.1.5\_El\_interprete\_de\_comandos
+          * 2.1\_Conceptos\_basicos
+          * 2.2\_Funciones\_del\_sistema\_operativo
+      * **CAPITULO\_3\_ELEMENTOS\_DE\_UN\_SISTEMA\_OPERATIVO**
+          * 3.1\_La\_gestion\_de\_procesos
+              * 3.1.1\_La\_planificacion\_de\_procesos
+              * 3.1.2\_Planificacion\_de\_CPU\_multiprocesamiento
+              * 3.1.3\_Algoritmos\_de\_planificacion
+              * 3.1.4\_Sincronizacion\_de\_procesos
+              * 3.1.5\_Bloqueos
+          * 3.2\_La\_gestion\_de\_la\_memoria
+              * 3.2.1\_Fragmentacion
+              * 3.2.2\_Segmentacion
+              * 3.2.3\_Memoria\_virtual
+              * 3.2.4\_Paginacion
+              * 3.2.5\_Algoritmos\_de\_reemplazo\_de\_paginas
+          * 3.3\_El\_sistema\_de\_entrada\_y\_salida
+              * 3.3.1\_Acceso\_directo\_a\_memoria
+              * 3.3.2\_Manejadores\_de\_dispositivos
+          * 3.4\_sistema\_de\_archivos
+          * 3.5\_sistema\_de\_proteccion
+          * 3.6\_sistema\_de\_comunicaciones
+          * 3.7\_sistema\_interpretacion\_ordenes
+          * 3.8\_Programas\_de\_sistema
+      * **CAPITULO\_4\_SISTEMAS\_OPERATIVOS\_ACTUALES**
+          * 4.1\_Clasificacion\_de\_los\_sistemas\_operativos
+              * 4.1.1\_Por\_los\_servicios\_ofrecidos
+              * 4.1.2\_Por\_la\_forma\_de\_ofrecer\_los\_servicios
+              * 4.1.3\_Por\_su\_disponibilidad
+          * 4.2\_Gestores\_de\_arranque
+          * 4.3\_Varios\_SSSOO\_ordenador
+          * 4.4\_Caracteristicas\_de\_los\_sistemas\_operativos
+              * 4.4.1\_Windows\_8
+              * 4.4.2\_Windows\_10
+              * 4.4.3\_Linux
+      * **CAPITULO\_5\_INSTALACION\_Y\_CONFIGURACION\_DE\_SISTEMAS\_OPERATIVOS**
+          * 5.1\_Requisitos\_para\_la\_instalacion
+              * 5.1.1\_Windows\_8
+              * 5.1.2\_Windows\_10
+              * 5.1.3\_Ubuntu
+          * 5.2\_consideraciones\_previas
+          * 5.3\_Tipos\_de\_instalación
+          * 5.4\_instalación\_windows
+          * 5.5\_activacion\_windows
+          * 5.6\_documentacion\_instalacion
+          * Prácticas
+      * **CAPITULO\_6\_REPLICACION\_FISICA\_DE\_PARTICIONES\_Y\_DISCOS\_DUROS**
+          * 6.1\_copias\_de\_seguridad
+          * 6.2\_clonacion
+          * 6.3\_funcionalidad\_de\_la\_replicacion
+          * 6.4\_Seguridad\_y\_prevencion\_en\_el\_proceso\_de\_replicacion
+              * 6.4.1\_Recomendaciones\_sobre\_el\_plan\_de\_contingencia
+          * 6.5\_Particiones\_de\_discos
+              * 6.5.1\_Tipos\_de\_particiones
+              * 6.5.2\_Herramientas\_de\_gestion
+          * 6.6\_Herramientas\_de\_creacion\_e\_implantacion\_de\_imagenes
+              * 6.6.1\_Como\_realizar\_una\_copia\_de\_seguridad
+              * 6.6.2\_Como\_crear\_una\_imagen\_del\_sistema
+              * 6.6.3\_Como\_crear\_un\_disco\_de\_reparacion\_del\_sistema
+              * 6.6.4\_Como\_crear\_un\_punto\_de\_restauracion\_del\_sistema
+              * 6.6.5\_Como\_restaurar\_una\_copia\_de\_seguridad
+          * Prácticas
+      * **CAPITULO\_7\_ACTUALIZACION\_DEL\_SISTEMA\_OPERATIVO**
+          * 7.1\_fuentes\_de\_actualización
+          * 7.2\_actualizaciones\_automáticas
+          * 7.3\_centros de ayuda y soporte
+          * 7.4\_actualizacion\_de\_sistemas\_operativos
+          * 7.5\_actualizacion\_de\_componentes\_software
+          * 7.6\_Procedimientos\_de\_actualizacion
+              * 7.6.1\_Windows\_Update
+              * 7.6.2\_La\_instalacion\_de\_nuevos\_programas
+              * 7.6.3\_La\_desinstalacion\_de\_programas
+              * 7.6.4\_Instalacion\_de\_controladores
+          * 7.7\_Administrador\_de\_dispositivos
+      * **CAPITULO\_8\_UTILIDADES\_DEL\_SISTEMA\_OPERATIVO**
+          * 8.1\_Caracteristicas\_y\_funciones
+              * 8.1.1\_La\_utilidad\_Sistema
+          * 8.2\_Administracion\_y\_gestion\_de\_los\_sistemas\_de\_archivos
+              * 8.2.1\_Como\_crear\_una\_particion
+              * 8.2.2\_Como\_aumentar\_el\_tamano\_de\_una\_particion
+              * 8.2.3\_Como\_disminuir\_el\_tamano\_de\_una\_particion
+              * 8.2.4\_Liberar\_espacio\_en\_disco
+              * 8.2.5\_Agilizar\_el\_acceso\_a\_los\_datos
+              * 8.2.6\_Detectar\_y\_reparar\_errores\_de\_disco
+          * 8.3\_Gestion\_de\_procesos\_y\_recursos
+              * 8.3.1\_El\_administrador\_de\_tareas
+              * 8.3.2\_El\_visor\_de\_eventos
+              * 8.3.3\_Como\_administrar\_los\_servicios\_de\_un\_equipo
+              * 8.3.4\_El\_monitor\_de\_rendimiento
+              * 8.3.5\_El\_registro\_de\_Windows
+      * **CAPITULO\_9\_ORGANIZACION\_DEL\_DISCO\_Y\_SISTEMAS\_DE\_ARCHIVOS**
+          * 9.1\_El\_sistema\_de\_archivos
+          * 9.2\_unidades\_lógicas\_de\_almacenamiento
+          * 9.3\_Estructuracion\_de\_los\_datos
+              * 9.3.1\_Los\_directorios
+              * 9.3.2\_Los\_archivos
+              * 9.3.3\_Tipos\_de\_archivos
+          * 9.4\_carpetas\_y\_archivos\_del\_sistema
+          * 9.5\_operaciones\_comunes\_con\_archivos
+          * 9.6\_El\_explorador\_de\_archivos
+              * 9.6.1\_Seleccionando\_archivos\_y\_carpetas
+              * 9.6.2\_Crear\_archivos\_y\_carpetas
+              * 9.6.3\_Eliminar\_elementos\_del\_equipo
+              * 9.6.4\_Cambiar\_el\_nombre\_de\_un\_elemento
+              * 9.6.5\_Copiar\_y\_mover\_elementos
+              * 9.6.6\_Las\_propiedades
+              * 9.6.7\_Ordenar\_y\_agrupar
+              * 9.6.8\_Opciones\_de\_carpeta
+          * 9.7\_busqueda\_de\_archivos
+      * **Práctica**
