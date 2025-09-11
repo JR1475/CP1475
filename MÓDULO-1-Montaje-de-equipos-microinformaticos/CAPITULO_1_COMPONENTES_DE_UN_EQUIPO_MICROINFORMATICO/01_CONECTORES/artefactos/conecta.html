@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conecta los Dispositivos - Juego de Conectores</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .game-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 800px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .score-item {
+            text-align: center;
+        }
+        
+        .score-item h3 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .score-item p {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+        
+        .devices-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .device-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+        
+        .device-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .device-card.selected {
+            border: 2px solid #4CAF50;
+            background: rgba(76, 175, 80, 0.3);
+        }
+        
+        .device-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+        
+        .device-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+        }
+        
+        .connectors-container {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .connectors-title {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+        
+        .connectors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+        }
+        
+        .connector-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .connector-card:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+        
+        .connector-icon {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+        
+        .connector-name {
+            font-size: 0.9rem;
+        }
+        
+        .feedback {
+            margin-top: 30px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .feedback.correct {
+            background: rgba(76, 175, 80, 0.3);
+            border: 2px solid #4CAF50;
+        }
+        
+        .feedback.incorrect {
+            background: rgba(244, 67, 54, 0.3);
+            border: 2px solid #F44336;
+        }
+        
+        .reset-btn {
+            display: block;
+            margin: 30px auto 0;
+            padding: 12px 25px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .reset-btn:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        @media (max-width: 600px) {
+            .devices-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .connectors-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔌 Conecta los Dispositivos</h1>
+        <p>Selecciona un dispositivo y luego el conector correcto</p>
+    </div>
+    
+    <div class="game-container">
+        <div class="score-board">
+            <div class="score-item">
+                <h3 id="correct-count">0</h3>
+                <p>Aciertos</p>
+            </div>
+            <div class="score-item">
+                <h3 id="incorrect-count">0</h3>
+                <p>Errores</p>
+            </div>
+            <div class="score-item">
+                <h3 id="streak-count">0</h3>
+                <p>Racha</p>
+            </div>
+        </div>
+        
+        <div class="devices-container" id="devices-container">
+            <!-- Los dispositivos se generarán con JavaScript -->
+        </div>
+        
+        <div class="connectors-container" id="connectors-container">
+            <h2 class="connectors-title">Selecciona el conector correcto para:</h2>
+            <div class="connectors-grid" id="connectors-grid">
+                <!-- Los conectores se generarán con JavaScript -->
+            </div>
+        </div>
+        
+        <div class="feedback" id="feedback"></div>
+        
+        <button class="reset-btn" id="reset-btn">Reiniciar Juego</button>
+    </div>
+
+    <script>
+        // Datos del juego
+        const devices = [
+            { id: 'mouse', name: 'Mouse', icon: '🖱️', correctConnectors: ['ps2', 'usb'] },
+            { id: 'keyboard', name: 'Teclado', icon: '⌨️', correctConnectors: ['ps2', 'usb'] },
+            { id: 'monitor', name: 'Monitor', icon: '🖥️', correctConnectors: ['vga', 'hdmi', 'dvi'] },
+            { id: 'printer', name: 'Impresora', icon: '🖨️', correctConnectors: ['usb', 'ethernet'] },
+            { id: 'headphones', name: 'Auriculares', icon: '🎧', correctConnectors: ['jack', 'usb'] },
+            { id: 'speaker', name: 'Altavoz', icon: '🔊', correctConnectors: ['jack', 'bluetooth'] },
+            { id: 'camera', name: 'Cámara Web', icon: '📷', correctConnectors: ['usb'] },
+            { id: 'external-disk', name: 'Disco Externo', icon: '💾', correctConnectors: ['usb', 'thunderbolt'] }
+        ];
+        
+        const connectors = [
+            { id: 'ps2', name: 'PS/2', icon: '🟢' },
+            { id: 'usb', name: 'USB', icon: '🔌' },
+            { id: 'vga', name: 'VGA', icon: '🔵' },
+            { id: 'hdmi', name: 'HDMI', icon: '🟣' },
+            { id: 'dvi', name: 'DVI', icon: '⚪' },
+            { id: 'ethernet', name: 'Ethernet', icon: '🌐' },
+            { id: 'jack', name: 'Jack 3.5mm', icon: '🔘' },
+            { id: 'bluetooth', name: 'Bluetooth', icon: '📶' },
+            { id: 'thunderbolt', name: 'Thunderbolt', icon: '⚡' }
+        ];
+        
+        // Estado del juego
+        let selectedDevice = null;
+        let correctCount = 0;
+        let incorrectCount = 0;
+        let streakCount = 0;
+        
+        // Elementos del DOM
+        const devicesContainer = document.getElementById('devices-container');
+        const connectorsContainer = document.getElementById('connectors-container');
+        const connectorsGrid = document.getElementById('connectors-grid');
+        const feedbackElement = document.getElementById('feedback');
+        const correctCountElement = document.getElementById('correct-count');
+        const incorrectCountElement = document.getElementById('incorrect-count');
+        const streakCountElement = document.getElementById('streak-count');
+        const resetBtn = document.getElementById('reset-btn');
+        
+        // Inicializar el juego
+        function initGame() {
+            renderDevices();
+            resetGame();
+        }
+        
+        // Renderizar dispositivos
+        function renderDevices() {
+            devicesContainer.innerHTML = '';
+            devices.forEach(device => {
+                const deviceCard = document.createElement('div');
+                deviceCard.className = 'device-card';
+                deviceCard.dataset.deviceId = device.id;
+                
+                deviceCard.innerHTML = `
+                    <div class="device-icon">${device.icon}</div>
+                    <div class="device-name">${device.name}</div>
+                `;
+                
+                deviceCard.addEventListener('click', () => selectDevice(device.id));
+                devicesContainer.appendChild(deviceCard);
+            });
+        }
+        
+        // Seleccionar un dispositivo
+        function selectDevice(deviceId) {
+            // Limpiar selección anterior
+            document.querySelectorAll('.device-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            // Marcar dispositivo seleccionado
+            const selectedCard = document.querySelector(`[data-device-id="${deviceId}"]`);
+            selectedCard.classList.add('selected');
+            
+            // Guardar dispositivo seleccionado
+            selectedDevice = devices.find(device => device.id === deviceId);
+            
+            // Mostrar conectores
+            renderConnectors();
+            connectorsContainer.style.display = 'block';
+            
+            // Ocultar feedback anterior
+            feedbackElement.style.display = 'none';
+        }
+        
+        // Renderizar conectores
+        function renderConnectors() {
+            connectorsGrid.innerHTML = '';
+            
+            // Actualizar título con el dispositivo seleccionado
+            document.querySelector('.connectors-title').textContent = 
+                `Selecciona el conector correcto para: ${selectedDevice.name}`;
+            
+            connectors.forEach(connector => {
+                const connectorCard = document.createElement('div');
+                connectorCard.className = 'connector-card';
+                connectorCard.dataset.connectorId = connector.id;
+                
+                connectorCard.innerHTML = `
+                    <div class="connector-icon">${connector.icon}</div>
+                    <div class="connector-name">${connector.name}</div>
+                `;
+                
+                connectorCard.addEventListener('click', () => checkConnector(connector.id));
+                connectorsGrid.appendChild(connectorCard);
+            });
+        }
+        
+        // Verificar si el conector es correcto
+        function checkConnector(connectorId) {
+            const isCorrect = selectedDevice.correctConnectors.includes(connectorId);
+            
+            // Actualizar contadores
+            if (isCorrect) {
+                correctCount++;
+                streakCount++;
+            } else {
+                incorrectCount++;
+                streakCount = 0;
+            }
+            
+            // Actualizar UI
+            correctCountElement.textContent = correctCount;
+            incorrectCountElement.textContent = incorrectCount;
+            streakCountElement.textContent = streakCount;
+            
+            // Mostrar feedback
+            showFeedback(isCorrect, connectorId);
+            
+            // Deshabilitar temporalmente los conectores
+            document.querySelectorAll('.connector-card').forEach(card => {
+                card.style.pointerEvents = 'none';
+            });
+            
+            // Volver a habilitar después de un tiempo
+            setTimeout(() => {
+                document.querySelectorAll('.connector-card').forEach(card => {
+                    card.style.pointerEvents = 'auto';
+                });
+            }, 1500);
+        }
+        
+        // Mostrar feedback
+        function showFeedback(isCorrect, connectorId) {
+            const connector = connectors.find(c => c.id === connectorId);
+            
+            feedbackElement.className = 'feedback';
+            feedbackElement.textContent = isCorrect 
+                ? `✅ ¡Correcto! ${connector.name} es el conector adecuado para ${selectedDevice.name}`
+                : `❌ Incorrecto. ${connector.name} no es el conector adecuado para ${selectedDevice.name}`;
+            
+            feedbackElement.classList.add(isCorrect ? 'correct' : 'incorrect');
+            feedbackElement.style.display = 'block';
+            
+            // Ocultar feedback después de un tiempo
+            setTimeout(() => {
+                feedbackElement.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Reiniciar juego
+        function resetGame() {
+            selectedDevice = null;
+            correctCount = 0;
+            incorrectCount = 0;
+            streakCount = 0;
+            
+            correctCountElement.textContent = '0';
+            incorrectCountElement.textContent = '0';
+            streakCountElement.textContent = '0';
+            
+            connectorsContainer.style.display = 'none';
+            feedbackElement.style.display = 'none';
+            
+            document.querySelectorAll('.device-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+        }
+        
+        // Event Listeners
+        resetBtn.addEventListener('click', resetGame);
+        
+        // Iniciar el juego
+        initGame();
+    </script>
+</body>
+</html>

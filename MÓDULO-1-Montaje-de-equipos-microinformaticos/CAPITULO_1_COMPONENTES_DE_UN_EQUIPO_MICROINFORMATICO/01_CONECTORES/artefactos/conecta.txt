@@ -1,0 +1,6 @@
+https://chat.z.ai/space/s0nr97x7tq70-art
+
+
+Prompt:
+
+"Puedes desaroolar una aplicación de una página (un artifact) que permita relacionar los conectores externos con los dispostivos (ejemplo: ps2 verde con el mouse, vga con el monitor) en modo gamificación. Al pulsar sobre el dispostivo se muestran los conectores y los puedes escoger. Debe contestar correcto a ono ."
