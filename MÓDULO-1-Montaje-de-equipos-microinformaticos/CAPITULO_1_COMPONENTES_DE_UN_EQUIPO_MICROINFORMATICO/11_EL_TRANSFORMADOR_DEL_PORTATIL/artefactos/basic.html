@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transformador Portátil vs Fuente ATX - Comparación</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            text-align: center;
+            color: #ecf0f1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .comparison-container {
+            width: 90%;
+            max-width: 1400px;
+            background: #2d3748;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 3px solid #4a5568;
+            margin-bottom: 30px;
+        }
+
+        .comparison-header {
+            background: linear-gradient(to right, #e53e3e, #3182ce);
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .comparison-content {
+            display: flex;
+            min-height: 600px;
+        }
+
+        .power-column {
+            flex: 1;
+            padding: 20px;
+            position: relative;
+        }
+
+        .laptop-column {
+            background: linear-gradient(to bottom, #2d3748, #e53e3e);
+            border-right: 2px solid #4a5568;
+        }
+
+        .atx-column {
+            background: linear-gradient(to bottom, #2d3748, #3182ce);
+        }
+
+        .power-title {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .laptop-title {
+            color: #fc8181;
+        }
+
+        .atx-title {
+            color: #63b3ed;
+        }
+
+        /* Visualización de dispositivos */
+        .device-visual {
+            height: 250px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .device-icon {
+            font-size: 8rem;
+            opacity: 0.3;
+            position: absolute;
+        }
+
+        .device-info {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .device-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .device-specs {
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Esquema eléctrico */
+        .electrical-scheme {
+            height: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .scheme-title {
+            position: absolute;
+            top: 10px;
+            left: 15px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #a0aec0;
+        }
+
+        .scheme-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            height: 100%;
+            padding-top: 30px;
+        }
+
+        .component-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #4a5568;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            min-width: 80px;
+            transition: all 0.3s ease;
+        }
+
+        .component-box:hover {
+            transform: scale(1.05);
+            border-color: #4299e1;
+        }
+
+        .component-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .component-name {
+            font-size: 0.8rem;
+        }
+
+        .connection-line {
+            width: 30px;
+            height: 2px;
+            background: #4a5568;
+            position: relative;
+        }
+
+        .connection-line::after {
+            content: '';
+            position: absolute;
+            right: -5px;
+            top: -4px;
+            width: 0;
+            height: 0;
+            border-left: 5px solid #4a5568;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+        }
+
+        /* Características */
+        .features {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .feature-icon {
+            font-size: 1.2rem;
+            width: 30px;
+            text-align: center;
+        }
+
+        .feature-text {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        /* Comparativa de eficiencia */
+        .efficiency-comparison {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .efficiency-title {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: #a0aec0;
+        }
+
+        .efficiency-bars {
+            display: flex;
+            gap: 20px;
+            justify-content: space-around;
+        }
+
+        .efficiency-item {
+            text-align: center;
+            flex: 1;
+        }
+
+        .efficiency-label {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .efficiency-bar {
+            height: 100px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .efficiency-fill {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: linear-gradient(to top, #48bb78, #68d391);
+            transition: height 1s ease;
+            border-radius: 10px;
+        }
+
+        .laptop-fill {
+            background: linear-gradient(to top, #e53e3e, #fc8181);
+        }
+
+        .atx-fill {
+            background: linear-gradient(to top, #3182ce, #63b3ed);
+        }
+
+        .efficiency-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        /* Controles */
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-btn:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Panel de información */
+        .info-panel {
+            margin-top: 20px;
+            background: rgba(45, 55, 72, 0.9);
+            border-radius: 10px;
+            padding: 25px;
+            width: 90%;
+            max-width: 1000px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 2px solid #4a5568;
+            transition: all 0.5s ease;
+            transform: translateY(20px);
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .info-panel.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .info-icon {
+            font-size: 4rem;
+            color: #4299e1;
+            margin-bottom: 20px;
+        }
+
+        .info-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #4299e1;
+            border-bottom: 2px solid #4299e1;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .info-description {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .info-details {
+            background: rgba(74, 85, 104, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            line-height: 1.5;
+            width: 100%;
+        }
+
+        .info-details strong {
+            color: #4299e1;
+        }
+
+        /* Tabla comparativa */
+        .comparison-table {
+            margin-top: 20px;
+            width: 90%;
+            max-width: 1000px;
+            background: rgba(45, 55, 72, 0.9);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid #4a5568;
+        }
+
+        .table-header {
+            background: linear-gradient(to right, #e53e3e, #3182ce);
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .table-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .table-cell {
+            padding: 12px;
+            border-bottom: 1px solid #4a5568;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .table-cell:first-child {
+            font-weight: bold;
+            background: rgba(74, 85, 104, 0.5);
+        }
+
+        .table-cell.laptop {
+            border-right: 1px solid #4a5568;
+            color: #fc8181;
+        }
+
+        .table-cell.atx {
+            color: #63b3ed;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-content {
+                flex-direction: column;
+            }
+            
+            .laptop-column {
+                border-right: none;
+                border-bottom: 2px solid #4a5568;
+            }
+            
+            .scheme-content {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .connection-line {
+                width: 2px;
+                height: 20px;
+            }
+            
+            .connection-line::after {
+                top: auto;
+                bottom: -5px;
+                right: auto;
+                left: -4px;
+                border-left: 5px solid transparent;
+                border-right: 5px solid transparent;
+                border-top: 5px solid #4a5568;
+            }
+            
+            .efficiency-bars {
+                flex-direction: column;
+            }
+            
+            .table-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .table-cell.laptop,
+            .table-cell.atx {
+                border-right: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Transformador Portátil vs Fuente ATX - Comparación Completa</h1>
+    
+    <div class="controls">
+        <button class="control-btn" id="btnSpecs">
+            <i class="fas fa-info-circle"></i> Especificaciones
+        </button>
+        <button class="control-btn" id="btnScheme">
+            <i class="fas fa-project-diagram"></i> Esquema Eléctrico
+        </button>
+        <button class="control-btn" id="btnEfficiency">
+            <i class="fas fa-chart-line"></i> Eficiencia
+        </button>
+        <button class="control-btn" id="btnCompare">
+            <i class="fas fa-balance-scale"></i> Comparar
+        </button>
+    </div>
+    
+    <div class="comparison-container">
+        <div class="comparison-header">
+            Comparativa: Transformador de Portátil vs Fuente de Alimentación ATX
+        </div>
+        
+        <div class="comparison-content">
+            <!-- Columna del Transformador de Portátil -->
+            <div class="power-column laptop-column">
+                <div class="power-title laptop-title">
+                    <i class="fas fa-laptop"></i> Transformador de Portátil
+                </div>
+                
+                <div class="device-visual">
+                    <i class="device-icon fas fa-plug"></i>
+                    <div class="device-info">
+                        <div class="device-name">Adaptador AC/DC</div>
+                        <div class="device-specs">
+                            65-90W<br>
+                            19-20V DC<br>
+                            Externo<br>
+                            2-3 kg
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="electrical-scheme">
+                    <div class="scheme-title">Esquema Simplificado</div>
+                    <div class="scheme-content">
+                        <div class="component-box">
+                            <i class="component-icon fas fa-plug"></i>
+                            <div class="component-name">AC 110-240V</div>
+                        </div>
+                        <div class="connection-line"></div>
+                        <div class="component-box">
+                            <i class="component-icon fas fa-bolt"></i>
+                            <div class="component-name">Rectificador</div>
+                        </div>
+                        <div class="connection-line"></div>
+                        <div class="component-box">
+                            <i class="component-icon fas fa-microchip"></i>
+                            <div class="component-name">Regulador</div>
+                        </div>
+                        <div class="connection-line"></div>
+                        <div class="component-box">
+                            <i class="component-icon fas fa-laptop"></i>
+                            <div class="component-name">DC 19V</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="features">
+                    <div class="feature-item">
+                        <i class="feature-icon fas fa-compress-alt"></i>
+                        <div class="feature-text">Compacto y portátil</div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="feature-icon fa-thermometer-half"></i>
+                        <div class="feature-text">Calor disipado externamente</div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="feature-icon fa-shield-alt"></i>
+                        <div class="feature-text">Protecciones básicas</div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="feature-icon fa-battery-three-quarters"></i>
+                        <div class="feature-text">Incluye carga de batería</div>
+                    </div>
+                </div>
+                
+                <div class="efficiency-comparison">
+                    <div class="efficiency-title">Eficiencia Energética</div>
+                    <div class="efficiency-bars">
+                        <div class="efficiency-item">
+                            <div class="efficiency-label">Eficiencia</div>
+                            <div class="efficiency-bar">
+                                <div class="efficiency-fill laptop-fill" style="height: 75%;"></div>
+                            </div>
+                            <div class="efficiency-value">75-85%</div>
+                        </div>
+                        <div class="efficiency-item">
+                            <div class="efficiency-label">Pérdidas</div>
+                            <div class="efficiency-bar">
+                                <div class="efficiency-fill" style="height: 25%; background: rgba(229, 62, 62, 0.5);"></div>
+                            </div>
+                            <div class="efficiency-value">15-25%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Columna de la Fuente ATX -->
+            <div class="power-column atx-column">
+                <div class="power-title atx-title">
+                    <i class="fas fa-desktop"></i> Fuente ATX
+                </div>
+                
+                <div class="device-visual">
+                    <i class="device-icon fas fa-server"></i>
+                    <div class="device-info">
+                        <div class="device-name">Fuente ATX</div>
+                        <div class="device-specs">
+                            300-1200W<br>
+                            Múltiples voltajes<br>
+                            Interno<br>
+                            1.5-3 kg
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="electrical-scheme">
+                    <div class="scheme-title">Esquema Simplificado</div>
+                    <div class="scheme-content">
+                        <div class="component-box">
+                            <i class="component-icon fas fa-plug"></i>
+                            <div class="component-name">AC 220V</div>
+                        </div>
+                        <div class="connection-line"></div>
+                        <div class="component-box">
+                            <i class="component-icon fas fa-filter"></i>
+                            <div class="component-name">Filtro EMI</div>
+                        </div>
+                        <div class="connection-line"></div>
+                        <div class="component-box">
+                            <i class="component-icon fas fa-bolt"></i>
+                            <div class="component-name">Rectificador</div>
+                        </div>
+                        <div class="connection-line"></div>
+                        <div class="component-box">
+                            <i class="component-icon fas fa-sync-alt"></i>
+                            <div class="component-name">Transformador</div>
+                        </div>
+                        <div class="connection-line"></div>
+                        <div class="component-box">
+                            <i class="component-icon fas fa-microchip"></i>
+                            <div class="component-name">Reguladores</div>
+                        </div>
+                        <div class="connection-line"></div>
+                        <div class="component-box">
+                            <i class="component-icon fas fa-usb"></i>
+                            <div class="component-name">Múltiples DC</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="features">
+                    <div class="feature-item">
+                        <i class="feature-icon fas fa-expand-arrows-alt"></i>
+                        <div class="feature-text">Alta potencia</div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="feature-icon fa-wind"></i>
+                        <div class="feature-text">Ventilación forzada</div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="feature-icon fa-shield-alt"></i>
+                        <div class="feature-text">Múltiples protecciones</div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="feature-icon fa-tachometer-alt"></i>
+                        <div class="feature-text">Múltiples voltajes</div>
+                    </div>
+                </div>
+                
+                <div class="efficiency-comparison">
+                    <div class="efficiency-title">Eficiencia Energética</div>
+                    <div class="efficiency-bars">
+                        <div class="efficiency-item">
+                            <div class="efficiency-label">Eficiencia</div>
+                            <div class="efficiency-bar">
+                                <div class="efficiency-fill atx-fill" style="height: 90%;"></div>
+                            </div>
+                            <div class="efficiency-value">85-94%</div>
+                        </div>
+                        <div class="efficiency-item">
+                            <div class="efficiency-label">Pérdidas</div>
+                            <div class="efficiency-bar">
+                                <div class="efficiency-fill" style="height: 10%; background: rgba(49, 130, 206, 0.5);"></div>
+                            </div>
+                            <div class="efficiency-value">6-15%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabla comparativa -->
+    <div class="comparison-table">
+        <div class="table-header">Comparativa Detallada</div>
+        <div class="table-content">
+            <div class="table-cell">Característica</div>
+            <div class="table-cell laptop">Transformador Portátil</div>
+            <div class="table-cell atx">Fuente ATX</div>
+            
+            <div class="table-cell">Ubicación</div>
+            <div class="table-cell laptop">Externo</div>
+            <div class="table-cell atx">Interno (case)</div>
+            
+            <div class="table-cell">Potencia</div>
+            <div class="table-cell laptop">65-90W</div>
+            <div class="table-cell atx">300-1200W</div>
+            
+            <div class="table-cell">Voltajes de Salida</div>
+            <div class="table-cell laptop">19-20V DC (único)</div>
+            <div class="table-cell atx">+3.3V, +5V, +12V, -12V, +5VSB</div>
+            
+            <div class="table-cell">Eficiencia</div>
+            <div class="table-cell laptop">75-85%</div>
+            <div class="table-cell atx">85-94% (80 Plus)</div>
+            
+            <div class="table-cell">Enfriamiento</div>
+            <div class="table-cell laptop">Pasivo (disipador)</div>
+            <div class="table-cell atx">Activo (ventilador)</div>
+            
+            <div class="table-cell">Protecciones</div>
+            <div class="table-cell laptop">Básicas (sobrecorriente)</div>
+            <div class="table-cell atx">OVP, UVP, OCP, SCP, OTP</div>
+            
+            <div class="table-cell">Conectores</div>
+            <div class="table-cell laptop">1 conector DC</div>
+            <div class="table-cell atx">24-pin, 8-pin CPU, SATA, Molex, PCIe</div>
+            
+            <div class="table-cell">Peso</div>
+            <div class="table-cell laptop">200-500g</div>
+            <div class="table-cell atx">1.5-3kg</div>
+            
+            <div class="table-cell">Costo</div>
+            <div class="table-cell laptop">$20-50</div>
+            <div class="table-cell atx">$50-300+</div>
+            
+            <div class="table-cell">Vida útil</div>
+            <div class="table-cell laptop">3-5 años</div>
+            <div class="table-cell atx">5-10 años</div>
+        </div>
+    </div>
+    
+    <div class="info-panel" id="infoPanel">
+        <i class="info-icon fas fa-plug"></i>
+        <div class="info-title" id="infoTitle">Transformador Portátil vs Fuente ATX</div>
+        <div class="info-description" id="infoDescription">
+            Ambos dispositivos convierten corriente alterna en continua, pero están diseñados para necesidades completamente diferentes.
+        </div>
+        <div class="info-details" id="infoDetails">
+            <strong>Transformador de Portátil:</strong> Es un adaptador AC/DC compacto que convierte el voltaje de la red (110-240V AC) a un bajo voltaje DC (19-20V) específico para el portátil. Su diseño prioriza la portabilidad y la eficiencia energética moderada.<br><br>
+            <strong>Fuente ATX:</strong> Es una fuente de alimentación interna de alta potencia que proporciona múltiples voltajes regulados (+3.3V, +5V, +12V, etc.) para todos los componentes del ordenador. Prioriza la potencia, estabilidad y múltiples protecciones.<br><br>
+            <strong>Diferencias clave:</strong> El transformador portátil es externo, de baja potencia y simple, mientras que la fuente ATX es interna, de alta potencia y compleja, con múltiples salidas y protecciones avanzadas.
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Aplicación educativa sobre las diferencias entre transformadores de portátil y fuentes ATX</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos de control
+            const btnSpecs = document.getElementById('btnSpecs');
+            const btnScheme = document.getElementById('btnScheme');
+            const btnEfficiency = document.getElementById('btnEfficiency');
+            const btnCompare = document.getElementById('btnCompare');
+            
+            // Panel de información
+            const infoPanel = document.getElementById('infoPanel');
+            const infoTitle = document.getElementById('infoTitle');
+            const infoDescription = document.getElementById('infoDescription');
+            const infoDetails = document.getElementById('infoDetails');
+            
+            // Información para cada modo
+            const modeInfo = {
+                'specs': {
+                    title: 'Especificaciones Técnicas Comparadas',
+                    description: 'Las especificaciones técnicas muestran las diferencias fundamentales entre ambos dispositivos.',
+                    details: '<strong>Transformador Portátil:</strong> Diseñado para ser compacto y ligero, con potencia limitada (65-90W) y un único voltaje de salida. Su eficiencia es moderada (75-85%) debido a las limitaciones de tamaño y peso.<br><br><strong>Fuente ATX:</strong> Diseñada para máxima potencia y estabilidad, con capacidades desde 300W hasta 1200W o más. Proporciona múltiples voltajes regulados y eficiencias superiores (85-94%) gracias a su tamaño interno y mejor ventilación.'
+                },
+                'scheme': {
+                    title: 'Esquemas Eléctricos',
+                    description: 'Los esquemas muestran la complejidad y las diferencias en el diseño interno.',
+                    details: '<strong>Transformador Portátil:</strong> Esquema simple: AC → Rectificador → Regulador → DC único. Su diseño minimalista prioriza la portabilidad y el bajo costo.<br><br><strong>Fuente ATX:</strong> Esquema complejo: AC → Filtro EMI → Rectificador → Transformador → Múltiples Reguladores → Múltiples Salidas DC. Su diseño incluye etapas adicionales para mejor filtrado, aislamiento y regulación de múltiples voltajes.'
+                },
+                'efficiency': {
+                    title: 'Eficiencia Energética',
+                    description: 'La eficiencia energética varía significativamente debido al diseño y aplicación.',
+                    details: '<strong>Transformador Portátil:</strong> Eficiencia del 75-85%. Las pérdidas (15-25%) se disipan como calor en el propio adaptador. Su diseño compacto limita la eficiencia máxima posible.<br><br><strong>Fuente ATX:</strong> Eficiencia del 85-94% (certificaciones 80 Plus). Las pérdidas (6-15%) son menores gracias al mejor diseño, componentes de calidad y ventilación activa. La certificación 80 Plus garantiza un mínimo del 80% de eficiencia al 20%, 50% y 100% de carga.'
+                },
+                'compare': {
+                    title: 'Comparación Integral',
+                    description: 'Ambos dispositivos sirven para convertir AC a DC, pero para aplicaciones completamente diferentes.',
+                    details: '<strong>Propósito:</strong> El transformador portátil alimenta un único dispositivo móvil, mientras que la fuente ATX alimenta un sistema completo con múltiples componentes.<br><br><strong>Diseño:</strong> El transformador prioriza portabilidad y simplicidad; la fuente ATX prioriza potencia, estabilidad y múltiples salidas.<br><br><strong>Aplicación:</strong> Portátiles, tablets y pequeños dispositivos usan transformadores externos; PCs de escritorio, servidores y estaciones de trabajo usan fuentes ATX internas.'
+                }
+            };
+            
+            // Función para animar las barras de eficiencia
+            function animateEfficiencyBars() {
+                const laptopBars = document.querySelectorAll('.laptop-fill');
+                const atxBars = document.querySelectorAll('.atx-fill');
+                
+                laptopBars.forEach(bar => {
+                    const height = bar.style.height;
+                    bar.style.height = '0%';
+                    setTimeout(() => {
+                        bar.style.height = height;
+                    }, 100);
+                });
+                
+                atxBars.forEach(bar => {
+                    const height = bar.style.height;
+                    bar.style.height = '0%';
+                    setTimeout(() => {
+                        bar.style.height = height;
+                    }, 100);
+                });
+            }
+            
+            // Eventos de los botones
+            btnSpecs.addEventListener('click', function() {
+                updateButtons('specs');
+                updateInfo('specs');
+                highlightFeatures();
+            });
+            
+            btnScheme.addEventListener('click', function() {
+                updateButtons('scheme');
+                updateInfo('scheme');
+                highlightSchemes();
+            });
+            
+            btnEfficiency.addEventListener('click', function() {
+                updateButtons('efficiency');
+                updateInfo('efficiency');
+                animateEfficiencyBars();
+            });
+            
+            btnCompare.addEventListener('click', function() {
+                updateButtons('compare');
+                updateInfo('compare');
+                highlightComparison();
+            });
+            
+            // Función para actualizar botones
+            function updateButtons(activeBtn) {
+                [btnSpecs, btnScheme, btnEfficiency, btnCompare].forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                if (activeBtn === 'specs') btnSpecs.classList.add('active');
+                else if (activeBtn === 'scheme') btnScheme.classList.add('active');
+                else if (activeBtn === 'efficiency') btnEfficiency.classList.add('active');
+                else if (activeBtn === 'compare') btnCompare.classList.add('active');
+            }
+            
+            // Función para actualizar información
+            function updateInfo(mode) {
+                const info = modeInfo[mode];
+                if (info) {
+                    infoTitle.textContent = info.title;
+                    infoDescription.textContent = info.description;
+                    infoDetails.innerHTML = info.details;
+                }
+            }
+            
+            // Función para resaltar características
+            function highlightFeatures() {
+                const features = document.querySelectorAll('.feature-item');
+                features.forEach((feature, index) => {
+                    setTimeout(() => {
+                        feature.style.transform = 'translateX(10px)';
+                        feature.style.background = 'rgba(255, 255, 255, 0.15)';
+                        setTimeout(() => {
+                            feature.style.transform = 'translateX(5px)';
+                            feature.style.background = 'rgba(255, 255, 255, 0.05)';
+                        }, 300);
+                    }, index * 100);
+                });
+            }
+            
+            // Función para resaltar esquemas
+            function highlightSchemes() {
+                const components = document.querySelectorAll('.component-box');
+                components.forEach((component, index) => {
+                    setTimeout(() => {
+                        component.style.transform = 'scale(1.1)';
+                        component.style.borderColor = '#4299e1';
+                        setTimeout(() => {
+                            component.style.transform = 'scale(1)';
+                            component.style.borderColor = '#4a5568';
+                        }, 300);
+                    }, index * 150);
+                });
+            }
+            
+            // Función para resaltar comparación
+            function highlightComparison() {
+                const tableCells = document.querySelectorAll('.table-cell');
+                tableCells.forEach((cell, index) => {
+                    if (!cell.classList.contains('laptop') && !cell.classList.contains('atx')) {
+                        setTimeout(() => {
+                            cell.style.background = 'rgba(66, 153, 225, 0.2)';
+                            setTimeout(() => {
+                                cell.style.background = cell.classList.contains('laptop-column') ? 'rgba(229, 62, 62, 0.1)' : 'rgba(49, 130, 206, 0.1)';
+                            }, 300);
+                        }, index * 50);
+                    }
+                });
+            }
+            
+            // Mostrar panel de información inicial
+            setTimeout(() => {
+                infoPanel.classList.add('visible');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

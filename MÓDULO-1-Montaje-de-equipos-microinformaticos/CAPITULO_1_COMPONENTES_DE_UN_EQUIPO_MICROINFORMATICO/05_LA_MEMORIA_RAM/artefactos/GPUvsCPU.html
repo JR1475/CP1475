@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU vs GPU - Procesamiento Paralelo y Serie</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            text-align: center;
+            color: #ecf0f1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .comparison-container {
+            width: 90%;
+            max-width: 1400px;
+            background: #2d3748;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 3px solid #4a5568;
+            margin-bottom: 30px;
+        }
+
+        .comparison-header {
+            background: linear-gradient(to right, #3182ce, #805ad5);
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .comparison-content {
+            display: flex;
+            min-height: 600px;
+        }
+
+        .processor-column {
+            flex: 1;
+            padding: 20px;
+            position: relative;
+        }
+
+        .cpu-column {
+            background: linear-gradient(to bottom, #2d3748, #3182ce);
+            border-right: 2px solid #4a5568;
+        }
+
+        .gpu-column {
+            background: linear-gradient(to bottom, #2d3748, #805ad5);
+        }
+
+        .processor-title {
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .cpu-title {
+            color: #63b3ed;
+        }
+
+        .gpu-title {
+            color: #b794f4;
+        }
+
+        /* Visualización de procesamiento */
+        .processing-visual {
+            height: 300px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .task-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            height: 100%;
+        }
+
+        .task {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .task-icon {
+            font-size: 1.2rem;
+        }
+
+        .task-name {
+            flex: 1;
+        }
+
+        .task-progress {
+            width: 100px;
+            height: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #48bb78;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .task.processing .progress-bar {
+            animation: progressFill 2s ease-in-out;
+        }
+
+        @keyframes progressFill {
+            to { width: 100%; }
+        }
+
+        /* Animación de procesamiento serie */
+        .cpu-visual .task {
+            opacity: 0.3;
+        }
+
+        .cpu-visual .task.active {
+            opacity: 1;
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(99, 179, 237, 0.5);
+        }
+
+        /* Animación de procesamiento paralelo */
+        .gpu-visual .task {
+            opacity: 0.3;
+        }
+
+        .gpu-visual .task.active {
+            opacity: 1;
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(183, 148, 244, 0.5);
+        }
+
+        /* Arquitectura visual */
+        .architecture-visual {
+            height: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .core {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .cpu-core {
+            background: #3182ce;
+            border: 3px solid #63b3ed;
+        }
+
+        .gpu-core {
+            background: #805ad5;
+            border: 3px solid #b794f4;
+            width: 40px;
+            height: 40px;
+        }
+
+        .core.active {
+            animation: corePulse 1s ease-in-out;
+        }
+
+        @keyframes corePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* Características */
+        .features {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+
+        .feature-icon {
+            font-size: 1.2rem;
+            width: 30px;
+            text-align: center;
+        }
+
+        .feature-text {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+
+        /* Controles */
+        .controls {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-btn:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .control-btn.active {
+            background: #48bb78;
+        }
+
+        /* Panel de información */
+        .info-panel {
+            margin-top: 20px;
+            background: rgba(45, 55, 72, 0.9);
+            border-radius: 10px;
+            padding: 25px;
+            width: 90%;
+            max-width: 1000px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 2px solid #4a5568;
+            transition: all 0.5s ease;
+            transform: translateY(20px);
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .info-panel.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .info-icon {
+            font-size: 4rem;
+            color: #4299e1;
+            margin-bottom: 20px;
+        }
+
+        .info-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #4299e1;
+            border-bottom: 2px solid #4299e1;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .info-description {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .info-details {
+            background: rgba(74, 85, 104, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            line-height: 1.5;
+            width: 100%;
+        }
+
+        .info-details strong {
+            color: #4299e1;
+        }
+
+        /* Comparativa de rendimiento */
+        .performance-comparison {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            width: 90%;
+            max-width: 1000px;
+        }
+
+        .perf-card {
+            background: rgba(45, 55, 72, 0.9);
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #4a5568;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .perf-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .perf-card h3 {
+            color: #4299e1;
+            margin-bottom: 15px;
+        }
+
+        .perf-card .cpu-score {
+            color: #63b3ed;
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .perf-card .gpu-score {
+            color: #b794f4;
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .perf-bar {
+            height: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .perf-fill {
+            height: 100%;
+            transition: width 1s ease;
+        }
+
+        .cpu-fill {
+            background: linear-gradient(to right, #3182ce, #63b3ed);
+        }
+
+        .gpu-fill {
+            background: linear-gradient(to right, #805ad5, #b794f4);
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .comparison-content {
+                flex-direction: column;
+            }
+            
+            .cpu-column {
+                border-right: none;
+                border-bottom: 2px solid #4a5568;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .architecture-visual {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>CPU vs GPU - Procesamiento Paralelo y Serie</h1>
+    
+    <div class="controls">
+        <button class="control-btn" id="seriesBtn">
+            <i class="fas fa-list-ol"></i> Procesamiento Serie
+        </button>
+        <button class="control-btn" id="parallelBtn">
+            <i class="fas fa-th"></i> Procesamiento Paralelo
+        </button>
+        <button class="control-btn" id="compareBtn">
+            <i class="fas fa-balance-scale"></i> Comparar
+        </button>
+        <button class="control-btn" id="resetBtn">
+            <i class="fas fa-redo"></i> Reiniciar
+        </button>
+    </div>
+    
+    <div class="comparison-container">
+        <div class="comparison-header">
+            Comparativa de Arquitecturas: CPU (Unidad Central de Procesamiento) vs GPU (Unidad de Procesamiento Gráfico)
+        </div>
+        
+        <div class="comparison-content">
+            <!-- Columna CPU -->
+            <div class="processor-column cpu-column">
+                <div class="processor-title cpu-title">
+                    <i class="fas fa-microchip"></i> CPU - Procesamiento Serie
+                </div>
+                
+                <div class="processing-visual cpu-visual" id="cpuVisual">
+                    <div class="task-container">
+                        <div class="task" data-task="1">
+                            <i class="task-icon fas fa-calculator"></i>
+                            <span class="task-name">Cálculo 1</span>
+                            <div class="task-progress">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                        <div class="task" data-task="2">
+                            <i class="task-icon fas fa-calculator"></i>
+                            <span class="task-name">Cálculo 2</span>
+                            <div class="task-progress">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                        <div class="task" data-task="3">
+                            <i class="task-icon fas fa-calculator"></i>
+                            <span class="task-name">Cálculo 3</span>
+                            <div class="task-progress">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                        <div class="task" data-task="4">
+                            <i class="task-icon fas fa-calculator"></i>
+                            <span class="task-name">Cálculo 4</span>
+                            <div class="task-progress">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="architecture-visual">
+                    <div class="core cpu-core" id="cpuCore">Core</div>
+                </div>
+                
+                <div class="features">
+                    <div class="feature-item">
+                        <i class="feature-icon fas fa-tachometer-alt"></i>
+                        <span class="feature-text">Alta velocidad de reloj (3-5 GHz)</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="feature-icon fas fa-brain"></i>
+                        <span class="feature-text">Pocos núcleos (2-16)</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="feature-icon fas fa-list-ol"></i>
+                        <span class="feature-text">Procesamiento serie</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="feature-icon fa-microchip"></i>
+                        <span class="feature-text">Instrucciones complejas</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="feature-icon fa-bolt"></i>
+                        <span class="feature-text">Baja latencia</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Columna GPU -->
+            <div class="processor-column gpu-column">
+                <div class="processor-title gpu-title">
+                    <i class="fas fa-cube"></i> GPU - Procesamiento Paralelo
+                </div>
+                
+                <div class="processing-visual gpu-visual" id="gpuVisual">
+                    <div class="task-container">
+                        <div class="task" data-task="1">
+                            <i class="task-icon fas fa-calculator"></i>
+                            <span class="task-name">Cálculo 1</span>
+                            <div class="task-progress">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                        <div class="task" data-task="2">
+                            <i class="task-icon fas fa-calculator"></i>
+                            <span class="task-name">Cálculo 2</span>
+                            <div class="task-progress">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                        <div class="task" data-task="3">
+                            <i class="task-icon fas fa-calculator"></i>
+                            <span class="task-name">Cálculo 3</span>
+                            <div class="task-progress">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                        <div class="task" data-task="4">
+                            <i class="task-icon fas fa-calculator"></i>
+                            <span class="task-name">Cálculo 4</span>
+                            <div class="task-progress">
+                                <div class="progress-bar"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="architecture-visual">
+                    <div class="core gpu-core" id="gpuCore1">C1</div>
+                    <div class="core gpu-core" id="gpuCore2">C2</div>
+                    <div class="core gpu-core" id="gpuCore3">C3</div>
+                    <div class="core gpu-core" id="gpuCore4">C4</div>
+                    <div class="core gpu-core" id="gpuCore5">C5</div>
+                    <div class="core gpu-core" id="gpuCore6">C6</div>
+                    <div class="core gpu-core" id="gpuCore7">C7</div>
+                    <div class="core gpu-core" id="gpuCore8">C8</div>
+                </div>
+                
+                <div class="features">
+                    <div class="feature-item">
+                        <i class="feature-icon fas fa-tachometer-alt"></i>
+                        <span class="feature-text">Velocidad moderada (1-2 GHz)</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="feature-icon fas fa-th"></i>
+                        <span class="feature-text">Miles de núcleos (1000-10000)</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="feature-icon fas fa-project-diagram"></i>
+                        <span class="feature-text">Procesamiento paralelo</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="feature-icon fa-calculator"></i>
+                        <span class="feature-text">Instrucciones simples</span>
+                    </div>
+                    <div class="feature-item">
+                        <i class="feature-icon fa-chart-line"></i>
+                        <span class="feature-text">Alto throughput</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Comparativa de rendimiento -->
+    <div class="performance-comparison">
+        <div class="perf-card">
+            <h3><i class="fas fa-calculator"></i> Cálculos Matemáticos</h3>
+            <div class="cpu-score">85%</div>
+            <div class="perf-bar">
+                <div class="perf-fill cpu-fill" style="width: 85%;"></div>
+            </div>
+            <div class="gpu-score">45%</div>
+            <div class="perf-bar">
+                <div class="perf-fill gpu-fill" style="width: 45%;"></div>
+            </div>
+        </div>
+        
+        <div class="perf-card">
+            <h3><i class="fas fa-cube"></i> Gráficos 3D</h3>
+            <div class="cpu-score">25%</div>
+            <div class="perf-bar">
+                <div class="perf-fill cpu-fill" style="width: 25%;"></div>
+            </div>
+            <div class="gpu-score">95%</div>
+            <div class="perf-bar">
+                <div class="perf-fill gpu-fill" style="width: 95%;"></div>
+            </div>
+        </div>
+        
+        <div class="perf-card">
+            <h3><i class="fas fa-brain"></i> Inteligencia Artificial</h3>
+            <div class="cpu-score">40%</div>
+            <div class="perf-bar">
+                <div class="perf-fill cpu-fill" style="width: 40%;"></div>
+            </div>
+            <div class="gpu-score">90%</div>
+            <div class="perf-bar">
+                <div class="perf-fill gpu-fill" style="width: 90%;"></div>
+            </div>
+        </div>
+        
+        <div class="perf-card">
+            <h3><i class="fas fa-database"></i> Procesamiento de Datos</h3>
+            <div class="cpu-score">70%</div>
+            <div class="perf-bar">
+                <div class="perf-fill cpu-fill" style="width: 70%;"></div>
+            </div>
+            <div class="gpu-score">80%</div>
+            <div class="perf-bar">
+                <div class="perf-fill gpu-fill" style="width: 80%;"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="info-panel" id="infoPanel">
+        <i class="info-icon fas fa-microchip"></i>
+        <div class="info-title" id="infoTitle">CPU vs GPU - Diferencias Fundamentales</div>
+        <div class="info-description" id="infoDescription">
+            La CPU está diseñada para procesamiento serie de tareas complejas, mientras que la GPU está optimizada para procesamiento paralelo de tareas simples.
+        </div>
+        <div class="info-details" id="infoDetails">
+            <strong>CPU (Unidad Central de Procesamiento):</strong> Diseñada para ejecutar instrucciones secuenciales complejas. Pocos núcleos potentes, alta velocidad de reloj, ideal para tareas generales y lógica compleja.<br><br>
+            <strong>GPU (Unidad de Procesamiento Gráfico):</strong> Diseñada para procesamiento masivo en paralelo. Miles de núcleos simples, ideal para cálculos repetitivos y procesamiento de grandes volúmenes de datos.<br><br>
+            <strong>Aplicaciones:</strong> CPU para sistema operativo, aplicaciones generales; GPU para gráficos, IA, minería de datos, simulaciones.
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Aplicación educativa sobre las diferencias entre CPU y GPU en el procesamiento paralelo y serie</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos de control
+            const seriesBtn = document.getElementById('seriesBtn');
+            const parallelBtn = document.getElementById('parallelBtn');
+            const compareBtn = document.getElementById('compareBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            
+            // Elementos visuales
+            const cpuVisual = document.getElementById('cpuVisual');
+            const gpuVisual = document.getElementById('gpuVisual');
+            const cpuCore = document.getElementById('cpuCore');
+            const gpuCores = document.querySelectorAll('.gpu-core');
+            
+            // Panel de información
+            const infoPanel = document.getElementById('infoPanel');
+            const infoTitle = document.getElementById('infoTitle');
+            const infoDescription = document.getElementById('infoDescription');
+            const infoDetails = document.getElementById('infoDetails');
+            
+            // Variables de animación
+            let currentAnimation = null;
+            
+            // Información para cada modo
+            const modeInfo = {
+                'series': {
+                    title: 'Procesamiento Serie - CPU',
+                    description: 'La CPU procesa las tareas una después de otra, secuencialmente.',
+                    details: '<strong>Características:</strong> La CPU ejecuta instrucciones en orden, una tras otra. Cada tarea debe completarse antes de comenzar la siguiente.<br><br><strong>Ventajas:</strong> Ideal para tareas complejas que requieren lógica condicional, toma de decisiones y procesamiento secuencial.<br><br><strong>Desventajas:</strong> Ineficiente para tareas repetitivas o que pueden procesarse simultáneamente.'
+                },
+                'parallel': {
+                    title: 'Procesamiento Paralelo - GPU',
+                    description: 'La GPU procesa múltiples tareas simultáneamente en diferentes núcleos.',
+                    details: '<strong>Características:</strong> La GPU ejecuta miles de operaciones en paralelo, cada núcleo procesa una parte de la tarea.<br><br><strong>Ventajas:</strong> Extremadamente eficiente para tareas repetitivas, cálculos masivos y procesamiento de grandes volúmenes de datos.<br><br><strong>Desventajas:</strong> No es adecuada para tareas complejas que requieren lógica secuencial o condicional.'
+                },
+                'compare': {
+                    title: 'Comparación Directa - CPU vs GPU',
+                    description: 'Comparación en tiempo real del procesamiento serie vs paralelo.',
+                    details: '<strong>Observación:</strong> Mientras la CPU procesa cada tarea secuencialmente, la GPU procesa todas las tareas simultáneamente.<br><br><strong>Rendimiento:</strong> Para tareas paralelizables, la GPU puede ser órdenes de magnitud más rápida que la CPU.<br><br><strong>Aplicación práctica:</strong> Esta diferencia explica por qué las GPUs son esenciales para gráficos, IA y computación de alto rendimiento.'
+                }
+            };
+            
+            // Función para animar procesamiento serie
+            function animateSeries() {
+                const tasks = cpuVisual.querySelectorAll('.task');
+                let currentTask = 0;
+                
+                // Resetear tareas
+                tasks.forEach(task => {
+                    task.classList.remove('active', 'processing');
+                    task.querySelector('.progress-bar').style.width = '0%';
+                });
+                
+                // Animar núcleo CPU
+                cpuCore.classList.add('active');
+                
+                function processNextTask() {
+                    if (currentTask < tasks.length) {
+                        const task = tasks[currentTask];
+                        task.classList.add('active', 'processing');
+                        
+                        // Simular progreso
+                        const progressBar = task.querySelector('.progress-bar');
+                        progressBar.style.width = '0%';
+                        setTimeout(() => {
+                            progressBar.style.width = '100%';
+                        }, 50);
+                        
+                        currentTask++;
+                        setTimeout(processNextTask, 500);
+                    } else {
+                        cpuCore.classList.remove('active');
+                    }
+                }
+                
+                processNextTask();
+            }
+            
+            // Función para animar procesamiento paralelo
+            function animateParallel() {
+                const tasks = gpuVisual.querySelectorAll('.task');
+                
+                // Resetear tareas
+                tasks.forEach(task => {
+                    task.classList.remove('active', 'processing');
+                    task.querySelector('.progress-bar').style.width = '0%';
+                });
+                
+                // Activar todos los núcleos GPU
+                gpuCores.forEach(core => {
+                    core.classList.add('active');
+                });
+                
+                // Procesar todas las tareas simultáneamente
+                tasks.forEach((task, index) => {
+                    setTimeout(() => {
+                        task.classList.add('active', 'processing');
+                        const progressBar = task.querySelector('.progress-bar');
+                        progressBar.style.width = '0%';
+                        setTimeout(() => {
+                            progressBar.style.width = '100%';
+                        }, 50);
+                    }, index * 100);
+                });
+                
+                // Desactivar núcleos después de completar
+                setTimeout(() => {
+                    gpuCores.forEach(core => {
+                        core.classList.remove('active');
+                    });
+                }, 2000);
+            }
+            
+            // Función para comparación
+            function animateComparison() {
+                // Animar CPU (serie)
+                animateSeries();
+                
+                // Animar GPU (paralelo) con un pequeño retraso
+                setTimeout(() => {
+                    animateParallel();
+                }, 200);
+            }
+            
+            // Eventos de los botones
+            seriesBtn.addEventListener('click', function() {
+                // Actualizar botones
+                updateButtons('series');
+                
+                // Actualizar información
+                updateInfo('series');
+                
+                // Ejecutar animación
+                currentAnimation = 'series';
+                animateSeries();
+            });
+            
+            parallelBtn.addEventListener('click', function() {
+                // Actualizar botones
+                updateButtons('parallel');
+                
+                // Actualizar información
+                updateInfo('parallel');
+                
+                // Ejecutar animación
+                currentAnimation = 'parallel';
+                animateParallel();
+            });
+            
+            compareBtn.addEventListener('click', function() {
+                // Actualizar botones
+                updateButtons('compare');
+                
+                // Actualizar información
+                updateInfo('compare');
+                
+                // Ejecutar animación
+                currentAnimation = 'compare';
+                animateComparison();
+            });
+            
+            resetBtn.addEventListener('click', function() {
+                // Resetear botones
+                updateButtons(null);
+                
+                // Resetear animaciones
+                resetAnimations();
+                
+                // Resetear información
+                resetInfo();
+            });
+            
+            // Función para actualizar estado de botones
+            function updateButtons(activeBtn) {
+                [seriesBtn, parallelBtn, compareBtn].forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                if (activeBtn === 'series') seriesBtn.classList.add('active');
+                else if (activeBtn === 'parallel') parallelBtn.classList.add('active');
+                else if (activeBtn === 'compare') compareBtn.classList.add('active');
+            }
+            
+            // Función para actualizar información
+            function updateInfo(mode) {
+                const info = modeInfo[mode];
+                if (info) {
+                    infoTitle.textContent = info.title;
+                    infoDescription.textContent = info.description;
+                    infoDetails.innerHTML = info.details;
+                }
+            }
+            
+            // Función para resetear animaciones
+            function resetAnimations() {
+                // Resetear tareas CPU
+                const cpuTasks = cpuVisual.querySelectorAll('.task');
+                cpuTasks.forEach(task => {
+                    task.classList.remove('active', 'processing');
+                    task.querySelector('.progress-bar').style.width = '0%';
+                });
+                
+                // Resetear tareas GPU
+                const gpuTasks = gpuVisual.querySelectorAll('.task');
+                gpuTasks.forEach(task => {
+                    task.classList.remove('active', 'processing');
+                    task.querySelector('.progress-bar').style.width = '0%';
+                });
+                
+                // Resetear núcleos
+                cpuCore.classList.remove('active');
+                gpuCores.forEach(core => {
+                    core.classList.remove('active');
+                });
+                
+                currentAnimation = null;
+            }
+            
+            // Función para resetear información
+            function resetInfo() {
+                infoTitle.textContent = 'CPU vs GPU - Diferencias Fundamentales';
+                infoDescription.textContent = 'La CPU está diseñada para procesamiento serie de tareas complejas, mientras que la GPU está optimizada para procesamiento paralelo de tareas simples.';
+                infoDetails.innerHTML = '<strong>CPU (Unidad Central de Procesamiento):</strong> Diseñada para ejecutar instrucciones secuenciales complejas. Pocos núcleos potentes, alta velocidad de reloj, ideal para tareas generales y lógica compleja.<br><br><strong>GPU (Unidad de Procesamiento Gráfico):</strong> Diseñada para procesamiento masivo en paralelo. Miles de núcleos simples, ideal para cálculos repetitivos y procesamiento de grandes volúmenes de datos.<br><br><strong>Aplicaciones:</strong> CPU para sistema operativo, aplicaciones generales; GPU para gráficos, IA, minería de datos, simulaciones.';
+            }
+            
+            // Mostrar panel de información inicial
+            setTimeout(() => {
+                infoPanel.classList.add('visible');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

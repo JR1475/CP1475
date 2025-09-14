@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Placa Base Interactiva</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            text-align: center;
+            color: #ecf0f1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .motherboard-container {
+            position: relative;
+            width: 90%;
+            max-width: 1000px;
+            background: #2d3748;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 3px solid #4a5568;
+            margin-bottom: 30px;
+        }
+
+        .motherboard-svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .hotspot {
+            position: absolute;
+            border: 3px solid #4299e1;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(66, 153, 225, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: #4299e1;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        .hotspot:hover {
+            transform: scale(1.2);
+            background: rgba(66, 153, 225, 0.4);
+            box-shadow: 0 0 20px rgba(66, 153, 225, 0.8);
+        }
+
+        .hotspot.active {
+            animation: pulse 1.5s infinite;
+            background: rgba(66, 153, 225, 0.4);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(66, 153, 225, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(66, 153, 225, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(66, 153, 225, 0); }
+        }
+
+        .info-panel {
+            margin-top: 20px;
+            background: rgba(45, 55, 72, 0.9);
+            border-radius: 10px;
+            padding: 25px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 2px solid #4a5568;
+            transition: all 0.5s ease;
+            transform: translateY(20px);
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .info-panel.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .info-icon {
+            font-size: 4rem;
+            color: #4299e1;
+            margin-bottom: 20px;
+        }
+
+        .info-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #4299e1;
+            border-bottom: 2px solid #4299e1;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .info-description {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .info-details {
+            background: rgba(74, 85, 104, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            line-height: 1.5;
+            width: 100%;
+        }
+
+        .info-details strong {
+            color: #4299e1;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+
+        .legend {
+            background: rgba(45, 55, 72, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            width: 90%;
+            max-width: 800px;
+        }
+
+        .legend-title {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #4299e1;
+            text-align: center;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-number {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: rgba(66, 153, 225, 0.2);
+            border: 2px solid #4299e1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #4299e1;
+        }
+
+        @media (max-width: 768px) {
+            .hotspot {
+                font-size: 1rem;
+            }
+            
+            .info-title {
+                font-size: 1.5rem;
+            }
+            
+            .info-description {
+                font-size: 1rem;
+            }
+            
+            .legend-items {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Placa Base Interactiva</h1>
+    
+    <div class="legend">
+        <div class="legend-title">Componentes de la Placa Base</div>
+        <div class="legend-items">
+            <div class="legend-item">
+                <div class="legend-number">1</div>
+                <span>Socket CPU</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-number">2</div>
+                <span>Ranuras RAM</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-number">3</div>
+                <span>PCIe x16</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-number">4</div>
+                <span>PCIe x1</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-number">5</div>
+                <span>SATA</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-number">6</div>
+                <span>Power 24-pin</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-number">7</div>
+                <span>Power CPU</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-number">8</div>
+                <span>USB Frontal</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-number">9</div>
+                <span>Audio Frontal</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-number">10</div>
+                <span>Chipset</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-number">11</div>
+                <span>BIOS</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-number">12</div>
+                <span>Batería CMOS</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="motherboard-container">
+        <!-- SVG de la placa base -->
+        <svg class="motherboard-svg" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+            <!-- Fondo de la placa base -->
+            <rect width="1000" height="600" fill="#1a202c"/>
+            
+            <!-- Patrón de circuitos -->
+            <defs>
+                <pattern id="circuit" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+                    <rect width="50" height="50" fill="none"/>
+                    <path d="M0,25 L25,25 L25,0 M25,50 L25,25 L50,25" stroke="#2d3748" stroke-width="1" fill="none"/>
+                    <circle cx="25" cy="25" r="2" fill="#4a5568"/>
+                </pattern>
+            </defs>
+            <rect width="1000" height="600" fill="url(#circuit)" opacity="0.3"/>
+            
+            <!-- Socket CPU -->
+            <rect x="400" y="80" width="200" height="200" rx="10" fill="#2d3748" stroke="#4a5568" stroke-width="2"/>
+            <rect x="420" y="100" width="160" height="160" rx="5" fill="#1a202c" stroke="#2d3748" stroke-width="1"/>
+            <text x="500" y="190" text-anchor="middle" fill="#4a5568" font-size="14" font-family="monospace">CPU SOCKET</text>
+            
+            <!-- Ranuras RAM -->
+            <rect x="150" y="320" width="150" height="40" rx="5" fill="#38a169" stroke="#2f855a" stroke-width="2"/>
+            <rect x="320" y="320" width="150" height="40" rx="5" fill="#38a169" stroke="#2f855a" stroke-width="2"/>
+            <rect x="490" y="320" width="150" height="40" rx="5" fill="#38a169" stroke="#2f855a" stroke-width="2"/>
+            <rect x="660" y="320" width="150" height="40" rx="5" fill="#38a169" stroke="#2f855a" stroke-width="2"/>
+            <text x="225" y="345" text-anchor="middle" fill="#fff" font-size="12">DIMM 1</text>
+            <text x="395" y="345" text-anchor="middle" fill="#fff" font-size="12">DIMM 2</text>
+            <text x="565" y="345" text-anchor="middle" fill="#fff" font-size="12">DIMM 3</text>
+            <text x="735" y="345" text-anchor="middle" fill="#fff" font-size="12">DIMM 4</text>
+            
+            <!-- Ranuras PCIe -->
+            <rect x="100" y="400" width="200" height="40" rx="5" fill="#805ad5" stroke="#6b46c1" stroke-width="2"/>
+            <rect x="320" y="400" width="120" height="40" rx="5" fill="#805ad5" stroke="#6b46c1" stroke-width="2"/>
+            <rect x="460" y="400" width="80" height="40" rx="5" fill="#805ad5" stroke="#6b46c1" stroke-width="2"/>
+            <rect x="560" y="400" width="50" height="40" rx="5" fill="#805ad5" stroke="#6b46c1" stroke-width="2"/>
+            <text x="200" y="425" text-anchor="middle" fill="#fff" font-size="12">PCIe x16</text>
+            <text x="380" y="425" text-anchor="middle" fill="#fff" font-size="12">PCIe x8</text>
+            <text x="500" y="425" text-anchor="middle" fill="#fff" font-size="12">PCIe x4</text>
+            <text x="585" y="425" text-anchor="middle" fill="#fff" font-size="12">PCIe x1</text>
+            
+            <!-- Conectores SATA -->
+            <rect x="100" y="480" width="50" height="30" rx="3" fill="#d69e2e" stroke="#b7791f" stroke-width="2"/>
+            <rect x="170" y="480" width="50" height="30" rx="3" fill="#d69e2e" stroke="#b7791f" stroke-width="2"/>
+            <rect x="240" y="480" width="50" height="30" rx="3" fill="#d69e2e" stroke="#b7791f" stroke-width="2"/>
+            <rect x="310" y="480" width="50" height="30" rx="3" fill="#d69e2e" stroke="#b7791f" stroke-width="2"/>
+            <text x="125" y="500" text-anchor="middle" fill="#fff" font-size="10">SATA1</text>
+            <text x="195" y="500" text-anchor="middle" fill="#fff" font-size="10">SATA2</text>
+            <text x="265" y="500" text-anchor="middle" fill="#fff" font-size="10">SATA3</text>
+            <text x="335" y="500" text-anchor="middle" fill="#fff" font-size="10">SATA4</text>
+            
+            <!-- Conector de alimentación 24-pin -->
+            <rect x="800" y="80" width="60" height="50" rx="5" fill="#3182ce" stroke="#2c5282" stroke-width="2"/>
+            <text x="830" y="110" text-anchor="middle" fill="#fff" font-size="10">24PIN</text>
+            
+            <!-- Conector de alimentación CPU -->
+            <rect x="820" y="160" width="40" height="30" rx="3" fill="#3182ce" stroke="#2c5282" stroke-width="2"/>
+            <text x="840" y="180" text-anchor="middle" fill="#fff" font-size="10">CPU</text>
+            
+            <!-- Conector USB frontal -->
+            <rect x="810" y="220" width="50" height="30" rx="3" fill="#dd6b20" stroke="#c05621" stroke-width="2"/>
+            <text x="835" y="240" text-anchor="middle" fill="#fff" font-size="10">USB</text>
+            
+            <!-- Conector audio frontal -->
+            <rect x="820" y="270" width="40" height="25" rx="3" fill="#319795" stroke="#2c7a7b" stroke-width="2"/>
+            <text x="840" y="287" text-anchor="middle" fill="#fff" font-size="10">AUD</text>
+            
+            <!-- Chipset -->
+            <rect x="430" y="450" width="140" height="80" rx="10" fill="#805ad5" stroke="#6b46c1" stroke-width="2"/>
+            <text x="500" y="495" text-anchor="middle" fill="#fff" font-size="14">CHIPSET</text>
+            
+            <!-- BIOS -->
+            <rect x="750" y="500" width="60" height="40" rx="5" fill="#e53e3e" stroke="#c53030" stroke-width="2"/>
+            <text x="780" y="525" text-anchor="middle" fill="#fff" font-size="12">BIOS</text>
+            
+            <!-- Batería CMOS -->
+            <circle cx="150" cy="550" r="20" fill="#718096" stroke="#4a5568" stroke-width="2"/>
+            <text x="150" y="555" text-anchor="middle" fill="#fff" font-size="10">CMOS</text>
+            
+            <!-- Detalles decorativos -->
+            <circle cx="50" cy="50" r="15" fill="#4a5568"/>
+            <circle cx="950" cy="50" r="15" fill="#4a5568"/>
+            <circle cx="50" cy="550" r="15" fill="#4a5568"/>
+            <circle cx="950" cy="550" r="15" fill="#4a5568"/>
+            
+            <!-- Capacitores y resistencias decorativos -->
+            <rect x="350" y="50" width="10" height="20" fill="#4a5568"/>
+            <rect x="640" y="50" width="10" height="20" fill="#4a5568"/>
+            <rect x="350" y="530" width="10" height="20" fill="#4a5568"/>
+            <rect x="640" y="530" width="10" height="20" fill="#4a5568"/>
+        </svg>
+        
+        <!-- Hotspots clickeables -->
+        <div class="hotspot" data-component="cpu-socket" style="width: 60px; height: 60px; top: 15%; left: 45%;">1</div>
+        <div class="hotspot" data-component="ram-slots" style="width: 80px; height: 40px; top: 50%; left: 20%;">2</div>
+        <div class="hotspot" data-component="pcie-x16" style="width: 100px; height: 40px; top: 65%; left: 12%;">3</div>
+        <div class="hotspot" data-component="pcie-x1" style="width: 50px; height: 30px; top: 65%; left: 55%;">4</div>
+        <div class="hotspot" data-component="sata" style="width: 60px; height: 30px; top: 78%; left: 12%;">5</div>
+        <div class="hotspot" data-component="power-24pin" style="width: 50px; height: 40px; top: 15%; right: 10%;">6</div>
+        <div class="hotspot" data-component="power-cpu" style="width: 40px; height: 30px; top: 28%; right: 10%;">7</div>
+        <div class="hotspot" data-component="usb-front" style="width: 40px; height: 30px; top: 38%; right: 10%;">8</div>
+        <div class="hotspot" data-component="audio-front" style="width: 40px; height: 25px; top: 47%; right: 10%;">9</div>
+        <div class="hotspot" data-component="chipset" style="width: 50px; height: 50px; bottom: 20%; left: 45%;">10</div>
+        <div class="hotspot" data-component="bios" style="width: 30px; height: 30px; bottom: 10%; right: 15%;">11</div>
+        <div class="hotspot" data-component="cmos-battery" style="width: 30px; height: 30px; bottom: 8%; left: 12%;">12</div>
+    </div>
+    
+    <div class="info-panel" id="info-panel">
+        <i class="info-icon" id="info-icon"></i>
+        <div class="info-title" id="info-title">Selecciona un componente</div>
+        <div class="info-description" id="info-description">Haz clic en cualquier número resaltado de la placa base para ver información detallada.</div>
+        <div class="info-details" id="info-details">
+            <strong>Instrucciones:</strong> Haz clic en los números circulares sobre la imagen de la placa base para obtener información detallada sobre cada componente. Cada número corresponde a un componente específico según la leyenda superior.
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Aplicación educativa sobre componentes internos de placa base | Representación SVG interactiva</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hotspots = document.querySelectorAll('.hotspot');
+            const infoPanel = document.getElementById('info-panel');
+            const infoIcon = document.getElementById('info-icon');
+            const infoTitle = document.getElementById('info-title');
+            const infoDescription = document.getElementById('info-description');
+            const infoDetails = document.getElementById('info-details');
+            
+            // Base de datos de componentes
+            const componentData = {
+                'cpu-socket': {
+                    icon: 'fas fa-microchip',
+                    title: 'Socket CPU',
+                    description: 'Zócalo donde se instala el procesador (CPU). Es la conexión principal entre el procesador y la placa base.',
+                    details: '<strong>Función:</strong> Conexión física y eléctrica del CPU<br><strong>Tipos comunes:</strong> LGA 1700 (Intel), AM5 (AMD)<br><strong>Características:</strong> Pines de contacto, sistema de retención<br><strong>Importancia:</strong> Determina la compatibilidad del procesador<br><strong>Enfriamiento:</strong> Soporta disipadores y sistemas de refrigeración'
+                },
+                'ram-slots': {
+                    icon: 'fas fa-memory',
+                    title: 'Ranuras de Memoria RAM',
+                    description: 'Ranuras para módulos de memoria RAM. Permiten expandir la memoria del sistema.',
+                    details: '<strong>Tipo:</strong> DDR4/DDR5 DIMM<br><strong>Velocidad:</strong> Hasta 5600 MHz (DDR5)<br><strong>Capacidad:</strong> Soporta módulos de hasta 64GB cada uno<br><strong>Dual Channel:</strong> Funciona en pares para mejor rendimiento<br><strong>Compatibilidad:</strong> ECC y non-ECC según placa base'
+                },
+                'pcie-x16': {
+                    icon: 'fas fa-expand',
+                    title: 'PCI Express x16',
+                    description: 'Ranura PCIe de alto ancho de banda para tarjetas gráficas y dispositivos de alto rendimiento.',
+                    details: '<strong>Versiones:</strong> PCIe 3.0/4.0/5.0<br><strong>Ancho de banda:</strong> Hasta 64 GB/s (PCIe 5.0)<br><strong>Uso principal:</strong> Tarjetas gráficas<br><strong>Alimentación:</strong> Proporciona hasta 75W<br><strong>Multi-GPU:</strong> Soporta SLI/CrossFire'
+                },
+                'pcie-x1': {
+                    icon: 'fas fa-expand',
+                    title: 'PCI Express x1',
+                    description: 'Ranura PCIe de baja velocidad para dispositivos de expansión básicos.',
+                    details: '<strong>Ancho de banda:</strong> Hasta 4 GB/s (PCIe 5.0)<br><strong>Usos comunes:</strong> Tarjetas de sonido, Wi-Fi, puertos USB<br><strong>Ventaja:</strong> Ocupa poco espacio<br><strong>Compatibilidad:</strong> Funciona en cualquier ranura PCIe mayor'
+                },
+                'sata': {
+                    icon: 'fas fa-hdd',
+                    title: 'Conectores SATA',
+                    description: 'Conectores para dispositivos de almacenamiento como discos duros y SSD.',
+                    details: '<strong>Estándar:</strong> SATA III (6 Gbps)<br><strong>Compatibilidad:</strong> Discos duros, SSD, unidades ópticas<br><strong>Hot-swap:</strong> Soportado en la mayoría de placas<br><strong>RAID:</strong> Soporta configuraciones RAID 0, 1, 5, 10'
+                },
+                'power-24pin': {
+                    icon: 'fas fa-plug',
+                    title: 'Conector de Alimentación 24-Pin',
+                    description: 'Conector principal de alimentación que proporciona energía a toda la placa base.',
+                    details: '<strong>Voltajes:</strong> +3.3V, +5V, +12V, -12V, +5VSB<br><strong>Corriente:</strong> Hasta 30A combinados<br><strong>Seguridad:</strong> Conector con llave para evitar inserción incorrecta<br><strong>Evolución:</strong> De 20 a 24 pines para mayor estabilidad'
+                },
+                'power-cpu': {
+                    icon: 'fas fa-bolt',
+                    title: 'Conector de Alimentación CPU',
+                    description: 'Conector de alimentación dedicado para el procesador. Proporciona energía estable al CPU.',
+                    details: '<strong>Configuración:</strong> 4+4 u 8 pines<br><strong>Voltaje:</strong> +12V exclusivo<br><strong>Corriente:</strong> Hasta 30A para CPUs de alto rendimiento<br><strong>Importancia:</strong> Crucial para overclocking y estabilidad'
+                },
+                'usb-front': {
+                    icon: 'fas fa-usb',
+                    title: 'Conector USB Frontal',
+                    description: 'Conector interno para extender los puertos USB al panel frontal del case.',
+                    details: '<strong>Estándar:</strong> USB 2.0/3.0 header<br><strong>Pines:</strong> 9-10 pines según versión<br><strong>Función:</strong> Extiende puertos USB al panel frontal<br><strong>Velocidad:</strong> Depende de la versión (480 Mbps o 5 Gbps)'
+                },
+                'audio-front': {
+                    icon: 'fas fa-headphones',
+                    title: 'Conector Audio Frontal',
+                    description: 'Conector para panel frontal de audio. Permite conectar auriculares y micrófonos frontales.',
+                    details: '<strong>Estándar:</strong> HD Audio o AC\'97<br><strong>Pines:</strong> 9 pines en bloque<br><strong>Conexiones:</strong> Salida estéreo, micrófono<br><strong>Calidad:</strong> Generalmente HD Audio (24-bit/192kHz)'
+                },
+                'chipset': {
+                    icon: 'fas fa-server',
+                    title: 'Chipset',
+                    description: 'Chip principal que gestiona la comunicación entre componentes. Es el "cerebro" de la placa base.',
+                    details: '<strong>Funciones:</strong> Gestión de buses, periféricos integrados<br><strong>Modelos comunes:</strong> Intel Z790, AMD X670<br><strong>Integraciones:</strong> Audio, red, USB, SATA<br><strong>Importancia:</strong> Determina características de la placa'
+                },
+                'bios': {
+                    icon: 'fas fa-cog',
+                    title: 'BIOS/UEFI',
+                    description: 'Chip de firmware que contiene el BIOS/UEFI. Controla el arranque y configuración básica del sistema.',
+                    details: '<strong>Función:</strong> Inicialización de hardware, POST, bootloader<br><strong>Capacidad:</strong> 16-32 MB típicamente<br><strong>Características:</strong> UEFI con interfaz gráfica<br><strong>Actualizable:</strong> Soporta flash para actualizaciones'
+                },
+                'cmos-battery': {
+                    icon: 'fas fa-battery-three-quarters',
+                    title: 'Batería CMOS',
+                    description: 'Batería que mantiene la configuración del BIOS y el reloj del sistema cuando está apagado.',
+                    details: '<strong>Tipo:</strong> CR2032 de 3V<br><strong>Vida útil:</strong> 3-5 años típicamente<br><strong>Función:</strong> Mantiene settings de BIOS y RTC<br><strong>Síntomas de fallo:</strong> "CMOS Checksum Error", fecha/hora incorrecta'
+                }
+            };
+            
+            // Evento para cada hotspot
+            hotspots.forEach(hotspot => {
+                hotspot.addEventListener('click', function() {
+                    // Remover clase activa de todos los hotspots
+                    hotspots.forEach(h => h.classList.remove('active'));
+                    
+                    // Añadir clase activa al hotspot seleccionado
+                    this.classList.add('active');
+                    
+                    // Obtener el componente
+                    const component = this.getAttribute('data-component');
+                    
+                    // Obtener datos del componente
+                    const data = componentData[component];
+                    
+                    if (data) {
+                        // Actualizar panel de información
+                        infoIcon.className = `info-icon ${data.icon}`;
+                        infoTitle.textContent = data.title;
+                        infoDescription.textContent = data.description;
+                        infoDetails.innerHTML = data.details;
+                        
+                        // Mostrar panel de información con animación
+                        infoPanel.classList.add('visible');
+                        
+                        // Scroll suave al panel de información
+                        infoPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                });
+            });
+            
+            // Mostrar panel de información inicial
+            setTimeout(() => {
+                infoPanel.classList.add('visible');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

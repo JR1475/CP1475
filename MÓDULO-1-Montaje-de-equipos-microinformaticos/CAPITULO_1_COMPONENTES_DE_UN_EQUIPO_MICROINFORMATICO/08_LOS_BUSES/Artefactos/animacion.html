@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCIe Lanes - Diferencias y Funcionamiento</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            text-align: center;
+            color: #ecf0f1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .pcie-container {
+            width: 90%;
+            max-width: 1400px;
+            background: #2d3748;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            overflow: hidden;
+            border: 3px solid #4a5568;
+            margin-bottom: 30px;
+        }
+
+        .pcie-header {
+            background: linear-gradient(to right, #3182ce, #805ad5);
+            padding: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .pcie-content {
+            padding: 30px;
+        }
+
+        /* Visualización de PCIe Lanes */
+        .lanes-visualization {
+            margin-bottom: 40px;
+        }
+
+        .lanes-title {
+            text-align: center;
+            font-size: 1.3rem;
+            margin-bottom: 20px;
+            color: #4299e1;
+        }
+
+        .lanes-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .lane-type {
+            background: rgba(45, 55, 72, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            min-width: 200px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .lane-type:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .lane-type.active {
+            border-color: #4299e1;
+            background: rgba(66, 153, 225, 0.2);
+        }
+
+        .lane-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #4299e1;
+        }
+
+        .lane-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .lane-speed {
+            font-size: 1rem;
+            color: #a0aec0;
+        }
+
+        /* Visualización de flujo de datos */
+        .data-flow {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+
+        .flow-title {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-weight: bold;
+            color: #4299e1;
+        }
+
+        .flow-lanes {
+            position: absolute;
+            top: 50px;
+            left: 50px;
+            right: 50px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .flow-lane {
+            height: 4px;
+            background: #4a5568;
+            position: relative;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .flow-lane.active {
+            background: #4299e1;
+            box-shadow: 0 0 10px rgba(66, 153, 225, 0.5);
+        }
+
+        .data-packet {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #48bb78;
+            border-radius: 50%;
+            top: -8px;
+            left: -20px;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .data-packet.moving {
+            animation: dataMove 2s linear infinite;
+            opacity: 1;
+        }
+
+        @keyframes dataMove {
+            0% { left: -20px; }
+            100% { left: calc(100% + 20px); }
+        }
+
+        /* Comparación de rendimiento */
+        .performance-comparison {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .perf-card {
+            background: rgba(45, 55, 72, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #4a5568;
+        }
+
+        .perf-card h3 {
+            color: #4299e1;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .perf-bar {
+            height: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            margin: 10px 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .perf-fill {
+            height: 100%;
+            background: linear-gradient(to right, #3182ce, #4299e1);
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        /* Dispositivos compatibles */
+        .devices-section {
+            background: rgba(45, 55, 72, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .devices-title {
+            font-size: 1.2rem;
+            color: #4299e1;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .devices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .device-item {
+            background: rgba(74, 85, 104, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .device-item:hover {
+            transform: translateY(-3px);
+            background: rgba(66, 153, 225, 0.2);
+        }
+
+        .device-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: #4299e1;
+        }
+
+        .device-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .device-lane {
+            font-size: 0.9rem;
+            color: #a0aec0;
+        }
+
+        /* Controles */
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 12px 24px;
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-btn:hover {
+            background: #3182ce;
+            transform: translateY(-2px);
+        }
+
+        .control-btn.active {
+            background: #48bb78;
+        }
+
+        /* Panel de información */
+        .info-panel {
+            background: rgba(45, 55, 72, 0.9);
+            border-radius: 10px;
+            padding: 25px;
+            width: 90%;
+            max-width: 1000px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 2px solid #4a5568;
+            transition: all 0.5s ease;
+            transform: translateY(20px);
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .info-panel.visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .info-icon {
+            font-size: 4rem;
+            color: #4299e1;
+            margin-bottom: 20px;
+        }
+
+        .info-title {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            color: #4299e1;
+            border-bottom: 2px solid #4299e1;
+            padding-bottom: 10px;
+            text-align: center;
+        }
+
+        .info-description {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .info-details {
+            background: rgba(74, 85, 104, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            line-height: 1.5;
+            width: 100%;
+        }
+
+        .info-details strong {
+            color: #4299e1;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .lanes-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .flow-lanes {
+                flex-direction: column;
+                height: auto;
+                gap: 10px;
+            }
+            
+            .flow-lane {
+                width: 100% !important;
+                height: 20px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>PCIe Lanes - Diferencias y Funcionamiento</h1>
+    
+    <div class="controls">
+        <button class="control-btn" id="btnX1">
+            <i class="fas fa-minus"></i> PCIe x1
+        </button>
+        <button class="control-btn" id="btnX4">
+            <i class="fas fa-equals"></i> PCIe x4
+        </button>
+        <button class="control-btn" id="btnX8">
+            <i class="fas fa-greater-than-equal"></i> PCIe x8
+        </button>
+        <button class="control-btn" id="btnX16">
+            <i class="fas fa-plus"></i> PCIe x16
+        </button>
+        <button class="control-btn" id="btnCompare">
+            <i class="fas fa-balance-scale"></i> Comparar Todos
+        </button>
+        <button class="control-btn" id="btnReset">
+            <i class="fas fa-redo"></i> Reiniciar
+        </button>
+    </div>
+    
+    <div class="pcie-container">
+        <div class="pcie-header">
+            PCIe (PCI Express) - Entendiendo los Lanes y su Impacto en el Rendimiento
+        </div>
+        
+        <div class="pcie-content">
+            <!-- Visualización de tipos de PCIe -->
+            <div class="lanes-visualization">
+                <div class="lanes-title">Tipos de PCIe y su Ancho de Banda</div>
+                <div class="lanes-container">
+                    <div class="lane-type" data-lanes="1">
+                        <div class="lane-icon">
+                            <i class="fas fa-minus"></i>
+                        </div>
+                        <div class="lane-name">PCIe x1</div>
+                        <div class="lane-speed">250 MB/s</div>
+                    </div>
+                    
+                    <div class="lane-type" data-lanes="4">
+                        <div class="lane-icon">
+                            <i class="fas fa-equals"></i>
+                        </div>
+                        <div class="lane-name">PCIe x4</div>
+                        <div class="lane-speed">1 GB/s</div>
+                    </div>
+                    
+                    <div class="lane-type" data-lanes="8">
+                        <div class="lane-icon">
+                            <i class="fas fa-greater-than-equal"></i>
+                        </div>
+                        <div class="lane-name">PCIe x8</div>
+                        <div class="lane-speed">2 GB/s</div>
+                    </div>
+                    
+                    <div class="lane-type" data-lanes="16">
+                        <div class="lane-icon">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <div class="lane-name">PCIe x16</div>
+                        <div class="lane-speed">4 GB/s</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Visualización de flujo de datos -->
+            <div class="data-flow" id="dataFlow">
+                <div class="flow-title">Flujo de Datos a través de los Lanes</div>
+                <div class="flow-lanes" id="flowLanes">
+                    <!-- Los lanes se generarán dinámicamente -->
+                </div>
+            </div>
+            
+            <!-- Comparación de rendimiento -->
+            <div class="performance-comparison">
+                <div class="perf-card">
+                    <h3><i class="fas fa-tachometer-alt"></i> PCIe 3.0</h3>
+                    <div class="perf-bar">
+                        <div class="perf-fill" style="width: 25%;">x1: 1 GB/s</div>
+                    </div>
+                    <div class="perf-bar">
+                        <div class="perf-fill" style="width: 50%;">x4: 4 GB/s</div>
+                    </div>
+                    <div class="perf-bar">
+                        <div class="perf-fill" style="width: 75%;">x8: 8 GB/s</div>
+                    </div>
+                    <div class="perf-bar">
+                        <div class="perf-fill" style="width: 100%;">x16: 16 GB/s</div>
+                    </div>
+                </div>
+                
+                <div class="perf-card">
+                    <h3><i class="fas fa-rocket"></i> PCIe 4.0</h3>
+                    <div class="perf-bar">
+                        <div class="perf-fill" style="width: 25%;">x1: 2 GB/s</div>
+                    </div>
+                    <div class="perf-bar">
+                        <div class="perf-fill" style="width: 50%;">x4: 8 GB/s</div>
+                    </div>
+                    <div class="perf-bar">
+                        <div class="perf-fill" style="width: 75%;">x16: 16 GB/s</div>
+                    </div>
+                    <div class="perf-bar">
+                        <div class="perf-fill" style="width: 100%;">x16: 32 GB/s</div>
+                    </div>
+                </div>
+                
+                <div class="perf-card">
+                    <h3><i class="fas fa-bolt"></i> PCIe 5.0</h3>
+                    <div class="perf-bar">
+                        <div class="perf-fill" style="width: 25%;">x1: 4 GB/s</div>
+                    </div>
+                    <div class="perf-bar">
+                        <div class="perf-fill" style="width: 50%;">x4: 16 GB/s</div>
+                    </div>
+                    <div class="perf-bar">
+                        <div class="perf-fill" style="width: 75%;">x8: 32 GB/s</div>
+                    </div>
+                    <div class="perf-bar">
+                        <div class="perf-fill" style="width: 100%;">x16: 64 GB/s</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Dispositivos compatibles -->
+            <div class="devices-section">
+                <div class="devices-title">Dispositivos y sus Requisitos PCIe</div>
+                <div class="devices-grid">
+                    <div class="device-item">
+                        <div class="device-icon">
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                        <div class="device-name">GPU</div>
+                        <div class="device-lane">x16 (óptimo)</div>
+                    </div>
+                    
+                    <div class="device-item">
+                        <div class="device-icon">
+                            <i class="fas fa-hdd"></i>
+                        </div>
+                        <div class="device-name">NVMe SSD</div>
+                        <div class="device-lane">x4 (estándar)</div>
+                    </div>
+                    
+                    <div class="device-item">
+                        <div class="device-icon">
+                            <i class="fas fa-network-wired"></i>
+                        </div>
+                        <div class="device-name">Tarjeta de Red</div>
+                        <div class="device-lane">x1 o x4</div>
+                    </div>
+                    
+                    <div class="device-item">
+                        <div class="device-icon">
+                            <i class="fas fa-volume-up"></i>
+                        </div>
+                        <div class="device-name">Tarjeta de Sonido</div>
+                        <div class="device-lane">x1</div>
+                    </div>
+                    
+                    <div class="device-item">
+                        <div class="device-icon">
+                            <i class="fas fa-usb"></i>
+                        </div>
+                        <div class="device-name">USB 3.0/4.0</div>
+                        <div class="device-lane">x1</div>
+                    </div>
+                    
+                    <div class="device-item">
+                        <div class="device-icon">
+                            <i class="fas fa-microchip"></i>
+                        </div>
+                        <div class="device-name">RAID Controller</div>
+                        <div class="device-lane">x4 o x8</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="info-panel" id="infoPanel">
+        <i class="info-icon fas fa-microchip"></i>
+        <div class="info-title" id="infoTitle">PCIe Lanes - El Sistema Nervioso de tu Computadora</div>
+        <div class="info-description" id="infoDescription">
+            Los PCIe Lanes son como autopistas de datos: más lanes = más capacidad de transferencia simultánea.
+        </div>
+        <div class="info-details" id="infoDetails">
+            <strong>¿Qué son los PCIe Lanes?</strong> Son canales de comunicación dedicados que transmiten datos en paralelo entre dispositivos y la placa base.<br><br>
+            <strong>¿Por qué x16 es mejor que x1?</strong> Un PCIe x16 tiene 16 veces más capacidad de transferencia que un x1, permitiendo enviar 16 paquetes de datos simultáneamente en lugar de solo uno.<br><br>
+            <strong>¿Cómo se transmite la información?</strong> Cada lane es un par diferencial que transmite datos a alta velocidad (2.5 GT/s por lane en PCIe 1.0, hasta 32 GT/s en PCIe 5.0).<br><br>
+            <strong>¿Por qué es válido para GPUs y NVMe?</strong> Las GPUs necesitan un ancho de banda masivo para renderizar gráficos en tiempo real, mientras que los NVMe SSD requieren altas velocidades de lectura/escritura que solo los PCIe x4 pueden proporcionar eficientemente.
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Aplicación educativa sobre PCIe Lanes y su impacto en el rendimiento del sistema</p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos de control
+            const btnX1 = document.getElementById('btnX1');
+            const btnX4 = document.getElementById('btnX4');
+            const btnX8 = document.getElementById('btnX8');
+            const btnX16 = document.getElementById('btnX16');
+            const btnCompare = document.getElementById('btnCompare');
+            const btnReset = document.getElementById('btnReset');
+            
+            // Elementos visuales
+            const laneTypes = document.querySelectorAll('.lane-type');
+            const flowLanes = document.getElementById('flowLanes');
+            
+            // Panel de información
+            const infoPanel = document.getElementById('infoPanel');
+            const infoTitle = document.getElementById('infoTitle');
+            const infoDescription = document.getElementById('infoDescription');
+            const infoDetails = document.getElementById('infoDetails');
+            
+            // Información para cada tipo de PCIe
+            const laneInfo = {
+                '1': {
+                    title: 'PCIe x1 - El Estándar Básico',
+                    description: 'Un solo lane de datos, ideal para dispositivos de bajo ancho de banda.',
+                    details: '<strong>Ancho de banda:</strong> 250 MB/s (PCIe 1.0), 500 MB/s (PCIe 2.0), 1 GB/s (PCIe 3.0), 2 GB/s (PCIe 4.0), 4 GB/s (PCIe 5.0)<br><strong>Usos típicos:</strong> Tarjetas de sonido, tarjetas de red básicas, puertos USB adicionales<br><strong>Ventaja:</strong> Ocupa poco espacio, bajo consumo energético<br><strong>Limitación:</strong> No adecuado para dispositivos de alto rendimiento'
+                },
+                '4': {
+                    title: 'PCIe x4 - El Equilibrio Perfecto',
+                    description: 'Cuatro lanes de datos, el estándar para SSD NVMe y dispositivos de rendimiento medio.',
+                    details: '<strong>Ancho de banda:</strong> 1 GB/s (PCIe 1.0), 2 GB/s (PCIe 2.0), 4 GB/s (PCIe 3.0), 8 GB/s (PCIe 4.0), 16 GB/s (PCIe 5.0)<br><strong>Usos típicos:</strong> SSD NVMe, controladores RAID, tarjetas de red de alto rendimiento<br><strong>Ventaja:</strong> Excelente balance entre rendimiento y costo<br><strong>Popularidad:</strong> El estándar de facto para almacenamiento rápido'
+                },
+                '8': {
+                    title: 'PCIe x8 - Alto Rendimiento',
+                    description: 'Ocho lanes de datos, utilizado para dispositivos profesionales y servidores.',
+                    details: '<strong>Ancho de banda:</strong> 2 GB/s (PCIe 1.0), 4 GB/s (PCIe 2.0), 8 GB/s (PCIe 3.0), 16 GB/s (PCIe 4.0), 32 GB/s (PCIe 5.0)<br><strong>Usos típicos:</strong> Controladoras RAID avanzadas, tarjetas de red 10GbE, GPUs de gama media<br><strong>Ventaja:</strong> Rendimiento接近 al x16 pero con menor consumo<br><strong>Aplicación:</strong> Ideal para servidores y estaciones de trabajo'
+                },
+                '16': {
+                    title: 'PCIe x16 - Máximo Rendimiento',
+                    description: 'Dieciséis lanes de datos, el estándar para GPUs de alto rendimiento.',
+                    details: '<strong>Ancho de banda:</strong> 4 GB/s (PCIe 1.0), 8 GB/s (PCIe 2.0), 16 GB/s (PCIe 3.0), 32 GB/s (PCIe 4.0), 64 GB/s (PCIe 5.0)<br><strong>Usos típicos:</strong> GPUs de gama alta, aceleradoras de IA, computación de alto rendimiento<br><strong>Ventaja:</strong> Máximo ancho de banda disponible<br><strong>Criticalidad:</strong> Esencial para gaming y aplicaciones gráficas intensivas'
+                }
+            };
+            
+            // Función para crear lanes dinámicamente
+            function createLanes(count) {
+                flowLanes.innerHTML = '';
+                for (let i = 0; i < count; i++) {
+                    const lane = document.createElement('div');
+                    lane.className = 'flow-lane';
+                    lane.style.width = `${100 / count}%`;
+                    
+                    const packet = document.createElement('div');
+                    packet.className = 'data-packet';
+                    packet.style.animationDelay = `${i * 0.1}s`;
+                    
+                    lane.appendChild(packet);
+                    flowLanes.appendChild(lane);
+                }
+            }
+            
+            // Función para animar el flujo de datos
+            function animateDataFlow() {
+                const packets = document.querySelectorAll('.data-packet');
+                packets.forEach((packet, index) => {
+                    setTimeout(() => {
+                        packet.classList.add('moving');
+                    }, index * 100);
+                });
+            }
+            
+            // Función para detener animación
+            function stopAnimation() {
+                const packets = document.querySelectorAll('.data-packet');
+                packets.forEach(packet => {
+                    packet.classList.remove('moving');
+                });
+            }
+            
+            // Función para actualizar la información
+            function updateInfo(lanes) {
+                const info = laneInfo[lanes];
+                if (info) {
+                    infoTitle.textContent = info.title;
+                    infoDescription.textContent = info.description;
+                    infoDetails.innerHTML = info.details;
+                }
+            }
+            
+            // Eventos de los botones
+            btnX1.addEventListener('click', function() {
+                // Actualizar botones
+                updateButtons('x1');
+                
+                // Actualizar lanes
+                createLanes(1);
+                animateDataFlow();
+                
+                // Actualizar información
+                updateInfo('1');
+                
+                // Actualizar selección visual
+                updateSelection('1');
+            });
+            
+            btnX4.addEventListener('click', function() {
+                updateButtons('x4');
+                createLanes(4);
+                animateDataFlow();
+                updateInfo('4');
+                updateSelection('4');
+            });
+            
+            btnX8.addEventListener('click', function() {
+                updateButtons('x8');
+                createLanes(8);
+                animateDataFlow();
+                updateInfo('8');
+                updateSelection('8');
+            });
+            
+            btnX16.addEventListener('click', function() {
+                updateButtons('x16');
+                createLanes(16);
+                animateDataFlow();
+                updateInfo('16');
+                updateSelection('16');
+            });
+            
+            btnCompare.addEventListener('click', function() {
+                updateButtons('compare');
+                
+                // Mostrar comparación secuencial
+                let currentLanes = 1;
+                const interval = setInterval(() => {
+                    createLanes(currentLanes);
+                    animateDataFlow();
+                    
+                    setTimeout(() => {
+                        currentLanes *= 2;
+                        if (currentLanes > 16) {
+                            currentLanes = 1;
+                        }
+                    }, 2000);
+                }, 2500);
+                
+                // Guardar intervalo para poder limpiarlo
+                this.dataset.interval = interval;
+                
+                // Actualizar información
+                infoTitle.textContent = 'Comparación de Todos los PCIe Lanes';
+                infoDescription.textContent = 'Observa cómo aumenta el ancho de banda con más lanes.';
+                infoDetails.innerHTML = '<strong>Comparación visual:</strong> Cada duplicación de lanes duplica el ancho de banda disponible.<br><br><strong>Impacto práctico:</strong> Más lanes = más datos transferidos simultáneamente = mejor rendimiento para dispositivos que lo necesitan.<br><br><strong>Compatibilidad:</strong> Los dispositivos pueden funcionar en menos lanes, pero con rendimiento reducido.';
+            });
+            
+            btnReset.addEventListener('click', function() {
+                // Limpiar intervalo de comparación
+                if (btnCompare.dataset.interval) {
+                    clearInterval(btnCompare.dataset.interval);
+                    delete btnCompare.dataset.interval;
+                }
+                
+                // Resetear botones
+                updateButtons(null);
+                
+                // Resetear visualización
+                createLanes(1);
+                stopAnimation();
+                
+                // Resetear selección
+                laneTypes.forEach(type => type.classList.remove('active'));
+                
+                // Resetear información
+                infoTitle.textContent = 'PCIe Lanes - El Sistema Nervioso de tu Computadora';
+                infoDescription.textContent = 'Los PCIe Lanes son como autopistas de datos: más lanes = más capacidad de transferencia simultánea.';
+                infoDetails.innerHTML = '<strong>¿Qué son los PCIe Lanes?</strong> Son canales de comunicación dedicados que transmiten datos en paralelo entre dispositivos y la placa base.<br><br><strong>¿Por qué x16 es mejor que x1?</strong> Un PCIe x16 tiene 16 veces más capacidad de transferencia que un x1, permitiendo enviar 16 paquetes de datos simultáneamente en lugar de solo uno.<br><br><strong>¿Cómo se transmite la información?</strong> Cada lane es un par diferencial que transmite datos a alta velocidad (2.5 GT/s por lane en PCIe 1.0, hasta 32 GT/s en PCIe 5.0).<br><br><strong>¿Por qué es válido para GPUs y NVMe?</strong> Las GPUs necesitan un ancho de banda masivo para renderizar gráficos en tiempo real, mientras que los NVMe SSD requieren altas velocidades de lectura/escritura que solo los PCIe x4 pueden proporcionar eficientemente.';
+            });
+            
+            // Función para actualizar estado de botones
+            function updateButtons(activeBtn) {
+                [btnX1, btnX4, btnX8, btnX16, btnCompare].forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                
+                if (activeBtn === 'x1') btnX1.classList.add('active');
+                else if (activeBtn === 'x4') btnX4.classList.add('active');
+                else if (activeBtn === 'x8') btnX8.classList.add('active');
+                else if (activeBtn === 'x16') btnX16.classList.add('active');
+                else if (activeBtn === 'compare') btnCompare.classList.add('active');
+            }
+            
+            // Función para actualizar selección visual
+            function updateSelection(lanes) {
+                laneTypes.forEach(type => {
+                    type.classList.remove('active');
+                    if (type.getAttribute('data-lanes') === lanes) {
+                        type.classList.add('active');
+                    }
+                });
+            }
+            
+            // Eventos para los tipos de lanes
+            laneTypes.forEach(type => {
+                type.addEventListener('click', function() {
+                    const lanes = this.getAttribute('data-lanes');
+                    
+                    // Actualizar botones
+                    updateButtons(`x${lanes}`);
+                    
+                    // Actualizar visualización
+                    createLanes(parseInt(lanes));
+                    animateDataFlow();
+                    
+                    // Actualizar información
+                    updateInfo(lanes);
+                    
+                    // Actualizar selección
+                    updateSelection(lanes);
+                });
+            });
+            
+            // Inicialización
+            createLanes(1);
+            setTimeout(() => {
+                infoPanel.classList.add('visible');
+            }, 500);
+        });
+    </script>
+</body>
+</html>
