@@ -13,34 +13,7 @@
 
 * **MÓDULO-1-Montaje-de-equipos-microinformaticos**
     * **CAPITULO_1_COMPONENTES_DE_UN_EQUIPO_MICROINFORMATICO**
-        * 1.10_LA_FUENTE_DE_ALIMENTACION
-            * 1.10.1_Qué_es_una_fuente_de_alimentación?
-            * 1.10.2_Tipos_de_fuentes_de_alimentación
-            * 1.10.3_Conectores_ATX_de_las_fuentes_de_alimentación
-            * 1.10.4_Colores_de_los_cables_y_tensiones
-            * Práctica
-        * 1.11_EL_TRANSFORMADOR_DEL_PORTATIL
-        * 1.12_DISPOSITIVOS_MAGNETICOS
-            * 1.12.1_De_que_estan_compuestos_los_dispositivos_magneticos
-            * 1.12.2_El_disco_duro
-                * 1.12.2.1_ALGUNOS_ELEMENTOS_QUE_COMPONEN_UN_DISCO_DURO
-                * 1.12.2.2_CONCEPTOS_PARA_REFERIRSE_A_ZONAS_DEL_DISCO
-                * 1.12.2.3_TIPOS_DE_DIRECCIONAMIENTO
-                * 1.12.2.4_CARACTERISTICAS_DE_UN_DISCO_DURO
-                * 1.12.2.5_EL_INTERFAZ_DEL_DISCO_DURO
-                * 1.12.2.6_APARCAMIENTO_DE_UN_DISCO
-                * 1.12.2.7_VELOCIDAD_DE_ROTACION
-                * 1.12.2.8_EL_TAMAÑO_FISICO
-                * 1.12.2.9_TAMAÑO_DEL_BUFFER_O_CACHE
-            * 1.12.3_Estructura_logica_de_un_disco
-                * 1.12.3.1_LAS_PARTICIONES
-                * 1.12.3.2_FORMATEO_A_BAJO_NIVEL_O_FORMATEO_FISICO
-                * 1.12.3.3_FORMATEO_A_ALTO_NIVEL_O_FORMATEO_LOGICO
-                * 1.12.3.4_LOS_SISTEMAS_DE_FICHEROS
-                * 1.12.3.5_EL_SECTOR_DE_ARRANQUE
-            * Práctica
-        * 1.13_UNIDADES_DE_ESTADO_SOLIDO_O_SSD
-            * Práctica
+
         * 1.1_CONECTORES
             * 1.1.1_Conectores_externos
             * 1.1.2_Conectores_internos
@@ -86,6 +59,34 @@
             * 1.8.2_Bus_AGP
             * 1.8.3_Bus_PCI-Express
         * 1.9_TARJETAS_DE_EXPANSION
+            * Práctica
+        * 1.10_LA_FUENTE_DE_ALIMENTACION
+            * 1.10.1_Qué_es_una_fuente_de_alimentación?
+            * 1.10.2_Tipos_de_fuentes_de_alimentación
+            * 1.10.3_Conectores_ATX_de_las_fuentes_de_alimentación
+            * 1.10.4_Colores_de_los_cables_y_tensiones
+            * Práctica
+        * 1.11_EL_TRANSFORMADOR_DEL_PORTATIL
+        * 1.12_DISPOSITIVOS_MAGNETICOS
+            * 1.12.1_De_que_estan_compuestos_los_dispositivos_magneticos
+            * 1.12.2_El_disco_duro
+                * 1.12.2.1_ALGUNOS_ELEMENTOS_QUE_COMPONEN_UN_DISCO_DURO
+                * 1.12.2.2_CONCEPTOS_PARA_REFERIRSE_A_ZONAS_DEL_DISCO
+                * 1.12.2.3_TIPOS_DE_DIRECCIONAMIENTO
+                * 1.12.2.4_CARACTERISTICAS_DE_UN_DISCO_DURO
+                * 1.12.2.5_EL_INTERFAZ_DEL_DISCO_DURO
+                * 1.12.2.6_APARCAMIENTO_DE_UN_DISCO
+                * 1.12.2.7_VELOCIDAD_DE_ROTACION
+                * 1.12.2.8_EL_TAMAÑO_FISICO
+                * 1.12.2.9_TAMAÑO_DEL_BUFFER_O_CACHE
+            * 1.12.3_Estructura_logica_de_un_disco
+                * 1.12.3.1_LAS_PARTICIONES
+                * 1.12.3.2_FORMATEO_A_BAJO_NIVEL_O_FORMATEO_FISICO
+                * 1.12.3.3_FORMATEO_A_ALTO_NIVEL_O_FORMATEO_LOGICO
+                * 1.12.3.4_LOS_SISTEMAS_DE_FICHEROS
+                * 1.12.3.5_EL_SECTOR_DE_ARRANQUE
+            * Práctica
+        * 1.13_UNIDADES_DE_ESTADO_SOLIDO_O_SSD
             * Práctica
     * **CAPITULO_2_NORMATIVA_Y_RECOMENDACIONES_DE_SEGURIDAD**
         * 2.1_NORMAS_SOBRE_ERGONOMIA
