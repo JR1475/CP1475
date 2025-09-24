@@ -4,6 +4,7 @@
 # 🖥️ **Entendiendo la Memoria RAM: Frecuencia, Ancho de Banda y Latencia**  
 *(Para alumnos de Formación Profesional en Informática)*
 
+https://chat.z.ai/space/p023s8bxthg1-ppt
 ---
 
 ## 1. ¿Qué es la memoria RAM?
