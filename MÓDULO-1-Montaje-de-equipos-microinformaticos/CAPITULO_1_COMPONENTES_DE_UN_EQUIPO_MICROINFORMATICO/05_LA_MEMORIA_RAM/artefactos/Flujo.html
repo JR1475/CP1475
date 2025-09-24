@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flujo de Información en Placa Base - Arquitectura von Neumann</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+        
+        @keyframes dataFlow {
+            0% { transform: translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateX(100%); opacity: 0; }
+        }
+        
+        .data-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #3b82f6;
+            animation: dataFlow 2s linear infinite;
+        }
+        
+        .component {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .component:hover {
+            transform: scale(1.05);
+            filter: brightness(1.2);
+        }
+        
+        .connection-line {
+            stroke: #64748b;
+            stroke-width: 3;
+            fill: none;
+            stroke-dasharray: 5, 5;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .connection-line.active {
+            stroke: #3b82f6;
+            stroke-width: 4;
+            stroke-dasharray: none;
+        }
+        
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 1000;
+        }
+        
+        .tooltip.show {
+            opacity: 1;
+        }
+        
+        .info-panel {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            border: 1px solid #475569;
+        }
+        
+        .glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+                Flujo de Información en Placa Base
+            </h1>
+            <p class="text-gray-400">Visualización interactiva de la arquitectura von Neumann</p>
+        </header>
+
+        <!-- Control Panel -->
+        <div class="flex justify-center gap-4 mb-8">
+            <button id="startBtn" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded-lg transition-colors">
+                <i class="fas fa-play mr-2"></i>Iniciar Animación
+            </button>
+            <button id="stopBtn" class="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-lg transition-colors">
+                <i class="fas fa-stop mr-2"></i>Detener
+            </button>
+            <button id="resetBtn" class="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded-lg transition-colors">
+                <i class="fas fa-redo mr-2"></i>Reiniciar
+            </button>
+        </div>
+
+        <!-- Main Content -->
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Motherboard Visualization -->
+            <div class="lg:col-span-2">
+                <div class="bg-gray-800 rounded-lg p-6 relative">
+                    <h2 class="text-2xl font-semibold mb-4">Diagrama de la Placa Base</h2>
+                    <div id="motherboard" class="relative w-full h-96 bg-gray-700 rounded-lg overflow-hidden">
+                        <svg id="connections" class="absolute inset-0 w-full h-full pointer-events-none">
+                            <!-- Connection lines will be drawn here -->
+                        </svg>
+                        
+                        <!-- Components -->
+                        <div id="input-devices" class="component absolute left-4 top-1/2 transform -translate-y-1/2 bg-green-600 p-4 rounded-lg text-center" data-component="input">
+                            <i class="fas fa-keyboard text-2xl mb-2"></i>
+                            <p class="text-sm">Dispositivos<br>Entrada</p>
+                        </div>
+                        
+                        <div id="pch" class="component absolute left-1/4 top-1/2 transform -translate-y-1/2 bg-purple-600 p-4 rounded-lg text-center" data-component="pch">
+                            <i class="fas fa-microchip text-2xl mb-2"></i>
+                            <p class="text-sm">PCH</p>
+                        </div>
+                        
+                        <div id="cpu" class="component absolute left-1/2 top-1/4 transform -translate-x-1/2 bg-blue-600 p-4 rounded-lg text-center" data-component="cpu">
+                            <i class="fas fa-microchip text-3xl mb-2"></i>
+                            <p class="text-sm">CPU</p>
+                        </div>
+                        
+                        <div id="ram" class="component absolute left-1/2 top-3/4 transform -translate-x-1/2 bg-yellow-600 p-4 rounded-lg text-center" data-component="ram">
+                            <i class="fas fa-memory text-2xl mb-2"></i>
+                            <p class="text-sm">RAM</p>
+                        </div>
+                        
+                        <div id="gpu" class="component absolute right-1/4 top-1/4 transform translate-x-1/2 bg-red-600 p-4 rounded-lg text-center" data-component="gpu">
+                            <i class="fas fa-desktop text-2xl mb-2"></i>
+                            <p class="text-sm">GPU</p>
+                        </div>
+                        
+                        <div id="output-devices" class="component absolute right-4 top-1/2 transform -translate-y-1/2 bg-green-600 p-4 rounded-lg text-center" data-component="output">
+                            <i class="fas fa-tv text-2xl mb-2"></i>
+                            <p class="text-sm">Dispositivos<br>Salida</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Information Panel -->
+            <div class="lg:col-span-1">
+                <div class="info-panel rounded-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4">Información del Componente</h3>
+                    <div id="component-info">
+                        <p class="text-gray-400">Haz clic en un componente para ver más información</p>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h4 class="text-lg font-semibold mb-2">Arquitectura von Neumann</h4>
+                        <p class="text-sm text-gray-300">
+                            La arquitectura von Neumann se basa en el concepto de programa almacenado, 
+                            donde las instrucciones y los datos se almacenan en la misma memoria.
+                        </p>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h4 class="text-lg font-semibold mb-2">Flujo Actual</h4>
+                        <div id="flow-status" class="text-sm text-gray-300">
+                            <p><i class="fas fa-circle text-gray-500 mr-2"></i>En espera</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Flow Legend -->
+        <div class="mt-8 bg-gray-800 rounded-lg p-6">
+            <h3 class="text-xl font-semibold mb-4">Leyenda del Flujo de Datos</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
+                    <span class="text-sm">Datos de entrada</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-purple-500 rounded-full mr-2"></div>
+                    <span class="text-sm">Procesamiento PCH</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-yellow-500 rounded-full mr-2"></div>
+                    <span class="text-sm">Acceso memoria</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-green-500 rounded-full mr-2"></div>
+                    <span class="text-sm">Datos de salida</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tooltip -->
+    <div id="tooltip" class="tooltip"></div>
+
+    <script>
+        // Component information
+        const componentInfo = {
+            input: {
+                title: "Dispositivos de Entrada",
+                description: "Periféricos que permiten al usuario ingresar datos al sistema. Incluyen teclado, mouse, micrófono, etc.",
+                function: "Capturar información del usuario y convertirla en señales digitales procesables."
+            },
+            pch: {
+                title: "Platform Controller Hub (PCH)",
+                description: "Chipset que gestiona las conexiones de baja velocidad y las funciones de E/S.",
+                function: "Controlar buses lentos, administración de energía, audio, red y almacenamiento."
+            },
+            cpu: {
+                title: "Unidad Central de Procesamiento (CPU)",
+                description: "El cerebro de la computadora que ejecuta instrucciones y realiza cálculos.",
+                function: "Procesar datos, ejecutar programas y coordinar todas las operaciones del sistema."
+            },
+            ram: {
+                title: "Memoria de Acceso Aleatorio (RAM)",
+                description: "Memoria volátil de alta velocidad para almacenar datos y programas en ejecución.",
+                function: "Almacenamiento temporal de datos y programas que la CPU necesita acceder rápidamente."
+            },
+            gpu: {
+                title: "Unidad de Procesamiento Gráfico (GPU)",
+                description: "Procesador especializado en renderizar gráficos y realizar cálculos paralelos.",
+                function: "Procesamiento de imágenes, videos y aceleración de cálculos matemáticos complejos."
+            },
+            output: {
+                title: "Dispositivos de Salida",
+                description: "Periféricos que presentan los resultados procesados al usuario.",
+                function: "Mostrar información visual, sonora o táctil generada por el sistema."
+            }
+        };
+
+        // Animation state
+        let animationRunning = false;
+        let animationInterval = null;
+        let currentStep = 0;
+
+        // DOM elements
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const motherboard = document.getElementById('motherboard');
+        const connections = document.getElementById('connections');
+        const componentInfoDiv = document.getElementById('component-info');
+        const flowStatus = document.getElementById('flow-status');
+        const tooltip = document.getElementById('tooltip');
+
+        // Initialize connections
+        function initializeConnections() {
+            const svg = connections;
+            svg.innerHTML = '';
+            
+            // Define connection paths
+            const paths = [
+                { from: 'input-devices', to: 'pch', id: 'input-pch' },
+                { from: 'pch', to: 'cpu', id: 'pch-cpu' },
+                { from: 'cpu', to: 'ram', id: 'cpu-ram' },
+                { from: 'cpu', to: 'gpu', id: 'cpu-gpu' },
+                { from: 'gpu', to: 'output-devices', id: 'gpu-output' }
+            ];
+
+            paths.forEach(path => {
+                const fromEl = document.getElementById(path.from);
+                const toEl = document.getElementById(path.to);
+                
+                const fromRect = fromEl.getBoundingClientRect();
+                const toRect = toEl.getBoundingClientRect();
+                const boardRect = motherboard.getBoundingClientRect();
+                
+                const x1 = fromRect.right - boardRect.left;
+                const y1 = fromRect.top + fromRect.height / 2 - boardRect.top;
+                const x2 = toRect.left - boardRect.left;
+                const y2 = toRect.top + toRect.height / 2 - boardRect.top;
+                
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                const d = `M ${x1} ${y1} Q ${(x1 + x2) / 2} ${y1} ${(x1 + x2) / 2} ${(y1 + y2) / 2} T ${x2} ${y2}`;
+                line.setAttribute('d', d);
+                line.setAttribute('class', 'connection-line');
+                line.setAttribute('id', path.id);
+                svg.appendChild(line);
+            });
+        }
+
+        // Create data particle
+        function createDataParticle(fromEl, toEl, color = '#3b82f6') {
+            const particle = document.createElement('div');
+            particle.className = 'data-particle';
+            particle.style.background = color;
+            particle.style.boxShadow = `0 0 10px ${color}`;
+            
+            const fromRect = fromEl.getBoundingClientRect();
+            const toRect = toEl.getBoundingClientRect();
+            const boardRect = motherboard.getBoundingClientRect();
+            
+            particle.style.left = (fromRect.right - boardRect.left) + 'px';
+            particle.style.top = (fromRect.top + fromRect.height / 2 - boardRect.top - 4) + 'px';
+            
+            motherboard.appendChild(particle);
+            
+            // Animate particle
+            const x1 = fromRect.right - boardRect.left;
+            const y1 = fromRect.top + fromRect.height / 2 - boardRect.top;
+            const x2 = toRect.left - boardRect.left;
+            const y2 = toRect.top + toRect.height / 2 - boardRect.top;
+            
+            particle.animate([
+                { transform: `translate(0, 0)`, opacity: 0 },
+                { transform: `translate(${(x2 - x1) / 2}px, ${(y2 - y1) / 2}px)`, opacity: 1, offset: 0.5 },
+                { transform: `translate(${x2 - x1}px, ${y2 - y1}px)`, opacity: 0 }
+            ], {
+                duration: 2000,
+                easing: 'ease-in-out'
+            }).onfinish = () => particle.remove();
+        }
+
+        // Animation sequence
+        function animateFlow() {
+            const steps = [
+                { from: 'input-devices', to: 'pch', color: '#3b82f6', status: 'Recibiendo datos de entrada' },
+                { from: 'pch', to: 'cpu', color: '#a855f7', status: 'Enviando datos al procesador' },
+                { from: 'cpu', to: 'ram', color: '#eab308', status: 'Accediendo a memoria' },
+                { from: 'cpu', to: 'gpu', color: '#ef4444', status: 'Enviando datos a GPU' },
+                { from: 'gpu', to: 'output-devices', color: '#22c55e', status: 'Generando salida' }
+            ];
+
+            if (currentStep >= steps.length) {
+                currentStep = 0;
+            }
+
+            const step = steps[currentStep];
+            
+            // Highlight connection
+            document.querySelectorAll('.connection-line').forEach(line => {
+                line.classList.remove('active');
+            });
+            
+            const connectionId = `${step.from.split('-')[0]}-${step.to.split('-')[0]}`;
+            const connection = document.getElementById(connectionId);
+            if (connection) {
+                connection.classList.add('active');
+            }
+
+            // Create particle
+            const fromEl = document.getElementById(step.from);
+            const toEl = document.getElementById(step.to);
+            createDataParticle(fromEl, toEl, step.color);
+
+            // Update status
+            flowStatus.innerHTML = `<p><i class="fas fa-circle text-green-500 mr-2 animate-pulse"></i>${step.status}</p>`;
+
+            currentStep++;
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', () => {
+            if (!animationRunning) {
+                animationRunning = true;
+                animateFlow();
+                animationInterval = setInterval(animateFlow, 2000);
+            }
+        });
+
+        stopBtn.addEventListener('click', () => {
+            animationRunning = false;
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+            }
+            document.querySelectorAll('.connection-line').forEach(line => {
+                line.classList.remove('active');
+            });
+            flowStatus.innerHTML = '<p><i class="fas fa-circle text-gray-500 mr-2"></i>Detenido</p>';
+        });
+
+        resetBtn.addEventListener('click', () => {
+            stopBtn.click();
+            currentStep = 0;
+            flowStatus.innerHTML = '<p><i class="fas fa-circle text-gray-500 mr-2"></i>En espera</p>';
+            document.querySelectorAll('.data-particle').forEach(p => p.remove());
+        });
+
+        // Component click handlers
+        document.querySelectorAll('.component').forEach(component => {
+            component.addEventListener('click', (e) => {
+                const componentType = e.currentTarget.dataset.component;
+                const info = componentInfo[componentType];
+                
+                componentInfoDiv.innerHTML = `
+                    <h4 class="text-lg font-semibold mb-2">${info.title}</h4>
+                    <p class="text-sm text-gray-300 mb-3">${info.description}</p>
+                    <p class="text-sm"><strong>Función:</strong> ${info.function}</p>
+                `;
+                
+                // Add glow effect
+                document.querySelectorAll('.component').forEach(c => c.classList.remove('glow'));
+                e.currentTarget.classList.add('glow');
+            });
+
+            // Tooltip
+            component.addEventListener('mouseenter', (e) => {
+                const componentType = e.currentTarget.dataset.component;
+                const info = componentInfo[componentType];
+                tooltip.textContent = info.title;
+                tooltip.classList.add('show');
+            });
+
+            component.addEventListener('mousemove', (e) => {
+                tooltip.style.left = e.pageX + 10 + 'px';
+                tooltip.style.top = e.pageY - 30 + 'px';
+            });
+
+            component.addEventListener('mouseleave', () => {
+                tooltip.classList.remove('show');
+            });
+        });
+
+        // Initialize
+        window.addEventListener('load', () => {
+            initializeConnections();
+        });
+
+        window.addEventListener('resize', () => {
+            initializeConnections();
+        });
+    </script>
+</body>
+</html>

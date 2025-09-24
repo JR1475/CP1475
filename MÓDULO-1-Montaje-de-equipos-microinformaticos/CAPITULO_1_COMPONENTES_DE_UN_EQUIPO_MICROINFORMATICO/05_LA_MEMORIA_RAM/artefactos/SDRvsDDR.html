@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comportamiento SDR vs DDR RAM - Visualización Interactiva</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        .clock-line {
+            transition: all 0.3s ease;
+        }
+        
+        .data-transfer {
+            transition: all 0.2s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <header class="text-center mb-10 fade-in-up">
+            <h1 class="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+                Comportamiento SDR vs DDR RAM
+            </h1>
+            <p class="text-gray-400 text-lg">
+                Visualización interactiva de la transferencia de datos en un ciclo de reloj
+            </p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="space-y-8">
+            <!-- Control Panel -->
+            <section class="bg-gray-800 rounded-lg p-6 shadow-xl fade-in-up">
+                <div class="flex flex-wrap gap-4 justify-center items-center">
+                    <button id="sdrBtn" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Mostrar SDR
+                        </span>
+                    </button>
+                    <button id="ddrBtn" class="px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Mostrar DDR
+                        </span>
+                    </button>
+                    <button id="compareBtn" class="px-6 py-3 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            Comparar Ambos
+                        </span>
+                    </button>
+                    <button id="stopBtn" class="px-6 py-3 bg-red-600 hover:bg-red-700 rounded-lg font-semibold transition-all transform hover:scale-105 shadow-lg">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path>
+                            </svg>
+                            Detener
+                        </span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Visualization Area -->
+            <section class="grid gap-6">
+                <!-- SDR Visualization -->
+                <div id="sdrSection" class="bg-gray-800 rounded-lg p-6 shadow-xl hidden">
+                    <h2 class="text-2xl font-bold mb-4 text-blue-400">SDR (Single Data Rate)</h2>
+                    <div class="mb-4 p-4 bg-blue-900/30 rounded-lg">
+                        <p class="text-sm text-blue-300">
+                            <strong>SDR:</strong> Transfiere datos solo en el flanco ascendente del reloj. 
+                            <span class="text-yellow-300">1 transferencia por ciclo completo</span>
+                        </p>
+                    </div>
+                    <div class="relative h-64 bg-gray-900 rounded-lg overflow-hidden">
+                        <svg id="sdrSvg" class="w-full h-full" viewBox="0 0 800 200">
+                            <!-- Grid lines -->
+                            <defs>
+                                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                                    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#374151" stroke-width="1"/>
+                                </pattern>
+                            </defs>
+                            <rect width="100%" height="100%" fill="url(#grid)" />
+                            
+                            <!-- Clock signal -->
+                            <path id="sdrClock" d="M 0 100 L 100 100 L 100 50 L 200 50 L 200 100 L 300 100 L 300 50 L 400 50 L 400 100 L 500 100 L 500 50 L 600 50 L 600 100 L 700 100 L 700 50 L 800 50" 
+                                  fill="none" stroke="#3B82F6" stroke-width="3" class="clock-line"/>
+                            
+                            <!-- Data transfer points -->
+                            <circle id="sdrData1" cx="100" cy="100" r="8" fill="#10B981" opacity="0" class="data-transfer"/>
+                            <circle id="sdrData2" cx="300" cy="100" r="8" fill="#10B981" opacity="0" class="data-transfer"/>
+                            <circle id="sdrData3" cx="500" cy="100" r="8" fill="#10B981" opacity="0" class="data-transfer"/>
+                            <circle id="sdrData4" cx="700" cy="100" r="8" fill="#10B981" opacity="0" class="data-transfer"/>
+                            
+                            <!-- Labels -->
+                            <text x="100" y="140" text-anchor="middle" fill="#9CA3AF" font-size="12">Transferencia</text>
+                            <text x="300" y="140" text-anchor="middle" fill="#9CA3AF" font-size="12">Transferencia</text>
+                            <text x="500" y="140" text-anchor="middle" fill="#9CA3AF" font-size="12">Transferencia</text>
+                            <text x="700" y="140" text-anchor="middle" fill="#9CA3AF" font-size="12">Transferencia</text>
+                            
+                            <!-- Clock label -->
+                            <text x="20" y="30" fill="#3B82F6" font-size="14" font-weight="bold">Señal de Reloj</text>
+                            <text x="20" y="180" fill="#10B981" font-size="14" font-weight="bold">Transferencia de Datos</text>
+                        </svg>
+                    </div>
+                    <div class="mt-4 flex justify-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-blue-500 rounded"></div>
+                            <span class="text-sm">Señal de Reloj</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-green-500 rounded"></div>
+                            <span class="text-sm">Transferencia de Datos</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DDR Visualization -->
+                <div id="ddrSection" class="bg-gray-800 rounded-lg p-6 shadow-xl hidden">
+                    <h2 class="text-2xl font-bold mb-4 text-purple-400">DDR (Double Data Rate)</h2>
+                    <div class="mb-4 p-4 bg-purple-900/30 rounded-lg">
+                        <p class="text-sm text-purple-300">
+                            <strong>DDR:</strong> Transfiere datos en ambos flancos del reloj (ascendente y descendente). 
+                            <span class="text-yellow-300">2 transferencias por ciclo completo</span>
+                        </p>
+                    </div>
+                    <div class="relative h-64 bg-gray-900 rounded-lg overflow-hidden">
+                        <svg id="ddrSvg" class="w-full h-full" viewBox="0 0 800 200">
+                            <!-- Grid lines -->
+                            <rect width="100%" height="100%" fill="url(#grid)" />
+                            
+                            <!-- Clock signal -->
+                            <path id="ddrClock" d="M 0 100 L 100 100 L 100 50 L 200 50 L 200 100 L 300 100 L 300 50 L 400 50 L 400 100 L 500 100 L 500 50 L 600 50 L 600 100 L 700 100 L 700 50 L 800 50" 
+                                  fill="none" stroke="#8B5CF6" stroke-width="3" class="clock-line"/>
+                            
+                            <!-- Data transfer points -->
+                            <circle id="ddrData1" cx="100" cy="100" r="8" fill="#F59E0B" opacity="0" class="data-transfer"/>
+                            <circle id="ddrData2" cx="200" cy="75" r="8" fill="#F59E0B" opacity="0" class="data-transfer"/>
+                            <circle id="ddrData3" cx="300" cy="100" r="8" fill="#F59E0B" opacity="0" class="data-transfer"/>
+                            <circle id="ddrData4" cx="400" cy="75" r="8" fill="#F59E0B" opacity="0" class="data-transfer"/>
+                            <circle id="ddrData5" cx="500" cy="100" r="8" fill="#F59E0B" opacity="0" class="data-transfer"/>
+                            <circle id="ddrData6" cx="600" cy="75" r="8" fill="#F59E0B" opacity="0" class="data-transfer"/>
+                            <circle id="ddrData7" cx="700" cy="100" r="8" fill="#F59E0B" opacity="0" class="data-transfer"/>
+                            
+                            <!-- Labels -->
+                            <text x="100" y="140" text-anchor="middle" fill="#9CA3AF" font-size="12">Flanco ↑</text>
+                            <text x="200" y="140" text-anchor="middle" fill="#9CA3AF" font-size="12">Flanco ↓</text>
+                            <text x="300" y="140" text-anchor="middle" fill="#9CA3AF" font-size="12">Flanco ↑</text>
+                            <text x="400" y="140" text-anchor="middle" fill="#9CA3AF" font-size="12">Flanco ↓</text>
+                            <text x="500" y="140" text-anchor="middle" fill="#9CA3AF" font-size="12">Flanco ↑</text>
+                            <text x="600" y="140" text-anchor="middle" fill="#9CA3AF" font-size="12">Flanco ↓</text>
+                            <text x="700" y="140" text-anchor="middle" fill="#9CA3AF" font-size="12">Flanco ↑</text>
+                            
+                            <!-- Clock label -->
+                            <text x="20" y="30" fill="#8B5CF6" font-size="14" font-weight="bold">Señal de Reloj</text>
+                            <text x="20" y="180" fill="#F59E0B" font-size="14" font-weight="bold">Transferencia de Datos</text>
+                        </svg>
+                    </div>
+                    <div class="mt-4 flex justify-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-purple-500 rounded"></div>
+                            <span class="text-sm">Señal de Reloj</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="w-4 h-4 bg-amber-500 rounded"></div>
+                            <span class="text-sm">Transferencia de Datos</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Comparison Section -->
+            <section id="comparisonSection" class="bg-gray-800 rounded-lg p-6 shadow-xl hidden">
+                <h2 class="text-2xl font-bold mb-6 text-center">Comparativa SDR vs DDR</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-blue-900/20 rounded-lg p-4">
+                        <h3 class="text-lg font-semibold mb-2 text-blue-400">SDR - Ventajas y Desventajas</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-400">✓</span>
+                                <span>Diseño más simple</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-400">✓</span>
+                                <span>Menor consumo de energía</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-red-400">✗</span>
+                                <span>Menor ancho de banda</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-red-400">✗</span>
+                                <span>Tecnología obsoleta</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-purple-900/20 rounded-lg p-4">
+                        <h3 class="text-lg font-semibold mb-2 text-purple-400">DDR - Ventajas y Desventajas</h3>
+                        <ul class="space-y-2 text-sm">
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-400">✓</span>
+                                <span>Doble ancho de banda</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-400">✓</span>
+                                <span>Mejor rendimiento</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-green-400">✓</span>
+                                <span>Tecnología actual (DDR4, DDR5)</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-red-400">✗</span>
+                                <span>Mayor complejidad de diseño</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="mt-6 p-4 bg-gray-700 rounded-lg">
+                    <h4 class="font-semibold mb-2 text-yellow-400">Conclusión:</h4>
+                    <p class="text-sm text-gray-300">
+                        DDR duplica efectivamente la velocidad de transferencia de datos sin aumentar la frecuencia del reloj, 
+                        lo que resulta en un rendimiento significativamente mejor con la misma tecnología base.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Info Cards -->
+            <section class="grid md:grid-cols-3 gap-4">
+                <div class="bg-gradient-to-br from-blue-900/50 to-blue-800/30 rounded-lg p-4 border border-blue-700/50">
+                    <h3 class="font-semibold mb-2 text-blue-400">¿Qué es SDR?</h3>
+                    <p class="text-sm text-gray-300">
+                        Single Data Rate RAM transfiere datos una vez por ciclo de reloj, 
+                        específicamente en el flanco ascendente.
+                    </p>
+                </div>
+                <div class="bg-gradient-to-br from-purple-900/50 to-purple-800/30 rounded-lg p-4 border border-purple-700/50">
+                    <h3 class="font-semibold mb-2 text-purple-400">¿Qué es DDR?</h3>
+                    <p class="text-sm text-gray-300">
+                        Double Data Rate RAM transfiere datos dos veces por ciclo de reloj, 
+                        en ambos flancos (ascendente y descendente).
+                    </p>
+                </div>
+                <div class="bg-gradient-to-br from-green-900/50 to-green-800/30 rounded-lg p-4 border border-green-700/50">
+                    <h3 class="font-semibold mb-2 text-green-400">Impacto en Rendimiento</h3>
+                    <p class="text-sm text-gray-300">
+                        DDR puede alcanzar el doble de ancho de banda teórico comparado con SDR 
+                        a la misma frecuencia de reloj.
+                    </p>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-12 text-center text-gray-500 text-sm">
+            <p>Visualización educativa del comportamiento de memoria RAM SDR vs DDR</p>
+        </footer>
+    </div>
+
+    <script>
+        let animationIntervals = [];
+        
+        function clearAllAnimations() {
+            animationIntervals.forEach(interval => clearInterval(interval));
+            animationIntervals = [];
+            
+            // Reset all data transfer points
+            document.querySelectorAll('.data-transfer').forEach(point => {
+                point.style.opacity = '0';
+            });
+        }
+        
+        function animateSDR() {
+            clearAllAnimations();
+            
+            const sdrDataPoints = [
+                document.getElementById('sdrData1'),
+                document.getElementById('sdrData2'),
+                document.getElementById('sdrData3'),
+                document.getElementById('sdrData4')
+            ];
+            
+            let currentIndex = 0;
+            
+            const interval = setInterval(() => {
+                // Hide all points
+                sdrDataPoints.forEach(point => point.style.opacity = '0');
+                
+                // Show current point
+                if (sdrDataPoints[currentIndex]) {
+                    sdrDataPoints[currentIndex].style.opacity = '1';
+                    sdrDataPoints[currentIndex].style.transform = 'scale(1.5)';
+                    
+                    setTimeout(() => {
+                        if (sdrDataPoints[currentIndex]) {
+                            sdrDataPoints[currentIndex].style.transform = 'scale(1)';
+                        }
+                    }, 200);
+                }
+                
+                currentIndex = (currentIndex + 1) % sdrDataPoints.length;
+            }, 1000);
+            
+            animationIntervals.push(interval);
+        }
+        
+        function animateDDR() {
+            clearAllAnimations();
+            
+            const ddrDataPoints = [
+                document.getElementById('ddrData1'),
+                document.getElementById('ddrData2'),
+                document.getElementById('ddrData3'),
+                document.getElementById('ddrData4'),
+                document.getElementById('ddrData5'),
+                document.getElementById('ddrData6'),
+                document.getElementById('ddrData7')
+            ];
+            
+            let currentIndex = 0;
+            
+            const interval = setInterval(() => {
+                // Hide all points
+                ddrDataPoints.forEach(point => point.style.opacity = '0');
+                
+                // Show current point
+                if (ddrDataPoints[currentIndex]) {
+                    ddrDataPoints[currentIndex].style.opacity = '1';
+                    ddrDataPoints[currentIndex].style.transform = 'scale(1.5)';
+                    
+                    setTimeout(() => {
+                        if (ddrDataPoints[currentIndex]) {
+                            ddrDataPoints[currentIndex].style.transform = 'scale(1)';
+                        }
+                    }, 200);
+                }
+                
+                currentIndex = (currentIndex + 1) % ddrDataPoints.length;
+            }, 500);
+            
+            animationIntervals.push(interval);
+        }
+        
+        function animateComparison() {
+            clearAllAnimations();
+            
+            const sdrDataPoints = [
+                document.getElementById('sdrData1'),
+                document.getElementById('sdrData2'),
+                document.getElementById('sdrData3'),
+                document.getElementById('sdrData4')
+            ];
+            
+            const ddrDataPoints = [
+                document.getElementById('ddrData1'),
+                document.getElementById('ddrData2'),
+                document.getElementById('ddrData3'),
+                document.getElementById('ddrData4'),
+                document.getElementById('ddrData5'),
+                document.getElementById('ddrData6'),
+                document.getElementById('ddrData7')
+            ];
+            
+            let sdrIndex = 0;
+            let ddrIndex = 0;
+            
+            const sdrInterval = setInterval(() => {
+                sdrDataPoints.forEach(point => point.style.opacity = '0');
+                if (sdrDataPoints[sdrIndex]) {
+                    sdrDataPoints[sdrIndex].style.opacity = '1';
+                    sdrDataPoints[sdrIndex].style.transform = 'scale(1.5)';
+                    setTimeout(() => {
+                        if (sdrDataPoints[sdrIndex]) {
+                            sdrDataPoints[sdrIndex].style.transform = 'scale(1)';
+                        }
+                    }, 200);
+                }
+                sdrIndex = (sdrIndex + 1) % sdrDataPoints.length;
+            }, 1000);
+            
+            const ddrInterval = setInterval(() => {
+                ddrDataPoints.forEach(point => point.style.opacity = '0');
+                if (ddrDataPoints[ddrIndex]) {
+                    ddrDataPoints[ddrIndex].style.opacity = '1';
+                    ddrDataPoints[ddrIndex].style.transform = 'scale(1.5)';
+                    setTimeout(() => {
+                        if (ddrDataPoints[ddrIndex]) {
+                            ddrDataPoints[ddrIndex].style.transform = 'scale(1)';
+                        }
+                    }, 200);
+                }
+                ddrIndex = (ddrIndex + 1) % ddrDataPoints.length;
+            }, 500);
+            
+            animationIntervals.push(sdrInterval, ddrInterval);
+        }
+        
+        // Event listeners
+        document.getElementById('sdrBtn').addEventListener('click', () => {
+            document.getElementById('sdrSection').classList.remove('hidden');
+            document.getElementById('ddrSection').classList.add('hidden');
+            document.getElementById('comparisonSection').classList.add('hidden');
+            animateSDR();
+        });
+        
+        document.getElementById('ddrBtn').addEventListener('click', () => {
+            document.getElementById('sdrSection').classList.add('hidden');
+            document.getElementById('ddrSection').classList.remove('hidden');
+            document.getElementById('comparisonSection').classList.add('hidden');
+            animateDDR();
+        });
+        
+        document.getElementById('compareBtn').addEventListener('click', () => {
+            document.getElementById('sdrSection').classList.remove('hidden');
+            document.getElementById('ddrSection').classList.remove('hidden');
+            document.getElementById('comparisonSection').classList.remove('hidden');
+            animateComparison();
+        });
+        
+        document.getElementById('stopBtn').addEventListener('click', () => {
+            clearAllAnimations();
+        });
+        
+        // Initialize with SDR animation
+        window.addEventListener('load', () => {
+            document.getElementById('sdrSection').classList.remove('hidden');
+            animateSDR();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquitectura von Neumann: Analogía del Restaurante</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes flow {
+            0% { transform: translateX(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateX(100px); opacity: 0; }
+        }
+        
+        .flow-animation {
+            animation: flow 3s infinite;
+        }
+        
+        .component-card {
+            transition: all 0.3s ease;
+        }
+        
+        .component-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .highlight {
+            background-color: rgba(251, 191, 36, 0.3);
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-amber-50 to-orange-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold mb-4 text-amber-800">Arquitectura von Neumann</h1>
+            <h2 class="text-2xl text-amber-600">Una Analogía con un Restaurante</h2>
+            <p class="mt-4 text-gray-600 max-w-2xl mx-auto">
+                Explora cómo los componentes de una computadora se asemejan a las diferentes partes de un restaurante
+            </p>
+        </header>
+
+        <!-- Main Visualization -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-8">
+                <div class="text-center mb-6 md:mb-0">
+                    <h3 class="text-xl font-bold text-blue-800 mb-2">Arquitectura von Neumann</h3>
+                    <div class="bg-blue-50 rounded-lg p-4 w-64 h-64 flex flex-col items-center justify-center border-2 border-blue-200">
+                        <div id="cpu" class="component-card bg-blue-100 rounded-lg p-3 mb-3 w-40 text-center cursor-pointer">
+                            <i class="fas fa-microchip text-blue-600 text-2xl mb-1"></i>
+                            <p class="font-semibold text-blue-800">CPU</p>
+                            <p class="text-xs text-blue-600">Procesador</p>
+                        </div>
+                        <div id="memory" class="component-card bg-indigo-100 rounded-lg p-3 mb-3 w-40 text-center cursor-pointer">
+                            <i class="fas fa-memory text-indigo-600 text-2xl mb-1"></i>
+                            <p class="font-semibold text-indigo-800">Memoria</p>
+                            <p class="text-xs text-indigo-600">RAM/Almacenamiento</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <div id="input" class="component-card bg-green-100 rounded-lg p-2 w-18 text-center cursor-pointer">
+                                <i class="fas fa-keyboard text-green-600"></i>
+                                <p class="text-xs font-semibold text-green-800">Entrada</p>
+                            </div>
+                            <div id="output" class="component-card bg-red-100 rounded-lg p-2 w-18 text-center cursor-pointer">
+                                <i class="fas fa-desktop text-red-600"></i>
+                                <p class="text-xs font-semibold text-red-800">Salida</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <h3 class="text-xl font-bold text-amber-800 mb-2">Restaurante</h3>
+                    <div class="bg-amber-50 rounded-lg p-4 w-64 h-64 flex flex-col items-center justify-center border-2 border-amber-200">
+                        <div id="chef" class="component-card bg-amber-100 rounded-lg p-3 mb-3 w-40 text-center cursor-pointer">
+                            <i class="fas fa-user-tie text-amber-600 text-2xl mb-1"></i>
+                            <p class="font-semibold text-amber-800">Chef</p>
+                            <p class="text-xs text-amber-600">Cocinero Principal</p>
+                        </div>
+                        <div id="recipes" class="component-card bg-orange-100 rounded-lg p-3 mb-3 w-40 text-center cursor-pointer">
+                            <i class="fas fa-book-open text-orange-600 text-2xl mb-1"></i>
+                            <p class="font-semibold text-orange-800">Recetas</p>
+                            <p class="text-xs text-orange-600">Libros de Cocina</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <div id="orders" class="component-card bg-emerald-100 rounded-lg p-2 w-18 text-center cursor-pointer">
+                                <i class="fas fa-clipboard-list text-emerald-600"></i>
+                                <p class="text-xs font-semibold text-emerald-800">Pedidos</p>
+                            </div>
+                            <div id="dishes" class="component-card bg-rose-100 rounded-lg p-2 w-18 text-center cursor-pointer">
+                                <i class="fas fa-utensils text-rose-600"></i>
+                                <p class="text-xs font-semibold text-rose-800">Platos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bus/Connection Visualization -->
+            <div class="flex justify-center mb-6">
+                <div class="bg-gray-100 rounded-lg p-4 w-full max-w-2xl">
+                    <div class="flex items-center justify-center">
+                        <div class="text-center mr-4">
+                            <p class="font-semibold text-gray-700">Bus del Sistema</p>
+                            <div class="h-2 bg-gray-300 rounded-full w-32 mt-2 relative overflow-hidden">
+                                <div class="absolute inset-0 bg-blue-500 flow-animation"></div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <p class="font-semibold text-gray-700">Mesa de Trabajo</p>
+                            <div class="h-2 bg-gray-300 rounded-full w-32 mt-2 relative overflow-hidden">
+                                <div class="absolute inset-0 bg-amber-500 flow-animation"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-center text-gray-600 mt-4 text-sm">
+                        El bus/mesa conecta todos los componentes y permite el flujo de información
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Component Details -->
+        <div id="componentDetails" class="bg-white rounded-2xl shadow-xl p-6 mb-8 hidden">
+            <h3 id="detailTitle" class="text-2xl font-bold mb-4 text-gray-800"></h3>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div id="computerDetail" class="bg-blue-50 rounded-lg p-4">
+                    <h4 class="font-bold text-lg text-blue-800 mb-2">En la Computadora</h4>
+                    <p id="computerDescription" class="text-gray-700"></p>
+                </div>
+                <div id="restaurantDetail" class="bg-amber-50 rounded-lg p-4">
+                    <h4 class="font-bold text-lg text-amber-800 mb-2">En el Restaurante</h4>
+                    <p id="restaurantDescription" class="text-gray-700"></p>
+                </div>
+            </div>
+            <div class="mt-4 text-center">
+                <button id="closeDetails" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg transition">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-8">
+            <h3 class="text-2xl font-bold mb-4 text-center text-gray-800">Tabla Comparativa</h3>
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="py-3 px-4 text-left text-gray-700 font-semibold">Componente de Computadora</th>
+                            <th class="py-3 px-4 text-left text-gray-700 font-semibold">Función</th>
+                            <th class="py-3 px-4 text-left text-gray-700 font-semibold">Analogía en Restaurante</th>
+                            <th class="py-3 px-4 text-left text-gray-700 font-semibold">Función en Restaurante</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-medium text-blue-700">CPU (Procesador)</td>
+                            <td class="py-3 px-4">Ejecuta instrucciones, realiza cálculos y controla el sistema</td>
+                            <td class="py-3 px-4 font-medium text-amber-700">Chef</td>
+                            <td class="py-3 px-4">Prepara los platos siguiendo las recetas</td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-medium text-indigo-700">Memoria (RAM/Almacenamiento)</td>
+                            <td class="py-3 px-4">Almacena temporalmente programas y datos en uso</td>
+                            <td class="py-3 px-4 font-medium text-orange-700">Libros de Recetas</td>
+                            <td class="py-3 px-4">Contienen las instrucciones para preparar cada plato</td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-medium text-green-700">Dispositivos de Entrada</td>
+                            <td class="py-3 px-4">Permiten ingresar datos e instrucciones al sistema</td>
+                            <td class="py-3 px-4 font-medium text-emerald-700">Pedidos de Clientes</td>
+                            <td class="py-3 px-4">Los clientes solicitan los platos que desean</td>
+                        </tr>
+                        <tr class="border-b border-gray-200 hover:bg-gray-50">
+                            <td class="py-3 px-4 font-medium text-red-700">Dispositivos de Salida</td>
+                            <td class="py-3 px-4">Muestran o transmiten los resultados del procesamiento</td>
+                            <td class="py-3 px-4 font-medium text-rose-700">Platos Terminados</td>
+                            <td class="py-3 px-4">Los platos preparados se entregan a los clientes</td>
+                        </tr>
+                        <tr class="hover:bg-gray-50">
+                            <td class="py-3 px-4 font-medium text-purple-700">Bus del Sistema</td>
+                            <td class="py-3 px-4">Conecta todos los componentes y permite la comunicación</td>
+                            <td class="py-3 px-4 font-medium text-yellow-700">Mesa de Trabajo</td>
+                            <td class="py-3 px-4">Espacio donde el chef prepara los ingredientes y ensambla los platos</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Process Flow -->
+        <div class="bg-white rounded-2xl shadow-xl p-6">
+            <h3 class="text-2xl font-bold mb-6 text-center text-gray-800">Flujo de Proceso</h3>
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-8 md:mb-0 text-center">
+                    <h4 class="font-bold text-lg text-blue-800 mb-4">En la Computadora</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <div class="bg-green-100 rounded-full p-3 mr-3">
+                                <i class="fas fa-keyboard text-green-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Entrada de datos</p>
+                                <p class="text-sm text-gray-600">El usuario introduce información</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="bg-indigo-100 rounded-full p-3 mr-3">
+                                <i class="fas fa-memory text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Almacenamiento en memoria</p>
+                                <p class="text-sm text-gray-600">Los datos se guardan temporalmente</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="bg-blue-100 rounded-full p-3 mr-3">
+                                <i class="fas fa-microchip text-blue-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Procesamiento</p>
+                                <p class="text-sm text-gray-600">La CPU ejecuta las instrucciones</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="bg-red-100 rounded-full p-3 mr-3">
+                                <i class="fas fa-desktop text-red-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Salida de resultados</p>
+                                <p class="text-sm text-gray-600">Los resultados se muestran al usuario</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hidden md:block text-gray-400">
+                    <i class="fas fa-exchange-alt text-3xl"></i>
+                </div>
+                
+                <div class="text-center">
+                    <h4 class="font-bold text-lg text-amber-800 mb-4">En el Restaurante</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center">
+                            <div class="bg-emerald-100 rounded-full p-3 mr-3">
+                                <i class="fas fa-clipboard-list text-emerald-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Toma de pedidos</p>
+                                <p class="text-sm text-gray-600">Los clientes solicitan platos</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="bg-orange-100 rounded-full p-3 mr-3">
+                                <i class="fas fa-book-open text-orange-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Consulta de recetas</p>
+                                <p class="text-sm text-gray-600">El chef revisa cómo preparar los platos</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="bg-amber-100 rounded-full p-3 mr-3">
+                                <i class="fas fa-user-tie text-amber-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Preparación</p>
+                                <p class="text-sm text-gray-600">El chef cocina los platos solicitados</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="bg-rose-100 rounded-full p-3 mr-3">
+                                <i class="fas fa-utensils text-rose-600"></i>
+                            </div>
+                            <div>
+                                <p class="font-semibold">Entrega de platos</p>
+                                <p class="text-sm text-gray-600">Los platos terminados se sirven</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Component data
+        const componentData = {
+            cpu: {
+                title: "CPU (Procesador) vs Chef",
+                computer: "La Unidad Central de Procesamiento (CPU) es el cerebro de la computadora. Ejecuta instrucciones, realiza cálculos aritméticos y lógicos, y controla otras partes del sistema. La CPU sigue las instrucciones almacenadas en la memoria para procesar datos.",
+                restaurant: "El chef es el corazón del restaurante. Es responsable de preparar los platos siguiendo las recetas. Toma decisiones sobre cómo combinar ingredientes, ajustar sabores y coordinar la preparación de múltiples platos simultáneamente."
+            },
+            memory: {
+                title: "Memoria vs Libros de Recetas",
+                computer: "La memoria (RAM) es un almacenamiento temporal que mantiene los programas y datos que la CPU está utilizando actualmente. Permite un acceso rápido a la información necesaria para el procesamiento. También hay almacenamiento a largo plazo como discos duros o SSD.",
+                restaurant: "Los libros de recetas contienen las instrucciones detalladas para preparar cada plato. El chef consulta estos libros para saber los ingredientes, cantidades, tiempos de cocción y técnicas necesarias. También hay una despensa o nevera para almacenar ingredientes a largo plazo."
+            },
+            input: {
+                title: "Dispositivos de Entrada vs Pedidos",
+                computer: "Los dispositivos de entrada permiten a los usuarios introducir datos e instrucciones en la computadora. Ejemplos comunes son el teclado, mouse, micrófono, cámara y escáner. Estos dispositivos convierten la información del mundo real en datos digitales.",
+                restaurant: "Los pedidos de los clientes son la entrada del restaurante. Los clientes comunican qué platos desean, cualquier modificación especial que necesiten y otras preferencias. Esta información es el punto de partida para todo el proceso en la cocina."
+            },
+            output: {
+                title: "Dispositivos de Salida vs Platos Terminados",
+                computer: "Los dispositivos de salida muestran o transmiten los resultados del procesamiento de la computadora al usuario. Ejemplos incluyen la pantalla, impresora, altavocces y proyectores. Convierten los datos procesados en información comprensible para el usuario.",
+                restaurant: "Los platos terminados son el resultado final del proceso en el restaurante. Una vez preparados según las especificaciones, se entregan a los clientes quienes pueden disfrutarlos. Es el producto tangible que satisface la necesidad inicial del cliente."
+            },
+            chef: {
+                title: "Chef vs CPU",
+                computer: "La CPU es el componente que ejecuta las instrucciones de un programa. Realiza operaciones aritméticas, lógicas y de control. Es responsable de coordinar todas las actividades de la computadora y procesar los datos según las instrucciones proporcionadas.",
+                restaurant: "El chef es el responsable de ejecutar las recetas. Prepara los platos siguiendo las instrucciones, toma decisiones sobre la cocción, sazonado y presentación. Coordina las actividades en la cocina y gestiona los recursos para entregar los platos a tiempo."
+            },
+            recipes: {
+                title: "Libros de Recetas vs Memoria",
+                computer: "La memoria almacena las instrucciones que la CPU debe ejecutar, así como los datos con los que debe trabajar. La RAM proporciona acceso rápido a esta información, mientras que el almacenamiento a largo plazo guarda programas y datos incluso cuando la computadora está apagada.",
+                restaurant: "Los libros de recetas almacenan las instrucciones para preparar cada plato. El chef consulta estas recetas para saber qué ingredientes usar, en qué cantidades y cómo prepararlos. También hay áreas de almacenamiento para ingredientes que se usan con frecuencia."
+            },
+            orders: {
+                title: "Pedidos vs Entrada de Datos",
+                computer: "La entrada de datos es el primer paso en el procesamiento de información. Los usuarios introducen información a través de dispositivos de entrada, que la computadora luego procesará según las instrucciones del programa.",
+                restaurant: "Los pedidos representan las necesidades y deseos de los clientes. Son el punto de partida para todo el proceso en el restaurante. Sin pedidos, no habría nada que preparar ni entregar."
+            },
+            dishes: {
+                title: "Platos vs Salida de Datos",
+                computer: "La salida de datos es el resultado final del procesamiento. La computadora presenta información procesada al usuario a través de dispositivos de salida, permitiendo que el usuario vea, escuche o interactúe con los resultados.",
+                restaurant: "Los platos terminados son el resultado final del proceso en la cocina. Representan la satisfacción de las necesidades expresadas en los pedidos iniciales. Son el producto tangible que los clientes reciben y consumen."
+            }
+        };
+
+        // Add event listeners to components
+        document.querySelectorAll('.component-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const componentId = this.id;
+                const data = componentData[componentId];
+                
+                if (data) {
+                    document.getElementById('detailTitle').textContent = data.title;
+                    document.getElementById('computerDescription').textContent = data.computer;
+                    document.getElementById('restaurantDescription').textContent = data.restaurant;
+                    document.getElementById('componentDetails').classList.remove('hidden');
+                    
+                    // Scroll to details
+                    document.getElementById('componentDetails').scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Close details button
+        document.getElementById('closeDetails').addEventListener('click', function() {
+            document.getElementById('componentDetails').classList.add('hidden');
+        });
+
+        // Add hover effect to paired components
+        const pairs = [
+            ['cpu', 'chef'],
+            ['memory', 'recipes'],
+            ['input', 'orders'],
+            ['output', 'dishes']
+        ];
+
+        pairs.forEach(pair => {
+            const comp1 = document.getElementById(pair[0]);
+            const comp2 = document.getElementById(pair[1]);
+            
+            comp1.addEventListener('mouseenter', function() {
+                comp2.classList.add('pulse-animation');
+            });
+            
+            comp1.addEventListener('mouseleave', function() {
+                comp2.classList.remove('pulse-animation');
+            });
+            
+            comp2.addEventListener('mouseenter', function() {
+                comp1.classList.add('pulse-animation');
+            });
+            
+            comp2.addEventListener('mouseleave', function() {
+                comp1.classList.remove('pulse-animation');
+            });
+        });
+    </script>
+</body>
+</html>
