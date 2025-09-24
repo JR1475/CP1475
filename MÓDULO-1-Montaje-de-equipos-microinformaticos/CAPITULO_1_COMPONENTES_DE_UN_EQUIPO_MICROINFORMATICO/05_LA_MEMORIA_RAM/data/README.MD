@@ -1,4 +1,3 @@
-¡Claro! A continuación, te presento una **presentación clara, sencilla y con analogías** para estudiantes de **Formación Profesional**, explicando los elementos fundamentales de la **memoria RAM**, especialmente enfocada en **frecuencia, ancho de banda, transacciones y latencia**. Ideal para una clase de 45-60 minutos.
 
 ---
 
@@ -135,4 +134,3 @@
 
 ---
 
-¿Te gustaría que esta presentación esté en formato PowerPoint o PDF? También puedo darte las diapositivas listas para imprimir o proyectar.
