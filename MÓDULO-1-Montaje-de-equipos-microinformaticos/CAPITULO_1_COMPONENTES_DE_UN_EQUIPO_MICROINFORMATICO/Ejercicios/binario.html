@@ -1,0 +1,384 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorando el Sistema Binario</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-color: #1a1a2e;
+            --text-color: #f0f0f0;
+            --card-bg: #16213e;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--background-color), #0f0f23);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+            text-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+
+        .section {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        h2 {
+            color: var(--secondary-color);
+            margin-bottom: 25px;
+            font-size: 1.8rem;
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px;
+            border-radius: 8px;
+            border: 2px solid #34495e;
+            background: #0f1419;
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 10px rgba(52, 152, 219, 0.5);
+        }
+
+        button {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(25, 35, 60, 0.7);
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary-color);
+        }
+
+        .result h3 {
+            color: var(--success-color);
+            margin-bottom: 15px;
+        }
+
+        .step-by-step {
+            margin-top: 15px;
+        }
+
+        .step {
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(52, 152, 219, 0.1);
+            border-radius: 4px;
+        }
+
+        .error {
+            color: var(--accent-color);
+            background: rgba(231, 76, 60, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .unit-result {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(46, 204, 113, 0.1);
+            border-radius: 6px;
+            border-left: 3px solid var(--success-color);
+        }
+
+        .binary-digit {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: var(--secondary-color);
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin: 0 2px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Explorando el Sistema Binario</h1>
+            <p class="subtitle">Aprende sobre conversiones binarias y unidades de información</p>
+        </header>
+
+        <main>
+            <!-- Sección 1: Conversión de Unidades Binarias -->
+            <section class="section">
+                <h2>Conversión de Unidades Binarias</h2>
+                <div class="input-group">
+                    <label for="cantidad-unidad">Cantidad:</label>
+                    <input type="number" id="cantidad-unidad" placeholder="Ingresa la cantidad" min="1">
+                </div>
+                
+                <div class="input-group">
+                    <label for="unidad-entrada">Unidad de Entrada:</label>
+                    <select id="unidad-entrada">
+                        <option value="bit">Bit</option>
+                        <option value="byte">Byte</option>
+                        <option value="kilobit">Kilobit</option>
+                        <option value="kilobyte">Kilobyte</option>
+                        <option value="megabit">Megabit</option>
+                        <option value="megabyte">Megabyte</option>
+                        <option value="gigabit">Gigabit</option>
+                        <option value="gigabyte">Gigabyte</option>
+                        <option value="terabit">Terabit</option>
+                        <option value="terabyte">Terabyte</option>
+                        <option value="petabit">Petabit</option>
+                        <option value="petabyte">Petabyte</option>
+                        <option value="exabit">Exabit</option>
+                        <option value="exabyte">Exabyte</option>
+                        <option value="zettabit">Zettabit</option>
+                        <option value="zettabyte">Zettabyte</option>
+                        <option value="yottabit">Yottabit</option>
+                        <option value="yottabyte">Yottabyte</option>
+                        <option value="iottabit">Iottabit</option>
+                        <option value="iottabyte">Iottabyte</option>
+                    </select>
+                </div>
+                
+                <button id="convertir-unidades">Convertir a Todas las Unidades</button>
+                
+                <div id="resultado-unidades" class="result" style="display: none;">
+                    <h3>Resultados de Conversión:</h3>
+                    <div id="unidades-detalle"></div>
+                </div>
+            </section>
+
+            <!-- Sección 2: Conversión de Binario a Decimal -->
+            <section class="section">
+                <h2>Conversión de Binario a Decimal</h2>
+                <div class="input-group">
+                    <label for="binario-input">Número Binario:</label>
+                    <input type="text" id="binario-input" placeholder="Ej: 1011">
+                </div>
+                
+                <button id="convertir-binario">Convertir a Decimal</button>
+                
+                <div id="resultado-binario" class="result" style="display: none;">
+                    <h3>Proceso de Conversión:</h3>
+                    <div id="proceso-binario" class="step-by-step"></div>
+                    <h3>Resultado Decimal: <span id="resultado-final"></span></h3>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Definición de unidades binarias y sus valores en bits
+        const unidades = {
+            'bit': { nombre: 'Bit', valor: 1 },
+            'byte': { nombre: 'Byte', valor: 8 },
+            'kilobit': { nombre: 'Kilobit', valor: 1000 },
+            'kilobyte': { nombre: 'Kilobyte', valor: 8000 },
+            'megabit': { nombre: 'Megabit', valor: 1000000 },
+            'megabyte': { nombre: 'Megabyte', valor: 8000000 },
+            'gigabit': { nombre: 'Gigabit', valor: 1000000000 },
+            'gigabyte': { nombre: 'Gigabyte', valor: 8000000000 },
+            'terabit': { nombre: 'Terabit', valor: 1000000000000 },
+            'terabyte': { nombre: 'Terabyte', valor: 8000000000000 },
+            'petabit': { nombre: 'Petabit', valor: 1000000000000000 },
+            'petabyte': { nombre: 'Petabyte', valor: 8000000000000000 },
+            'exabit': { nombre: 'Exabit', valor: 1000000000000000000 },
+            'exabyte': { nombre: 'Exabyte', valor: 8000000000000000000 },
+            'zettabit': { nombre: 'Zettabit', valor: 1e+21 },
+            'zettabyte': { nombre: 'Zettabyte', valor: 8e+21 },
+            'yottabit': { nombre: 'Yottabit', valor: 1e+24 },
+            'yottabyte': { nombre: 'Yottabyte', valor: 8e+24 },
+            'iottabit': { nombre: 'Iottabit', valor: 1e+27 },
+            'iottabyte': { nombre: 'Iottabyte', valor: 8e+27 }
+        };
+
+        // Función para convertir entre unidades binarias
+        function convertirUnidades() {
+            const cantidad = parseFloat(document.getElementById('cantidad-unidad').value);
+            const unidadEntrada = document.getElementById('unidad-entrada').value;
+            
+            if (isNaN(cantidad) || cantidad <= 0) {
+                alert('Por favor ingresa una cantidad válida mayor a cero');
+                return;
+            }
+            
+            const resultadoDiv = document.getElementById('resultado-unidades');
+            const detalleDiv = document.getElementById('unidades-detalle');
+            
+            // Calcular la cantidad en bits
+            const cantidadEnBits = cantidad * unidades[unidadEntrada].valor;
+            
+            // Generar resultados para todas las unidades
+            let html = '';
+            for (const [clave, unidad] of Object.entries(unidades)) {
+                const valorConvertido = cantidadEnBits / unidad.valor;
+                
+                // Formatear el número para mejor lectura
+                let valorFormateado;
+                if (valorConvertido < 0.001 && valorConvertido > 0) {
+                    valorFormateado = valorConvertido.toExponential(4);
+                } else if (valorConvertido > 1000000000000000000000) {
+                    valorFormateado = valorConvertido.toExponential(4);
+                } else {
+                    valorFormateado = valorConvertido.toLocaleString(undefined, {
+                        maximumFractionDigits: 10,
+                        notation: "compact",
+                        compactDisplay: "short"
+                    });
+                }
+                
+                html += `<div class="unit-result">${cantidad} ${unidades[unidadEntrada].nombre} = ${valorFormateado} ${unidad.nombre}</div>`;
+            }
+            
+            detalleDiv.innerHTML = html;
+            resultadoDiv.style.display = 'block';
+        }
+
+        // Función para convertir binario a decimal
+        function convertirBinario() {
+            const binario = document.getElementById('binario-input').value.trim();
+            
+            // Validar que solo contenga 0s y 1s
+            if (!/^[01]+$/.test(binario)) {
+                const resultadoDiv = document.getElementById('resultado-binario');
+                const procesoDiv = document.getElementById('proceso-binario');
+                procesoDiv.innerHTML = '<div class="error">Error: Ingresa solo dígitos binarios (0 y 1)</div>';
+                resultadoDiv.style.display = 'block';
+                return;
+            }
+            
+            const resultadoDiv = document.getElementById('resultado-binario');
+            const procesoDiv = document.getElementById('proceso-binario');
+            const resultadoFinal = document.getElementById('resultado-final');
+            
+            // Convertir a decimal paso a paso
+            let decimal = 0;
+            let pasos = [];
+            let expresion = [];
+            let suma = [];
+            
+            for (let i = 0; i < binario.length; i++) {
+                const digito = parseInt(binario[i]);
+                const potencia = binario.length - 1 - i;
+                const valor = digito * Math.pow(2, potencia);
+                
+                decimal += valor;
+                
+                // Agregar paso a la explicación
+                pasos.push(`${digito} * 2^${potencia} = ${valor}`);
+                expresion.push(`${digito} * 2^${potencia}`);
+                suma.push(valor);
+            }
+            
+            // Generar la explicación paso a paso
+            let html = '';
+            html += `<div class="step">Número binario: ${binario.split('').map(d => `<span class="binary-digit">${d}</span>`).join('')}</div>`;
+            html += `<div class="step">Expresión: ${expresion.join(' + ')}</div>`;
+            html += `<div class="step">Cálculo: ${suma.join(' + ')} = ${decimal}</div>`;
+            
+            // Mostrar cada paso individual
+            html += '<div class="step">Pasos detallados:</div>';
+            pasos.forEach(paso => {
+                html += `<div class="step">${paso}</div>`;
+            });
+            
+            procesoDiv.innerHTML = html;
+            resultadoFinal.textContent = decimal;
+            resultadoDiv.style.display = 'block';
+        }
+
+        // Event listeners
+        document.getElementById('convertir-unidades').addEventListener('click', convertirUnidades);
+        document.getElementById('convertir-binario').addEventListener('click', convertirBinario);
+    </script>
+</body>
+</html>
+
