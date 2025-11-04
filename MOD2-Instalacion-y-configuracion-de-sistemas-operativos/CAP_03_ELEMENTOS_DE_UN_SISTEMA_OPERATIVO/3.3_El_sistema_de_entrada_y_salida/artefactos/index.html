@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flujo del Sistema Operativo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #2c3e50);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .diagram {
+            position: relative;
+            height: 500px;
+            margin: 40px 0;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            padding: 30px;
+        }
+
+        .layer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 2;
+        }
+
+        .layer-title {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .app, .kernel, .driver, .hardware {
+            width: 300px;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .app {
+            background: linear-gradient(145deg, #3498db, #2980b9);
+        }
+
+        .kernel {
+            background: linear-gradient(145deg, #2ecc71, #27ae60);
+        }
+
+        .driver {
+            background: linear-gradient(145deg, #e74c3c, #c0392b);
+        }
+
+        .hardware {
+            background: linear-gradient(145deg, #f39c12, #d35400);
+        }
+
+        .arrow {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            background: rgba(255, 255, 255, 0.7);
+            z-index: 1;
+        }
+
+        .arrow-top {
+            top: 120px;
+            height: 60px;
+        }
+
+        .arrow-middle {
+            top: 240px;
+            height: 60px;
+        }
+
+        .arrow-bottom {
+            top: 360px;
+            height: 60px;
+        }
+
+        .arrow-tip {
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-top: 12px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .data-flow {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #fff;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            opacity: 0;
+            transition: all 0.5s ease-in-out;
+            z-index: 3;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        .flow-1 { top: 80px; }
+        .flow-2 { top: 200px; }
+        .flow-3 { top: 320px; }
+        .flow-4 { top: 440px; }
+
+        .controls {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .btn {
+            background: linear-gradient(145deg, #9b59b6, #8e44ad);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .explanation {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 30px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .explanation h2 {
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+            text-align: center;
+        }
+
+        .explanation p {
+            line-height: 1.7;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .highlight {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .app, .kernel, .driver, .hardware {
+                width: 250px;
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .diagram {
+                height: 550px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Flujo del Sistema Operativo</h1>
+            <p class="subtitle">Visualiza cómo una aplicación como Word guarda un archivo en disco, mostrando la interacción entre la aplicación, el kernel, los drivers y el hardware</p>
+        </header>
+
+        <div class="controls">
+            <button id="start-btn" class="btn">Iniciar Flujo de Escritura</button>
+        </div>
+
+        <div class="diagram">
+            <div class="arrow arrow-top">
+                <div class="arrow-tip"></div>
+            </div>
+            <div class="arrow arrow-middle">
+                <div class="arrow-tip"></div>
+            </div>
+            <div class="arrow arrow-bottom">
+                <div class="arrow-tip"></div>
+            </div>
+
+            <div class="data-flow flow-1">1</div>
+            <div class="data-flow flow-2">2</div>
+            <div class="data-flow flow-3">3</div>
+            <div class="data-flow flow-4">4</div>
+
+            <div class="layer">
+                <div class="layer-title">Aplicación</div>
+                <div class="app">Microsoft Word</div>
+            </div>
+
+            <div class="layer">
+                <div class="layer-title">Kernel del Sistema Operativo</div>
+                <div class="kernel">Gestor de Archivos (VFS)</div>
+            </div>
+
+            <div class="layer">
+                <div class="layer-title">Driver del Dispositivo</div>
+                <div class="driver">Driver SATA/SSD</div>
+            </div>
+
+            <div class="layer">
+                <div class="layer-title">Hardware</div>
+                <div class="hardware">Disco Duro (SSD)</div>
+            </div>
+        </div>
+
+        <div class="explanation">
+            <h2>Ejemplo: Escritura de un Archivo en Disco</h2>
+            <p><span class="highlight">1. Aplicación</span>: Microsoft Word genera el contenido del documento y solicita al sistema operativo que lo guarde en disco.</p>
+            <p><span class="highlight">2. Kernel</span>: El kernel recibe la solicitud a través de la API del sistema (como <code>write()</code> en sistemas Unix). El subsistema de archivos virtual (VFS) traduce esta solicitud a operaciones específicas del sistema de archivos (NTFS, ext4, etc.).</p>
+            <p><span class="highlight">3. Driver</span>: El kernel envía comandos específicos al driver del controlador de disco (SATA, NVMe, etc.). El driver traduce estas instrucciones a señales que el hardware puede entender.</p>
+            <p><span class="highlight">4. Hardware</span>: El controlador del disco duro/SSD recibe las señales y escribe los datos físicamente en los bloques de almacenamiento del dispositivo.</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const startBtn = document.getElementById('start-btn');
+            const flows = [
+                document.querySelector('.flow-1'),
+                document.querySelector('.flow-2'),
+                document.querySelector('.flow-3'),
+                document.querySelector('.flow-4')
+            ];
+
+            startBtn.addEventListener('click', () => {
+                // Reset all flows
+                flows.forEach(flow => {
+                    flow.style.opacity = '0';
+                    flow.style.transform = 'translateX(-50%)';
+                });
+
+                // Animate flows sequentially
+                setTimeout(() => {
+                    flows[0].style.opacity = '1';
+                    flows[0].style.transform = 'translateX(-50%) translateY(20px)';
+                }, 500);
+
+                setTimeout(() => {
+                    flows[1].style.opacity = '1';
+                    flows[1].style.transform = 'translateX(-50%) translateY(20px)';
+                }, 1500);
+
+                setTimeout(() => {
+                    flows[2].style.opacity = '1';
+                    flows[2].style.transform = 'translateX(-50%) translateY(20px)';
+                }, 2500);
+
+                setTimeout(() => {
+                    flows[3].style.opacity = '1';
+                    flows[3].style.transform = 'translateX(-50%) translateY(20px)';
+                }, 3500);
+
+                // Reset button after animation
+                startBtn.textContent = 'Reiniciar Flujo';
+            });
+        });
+    </script>
+</body>
+</html>
+
