@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FileTree Explorer: Linux vs Windows</title>
+  <style>
+    :root {
+      --linux-bg: #2c3e50;
+      --linux-fg: #ecf0f1;
+      --win-bg: #2980b9;
+      --win-fg: #ffffff;
+      --file-reg: #3498db;
+      --file-dir: #2ecc71;
+      --file-dev: #e74c3c;
+      --transition: all 0.3s ease;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .comparison {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
+
+    .os-panel {
+      flex: 1;
+      min-width: 300px;
+      max-width: 500px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 15px;
+      color: white;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .linux .panel-header { background: var(--linux-bg); }
+    .windows .panel-header { background: var(--win-bg); }
+
+    .tree {
+      padding: 20px;
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .node {
+      margin: 8px 0;
+      padding: 8px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .node:hover {
+      transform: translateX(5px);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .node.dir { background: rgba(46, 204, 113, 0.15); color: var(--file-dir); }
+    .node.file { background: rgba(52, 152, 219, 0.15); color: var(--file-reg); }
+    .node.dev { background: rgba(231, 76, 60, 0.15); color: var(--file-dev); }
+
+    .node::before {
+      content: "📁";
+      font-size: 1.1em;
+    }
+    .node.file::before { content: "📄"; }
+    .node.dev::before { content: "📟"; }
+
+    .info-box {
+      margin-top: 30px;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>FileTree Explorer: Linux vs Windows</h1>
+    <p>Todo en Linux es un archivo — ¿cómo se compara con Windows?</p>
+  </header>
+
+  <div class="comparison">
+    <div class="os-panel linux">
+      <div class="panel-header">🐧 Linux (/)</div>
+      <div class="tree" id="linux-tree"></div>
+    </div>
+
+    <div class="os-panel windows">
+      <div class="panel-header">🪟 Windows (C:\)</div>
+      <div class="tree" id="windows-tree"></div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">📁 Directorio</div>
+    <div class="legend-item">📄 Archivo regular</div>
+    <div class="legend-item">📟 Dispositivo / especial</div>
+  </div>
+
+  <div class="info-box" id="info-box">
+    <p>Haz clic en cualquier directorio para ver su descripción.</p>
+  </div>
+
+  <script>
+    // Datos estructurados
+    const linuxTree = [
+      { name: "/bin", type: "dir", desc: "Comandos esenciales del sistema (ls, cp, etc.)" },
+      { name: "/sbin", type: "dir", desc: "Comandos del administrador (ifconfig, fdisk)" },
+      { name: "/etc", type: "dir", desc: "Archivos de configuración del sistema" },
+      { name: "/home", type: "dir", desc: "Directorios personales de los usuarios" },
+      { name: "/tmp", type: "dir", desc: "Archivos temporales (se borran al reiniciar)" },
+      { name: "/var", type: "dir", desc: "Datos variables: logs, colas, bases de datos" },
+      { name: "/usr", type: "dir", desc: "Programas y archivos compartidos no esenciales" },
+      { name: "/lib", type: "dir", desc: "Bibliotecas del sistema" },
+      { name: "/dev", type: "dev", desc: "Dispositivos representados como archivos (sda, tty)" },
+      { name: "/proc", type: "dev", desc: "Sistema de archivos virtual: info del kernel y procesos" },
+      { name: "/sys", type: "dev", desc: "Información del hardware y controladores" },
+      { name: "/boot", type: "dir", desc: "Archivos para arrancar el sistema (kernel, GRUB)" },
+      { name: "/mnt", type: "dir", desc: "Punto de montaje temporal para dispositivos" },
+      { name: "/media", type: "dir", desc: "Montaje automático de USB/CD" },
+      { name: "/opt", type: "dir", desc: "Software de terceros (aplicaciones grandes)" }
+    ];
+
+    const windowsTree = [
+      { name: "C:\\Windows", type: "dir", desc: "Archivos del sistema operativo" },
+      { name: "C:\\Program Files", type: "dir", desc: "Aplicaciones instaladas (64 bits)" },
+      { name: "C:\\Program Files (x86)", type: "dir", desc: "Aplicaciones de 32 bits" },
+      { name: "C:\\Users", type: "dir", desc: "Carpetas personales de los usuarios" },
+      { name: "C:\\ProgramData", type: "dir", desc: "Datos compartidos de aplicaciones" },
+      { name: "C:\\Windows\\System32", type: "dir", desc: "Bibliotecas y binarios críticos del sistema" },
+      { name: "C:\\Temp", type: "dir", desc: "Archivos temporales" },
+      { name: "C:\\Boot", type: "dir", desc: "Archivos de arranque de Windows" }
+    ];
+
+    function renderTree(data, containerId) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = '';
+      data.forEach(item => {
+        const el = document.createElement('div');
+        el.className = `node ${item.type}`;
+        el.textContent = item.name;
+        el.title = item.desc;
+        el.onclick = () => {
+          document.getElementById('info-box').innerHTML = `
+            <strong>${item.name}</strong><br>
+            <em>Tipo:</em> ${item.type === 'dir' ? 'Directorio' : item.type === 'dev' ? 'Dispositivo / archivo especial' : 'Archivo regular'}<br>
+            <em>Descripción:</em> ${item.desc}
+          `;
+        };
+        container.appendChild(el);
+      });
+    }
+
+    // Inicializar
+    renderTree(linuxTree, 'linux-tree');
+    renderTree(windowsTree, 'windows-tree');
+  </script>
+</body>
+</html>
+
