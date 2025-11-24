@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diferencia: Clonación vs Backup</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1e293b; /* Dark slate background */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container {
+            width: 95%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        /* SVG Styles */
+        svg {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Texts */
+        .title-text {
+            font-size: 24px;
+            font-weight: bold;
+            fill: #334155;
+            text-anchor: middle;
+        }
+        
+        .subtitle-text {
+            font-size: 14px;
+            fill: #64748b;
+            text-anchor: middle;
+        }
+
+        .label-text {
+            font-size: 12px;
+            fill: #475569;
+            text-anchor: middle;
+        }
+
+        /* --- CLONING ANIMATIONS --- */
+        
+        /* The laser scan line */
+        .scan-line {
+            animation: scanMove 4s ease-in-out infinite;
+            opacity: 0;
+        }
+
+        /* The target drive appearing */
+        .clone-target {
+            clip-path: url(#reveal-clip);
+        }
+
+        .reveal-rect {
+            animation: revealHeight 4s ease-in-out infinite;
+            height: 0;
+        }
+
+        /* Blinking led on drives */
+        .led-blink {
+            animation: blink 0.5s steps(2) infinite;
+        }
+
+        @keyframes scanMove {
+            0% { transform: translateY(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(120px); opacity: 0; }
+        }
+
+        @keyframes revealHeight {
+            0% { height: 0; }
+            100% { height: 120px; }
+        }
+
+        /* --- BACKUP ANIMATIONS --- */
+
+        /* Files moving */
+        .file-item {
+            opacity: 0;
+        }
+
+        .file-1 { animation: fileMove 3s ease-in-out infinite; animation-delay: 0.5s; }
+        .file-2 { animation: fileMove 3s ease-in-out infinite; animation-delay: 1.2s; }
+        .file-3 { animation: fileMove 3s ease-in-out infinite; animation-delay: 1.9s; }
+
+        /* The box lid closing slightly */
+        .box-lid {
+            transform-origin: 650px 180px;
+            animation: boxBounce 3s ease-in-out infinite;
+        }
+
+        @keyframes fileMove {
+            0% { 
+                transform: translate(0, 0) scale(1); 
+                opacity: 1; 
+            }
+            40% { 
+                transform: translate(90px, -40px) scale(1); /* Move up out of drive */
+                opacity: 1;
+            }
+            80% { 
+                transform: translate(180px, 0px) scale(0.5); /* Move into box and shrink */
+                opacity: 1;
+            }
+            90% { 
+                transform: translate(180px, 10px) scale(0); 
+                opacity: 0;
+            }
+            100% { opacity: 0; }
+        }
+
+        @keyframes boxBounce {
+            0%, 70% { transform: rotate(0deg); }
+            80% { transform: rotate(-10deg); } /* Open to receive */
+            90% { transform: rotate(0deg); }
+        }
+
+        @keyframes blink {
+            0% { fill: #ef4444; }
+            100% { fill: #7f1d1d; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+        
+        <!-- Divider Line -->
+        <line x1="400" y1="20" x2="400" y2="380" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="5,5" />
+
+        <!-- ================= LEFT SIDE: CLONING ================= -->
+        
+        <text x="200" y="50" class="title-text">CLONACIÓN</text>
+        <text x="200" y="75" class="subtitle-text">Copia exacta (Bit a Bit) del Disco</text>
+
+        <!-- Source HDD Group -->
+        <g transform="translate(70, 130)">
+            <!-- HDD Body -->
+            <rect x="0" y="0" width="100" height="120" rx="5" fill="#cbd5e1" stroke="#64748b" stroke-width="2"/>
+            <rect x="10" y="10" width="80" height="100" rx="2" fill="#f1f5f9"/>
+            <!-- Platter -->
+            <circle cx="50" cy="60" r="35" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+            <circle cx="50" cy="60" r="10" fill="#cbd5e1"/>
+            <!-- Arm -->
+            <path d="M 85 90 L 50 60" stroke="#64748b" stroke-width="3" stroke-linecap="round"/>
+            <!-- LED -->
+            <circle cx="90" cy="110" r="3" class="led-blink" fill="#ef4444"/>
+            
+            <text x="50" y="140" class="label-text" style="font-weight:bold;">Disco Origen</text>
+        </g>
+
+        <!-- Cloning Arrow & Effect -->
+        <g transform="translate(190, 180)">
+            <text x="20" y="-10" class="label-text" fill="#3b82f6">Replica Todo</text>
+            <line x1="0" y1="10" x2="40" y2="10" stroke="#3b82f6" stroke-width="4" marker-end="url(#arrowhead-blue)"/>
+        </g>
+
+        <!-- Target HDD Group (The Clone) -->
+        <g transform="translate(250, 130)">
+            <!-- Ghost Outline (placeholder) -->
+            <rect x="0" y="0" width="100" height="120" rx="5" fill="none" stroke="#e2e8f0" stroke-width="2" stroke-dasharray="4,4"/>
+            
+            <!-- The Actual Drive (Revealed by mask) -->
+            <g class="clone-target">
+                <rect x="0" y="0" width="100" height="120" rx="5" fill="#cbd5e1" stroke="#3b82f6" stroke-width="2"/>
+                <rect x="10" y="10" width="80" height="100" rx="2" fill="#f1f5f9"/>
+                <circle cx="50" cy="60" r="35" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+                <circle cx="50" cy="60" r="10" fill="#cbd5e1"/>
+                <path d="M 85 90 L 50 60" stroke="#64748b" stroke-width="3" stroke-linecap="round"/>
+                
+                <!-- "Exact Copy" Stamp -->
+                <text x="50" y="105" font-size="10" fill="#3b82f6" text-anchor="middle" font-weight="bold">COPIA 1:1</text>
+            </g>
+
+            <!-- Scan Line Effect -->
+            <line x1="-10" y1="0" x2="110" y2="0" stroke="#3b82f6" stroke-width="2" class="scan-line" stroke-dasharray="2,2"/>
+
+            <text x="50" y="140" class="label-text" style="font-weight:bold;">Disco Clonado</text>
+        </g>
+
+        <!-- Clip Path for revealing the clone -->
+        <defs>
+            <clipPath id="reveal-clip">
+                <rect x="0" y="0" width="100" class="reveal-rect" />
+            </clipPath>
+            <marker id="arrowhead-blue" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6" />
+            </marker>
+             <marker id="arrowhead-green" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#10b981" />
+            </marker>
+        </defs>
+
+        <!-- Bottom Explanation Left -->
+        <text x="200" y="300" class="label-text" dy="0">RESULTADO:</text>
+        <text x="200" y="300" class="label-text" dy="20" fill="#3b82f6" font-weight="bold">Sistema Arrancable</text>
+        <text x="200" y="300" class="label-text" dy="40">Copia SO, Apps, Virus y Vacío</text>
+
+        <!-- ================= RIGHT SIDE: BACKUP ================= -->
+
+        <text x="600" y="50" class="title-text">BACKUP</text>
+        <text x="600" y="75" class="subtitle-text">Copia de Archivos Seleccionados</text>
+
+        <!-- Source HDD (Backup) -->
+        <g transform="translate(470, 130)">
+             <!-- HDD Body -->
+             <rect x="0" y="0" width="100" height="120" rx="5" fill="#cbd5e1" stroke="#64748b" stroke-width="2"/>
+             <rect x="10" y="10" width="80" height="100" rx="2" fill="#f1f5f9"/>
+             <!-- Platter -->
+             <circle cx="50" cy="60" r="35" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+             
+             <!-- Files inside -->
+             <g class="file-1">
+                <rect x="30" y="40" width="20" height="25" fill="#f59e0b" stroke="#b45309" rx="2"/>
+                <text x="40" y="55" font-size="8" text-anchor="middle" fill="white">DOC</text>
+             </g>
+             <g class="file-2">
+                <rect x="55" y="50" width="20" height="25" fill="#3b82f6" stroke="#1d4ed8" rx="2"/>
+                <text x="65" y="65" font-size="8" text-anchor="middle" fill="white">PIC</text>
+             </g>
+             <g class="file-3">
+                <rect x="40" y="70" width="20" height="25" fill="#10b981" stroke="#047857" rx="2"/>
+                <text x="50" y="85" font-size="8" text-anchor="middle" fill="white">XLS</text>
+             </g>
+
+             <text x="50" y="140" class="label-text" style="font-weight:bold;">Disco Origen</text>
+        </g>
+
+        <!-- Backup Arrow -->
+        <g transform="translate(590, 180)">
+             <line x1="0" y1="10" x2="40" y2="10" stroke="#10b981" stroke-width="4" stroke-dasharray="4,2" marker-end="url(#arrowhead-green)"/>
+        </g>
+
+        <!-- Target Backup Container (Box) -->
+        <g transform="translate(650, 150)">
+            <!-- Box Body -->
+            <rect x="0" y="30" width="90" height="70" fill="#fbbf24" stroke="#d97706" stroke-width="2" rx="2"/>
+            <text x="45" y="70" text-anchor="middle" font-weight="bold" fill="#92400e" font-size="12">ARCHIVO .ZIP</text>
+            <text x="45" y="85" text-anchor="middle" fill="#92400e" font-size="10">o Imagen</text>
+            
+            <!-- Box Lid -->
+            <path d="M 0 30 L 90 30 L 80 10 L 10 10 Z" fill="#fcd34d" stroke="#d97706" stroke-width="2" class="box-lid" />
+            
+            <text x="45" y="120" class="label-text" style="font-weight:bold;">Almacén (Nube/USB)</text>
+        </g>
+
+        <!-- Bottom Explanation Right -->
+        <text x="600" y="300" class="label-text" dy="0">RESULTADO:</text>
+        <text x="600" y="300" class="label-text" dy="20" fill="#10b981" font-weight="bold">Datos Seguros</text>
+        <text x="600" y="300" class="label-text" dy="40">Solo guarda lo importante (Más rápido)</text>
+
+    </svg>
+</div>
+
+</body>
+</html>

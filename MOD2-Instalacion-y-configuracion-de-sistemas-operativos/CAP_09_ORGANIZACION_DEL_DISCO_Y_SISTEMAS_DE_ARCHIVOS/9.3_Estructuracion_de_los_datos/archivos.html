@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estructura de Datos: Directorios y Archivos</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #0f172a; /* Slate 900 */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container {
+            width: 95%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        /* --- STYLES --- */
+        .title { font-size: 20px; font-weight: bold; fill: #334155; text-anchor: middle; }
+        .subtitle { font-size: 12px; fill: #64748b; text-anchor: middle; }
+        
+        /* Directories */
+        .folder-shape { fill: #eab308; stroke: #ca8a04; stroke-width: 1; }
+        .folder-label { font-size: 11px; fill: #334155; font-weight: bold; }
+        .tree-line { stroke: #cbd5e1; stroke-width: 2; fill: none; }
+        
+        /* Files */
+        .file-shape { fill: #f1f5f9; stroke: #94a3b8; stroke-width: 1; }
+        .file-exe { fill: #dbeafe; stroke: #3b82f6; } /* Executable blue */
+        .file-data { fill: #dcfce7; stroke: #22c55e; } /* Data green */
+        .file-text { font-size: 10px; fill: #475569; text-anchor: middle; }
+        .ext-text { font-size: 9px; fill: #64748b; text-anchor: middle; font-weight: bold; }
+
+        /* Attributes Box */
+        .attr-box { fill: #1e293b; rx: 5; }
+        .attr-text { font-size: 10px; fill: #e2e8f0; font-family: monospace; }
+        .attr-label { fill: #94a3b8; }
+
+        /* Highlights */
+        .highlight-ring { 
+            fill: none; 
+            stroke: #ef4444; 
+            stroke-width: 2; 
+            stroke-dasharray: 5,5;
+            opacity: 0;
+        }
+
+        /* --- ANIMATIONS --- */
+        :root {
+            --cycle: 12s;
+        }
+
+        /* Phase 1: Hierarchy */
+        .anim-tree { animation: treeFocus var(--cycle) infinite; opacity: 0.3; }
+        
+        /* Phase 2: Active Dir & Special Entries */
+        .anim-active-dir { animation: activeDirFocus var(--cycle) infinite; opacity: 0; }
+        
+        /* Phase 3: File Anatomy */
+        .anim-file-props { animation: filePropsFocus var(--cycle) infinite; opacity: 0; }
+
+        /* Phase 4: Types */
+        .anim-types { animation: typesFocus var(--cycle) infinite; opacity: 0; }
+
+        /* KEYFRAMES */
+        @keyframes treeFocus {
+            0%, 25% { opacity: 1; } /* Focus on Tree */
+            30%, 100% { opacity: 0.3; } /* Fade out */
+        }
+
+        @keyframes activeDirFocus {
+            0%, 20% { opacity: 0; }
+            25%, 45% { opacity: 1; } /* Show Active Directory Content */
+            50%, 100% { opacity: 0; }
+        }
+
+        @keyframes filePropsFocus {
+            0%, 45% { opacity: 0; }
+            50%, 70% { opacity: 1; } /* Show File Attributes */
+            75%, 100% { opacity: 0; }
+        }
+
+        @keyframes typesFocus {
+            0%, 70% { opacity: 0; }
+            75%, 95% { opacity: 1; } /* Show Types Diff */
+            100% { opacity: 0; }
+        }
+
+        /* Interactive pulsing for labels */
+        .pulse-text { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 0.7; } 50% { opacity: 1; } 100% { opacity: 0.7; } }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <svg viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- Header -->
+        <text x="400" y="30" class="title">ESTRUCTURACIÓN DE DATOS (9.3)</text>
+        <line x1="50" y1="45" x2="750" y2="45" stroke="#e2e8f0" stroke-width="2" />
+
+        <!-- ================= ZONE 1: HIERARCHY TREE (Left) ================= -->
+        <g transform="translate(50, 80)">
+            <text x="80" y="-10" class="subtitle" font-weight="bold">9.3.1 DIRECTORIOS (Árbol)</text>
+            
+            <!-- Root -->
+            <g class="anim-tree" style="animation-delay: 0s">
+                <path d="M 10 0 V 180" class="tree-line" /> <!-- Main Trunk -->
+                
+                <!-- Folder Root -->
+                <path d="M 0 20 H 30" class="tree-line" />
+                <path d="M 30 10 L 35 10 L 40 15 L 80 15 L 80 35 L 30 35 Z" class="folder-shape" />
+                <text x="90" y="28" class="folder-label">RAÍZ (C:\)</text>
+            </g>
+
+            <!-- Parent Folder -->
+            <g class="anim-tree" style="animation-delay: 0.5s">
+                <path d="M 0 70 H 30" class="tree-line" />
+                <path d="M 30 60 L 35 60 L 40 65 L 80 65 L 80 85 L 30 85 Z" class="folder-shape" />
+                <text x="90" y="78" class="folder-label">Usuarios (Padre ..)</text>
+            </g>
+
+            <!-- Active Folder -->
+            <g class="anim-tree" style="opacity: 1 !important; filter: drop-shadow(0 0 2px blue);">
+                <path d="M 30 85 V 120 H 60" class="tree-line" />
+                <path d="M 60 110 L 65 110 L 70 115 L 110 115 L 110 135 L 60 135 Z" fill="#eab308" stroke="#3b82f6" stroke-width="2" />
+                <text x="120" y="128" class="folder-label" fill="#3b82f6 !important">Documentos (Activo .)</text>
+            </g>
+        </g>
+
+        <!-- ================= ZONE 2: FILE LIST (Middle) ================= -->
+        <g transform="translate(300, 80)">
+            <text x="120" y="-10" class="subtitle" font-weight="bold">CONTENIDO DEL DIRECTORIO</text>
+            
+            <!-- Container BG -->
+            <rect x="0" y="10" width="240" height="250" fill="#f8fafc" stroke="#e2e8f0" rx="5" />
+
+            <!-- Special Directories -->
+            <g class="anim-active-dir">
+                <text x="10" y="30" font-family="monospace" font-size="12" fill="#64748b">.  (Este directorio)</text>
+                <text x="10" y="45" font-family="monospace" font-size="12" fill="#64748b">.. (Directorio padre)</text>
+                <line x1="10" y1="55" x2="230" y2="55" stroke="#cbd5e1" stroke-dasharray="2,2"/>
+            </g>
+
+            <!-- File 1: Executable -->
+            <g transform="translate(20, 70)">
+                <rect x="0" y="0" width="50" height="60" class="file-shape file-exe" />
+                <text x="25" y="30" font-size="16" text-anchor="middle">⚙️</text>
+                <text x="25" y="50" class="file-text">app</text>
+                <text x="25" y="72" class="ext-text">.EXE</text>
+                
+                <!-- Label for Type -->
+                <g class="anim-types">
+                    <text x="25" y="-10" font-size="9" fill="#3b82f6" text-anchor="middle" font-weight="bold">EJECUTABLE</text>
+                    <text x="25" y="85" font-size="8" fill="#64748b" text-anchor="middle">(Autónomo)</text>
+                </g>
+            </g>
+
+            <!-- File 2: Data -->
+            <g transform="translate(90, 70)">
+                <rect x="0" y="0" width="50" height="60" class="file-shape file-data" />
+                <text x="25" y="30" font-size="16" text-anchor="middle">📄</text>
+                <text x="25" y="50" class="file-text">nota</text>
+                <text x="25" y="72" class="ext-text">.TXT</text>
+
+                <!-- Highlight Ring for Props -->
+                <rect x="-5" y="-5" width="60" height="85" class="highlight-ring anim-file-props" />
+
+                <!-- Label for Type -->
+                <g class="anim-types">
+                    <text x="25" y="-10" font-size="9" fill="#22c55e" text-anchor="middle" font-weight="bold">DATOS</text>
+                    <text x="25" y="85" font-size="8" fill="#64748b" text-anchor="middle">(Requiere App)</text>
+                </g>
+            </g>
+
+            <!-- File 3: Hidden/System -->
+            <g transform="translate(160, 70)" opacity="0.5">
+                <rect x="0" y="0" width="50" height="60" class="file-shape" stroke-dasharray="2,2"/>
+                <text x="25" y="30" font-size="16" text-anchor="middle">🔒</text>
+                <text x="25" y="50" class="file-text">boot</text>
+                <text x="25" y="72" class="ext-text">.SYS</text>
+                <text x="25" y="85" font-size="8" fill="#64748b" text-anchor="middle">Oculto</text>
+            </g>
+
+        </g>
+
+        <!-- ================= ZONE 3: ATTRIBUTES (Right/Bottom) ================= -->
+        <g transform="translate(580, 80)">
+            <text x="80" y="-10" class="subtitle" font-weight="bold">9.3.2 ATRIBUTOS (Metadatos)</text>
+            
+            <!-- Panel -->
+            <rect x="0" y="10" width="180" height="150" class="attr-box" />
+            
+            <!-- Header bar -->
+            <rect x="0" y="10" width="180" height="25" fill="#334155" rx="5" />
+            <text x="10" y="26" font-size="11" fill="white" font-weight="bold">Propiedades: nota.txt</text>
+
+            <!-- Dynamic Content (Animated) -->
+            <g class="anim-file-props" transform="translate(10, 50)">
+                
+                <text x="0" y="0" class="attr-label" font-size="10">Nombre:</text>
+                <text x="60" y="0" class="attr-text">nota.txt</text>
+
+                <text x="0" y="20" class="attr-label" font-size="10">Tipo:</text>
+                <text x="60" y="20" class="attr-text">Archivo de Texto</text>
+
+                <text x="0" y="40" class="attr-label" font-size="10">Ubicación:</text>
+                <text x="60" y="40" class="attr-text">C:\... \Docs</text>
+
+                <text x="0" y="60" class="attr-label" font-size="10">Tamaño:</text>
+                <text x="60" y="60" class="attr-text">14 KB</text>
+
+                <text x="0" y="80" class="attr-label" font-size="10">Creado:</text>
+                <text x="60" y="80" class="attr-text">22/11/2025</text>
+
+                <!-- Checkboxes for attributes -->
+                <g transform="translate(0, 100)">
+                    <rect x="0" y="0" width="8" height="8" stroke="white" fill="none"/>
+                    <text x="12" y="7" font-size="9" fill="white">Solo Lectura</text>
+                    
+                    <rect x="80" y="0" width="8" height="8" stroke="white" fill="none"/>
+                    <text x="92" y="7" font-size="9" fill="white">Oculto</text>
+                </g>
+            </g>
+            
+            <!-- Placeholder when not active -->
+            <text x="90" y="100" text-anchor="middle" fill="#475569" font-size="10" style="animation: filePropsFocus 12s infinite reverse; opacity: 1;">
+                Seleccione un archivo...
+            </text>
+
+        </g>
+
+        <!-- ================= LEGEND (Footer) ================= -->
+        <g transform="translate(50, 380)">
+            <rect x="0" y="0" width="700" height="50" fill="#f1f5f9" rx="5" />
+            
+            <!-- Step 1 -->
+            <circle cx="30" cy="25" r="10" fill="#334155" class="pulse-text" style="animation-delay: 0s"/>
+            <text x="30" y="29" fill="white" text-anchor="middle" font-size="10" font-weight="bold">1</text>
+            <text x="50" y="29" font-size="11" fill="#334155">Jerarquía (Árbol)</text>
+
+            <!-- Step 2 -->
+            <circle cx="200" cy="25" r="10" fill="#334155" class="pulse-text" style="animation-delay: 3s"/>
+            <text x="200" y="29" fill="white" text-anchor="middle" font-size="10" font-weight="bold">2</text>
+            <text x="220" y="29" font-size="11" fill="#334155">Navegación (. / ..)</text>
+
+            <!-- Step 3 -->
+            <circle cx="370" cy="25" r="10" fill="#334155" class="pulse-text" style="animation-delay: 6s"/>
+            <text x="370" y="29" fill="white" text-anchor="middle" font-size="10" font-weight="bold">3</text>
+            <text x="390" y="29" font-size="11" fill="#334155">Atributos</text>
+
+            <!-- Step 4 -->
+            <circle cx="540" cy="25" r="10" fill="#334155" class="pulse-text" style="animation-delay: 9s"/>
+            <text x="540" y="29" fill="white" text-anchor="middle" font-size="10" font-weight="bold">4</text>
+            <text x="560" y="29" font-size="11" fill="#334155">Ejecutables vs Datos</text>
+
+        </g>
+
+    </svg>
+</div>
+
+</body>
+</html>

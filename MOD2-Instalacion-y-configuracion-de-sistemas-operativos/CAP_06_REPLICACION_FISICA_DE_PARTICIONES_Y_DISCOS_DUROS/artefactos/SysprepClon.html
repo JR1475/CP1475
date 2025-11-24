@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proceso Sysprep / Generalize</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #0f172a; /* Slate 900 */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container {
+            width: 95%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        /* Animation Timings */
+        :root {
+            --cycle-duration: 10s;
+        }
+
+        /* --- TEXT STYLES --- */
+        .title { font-size: 22px; font-weight: bold; fill: #334155; text-anchor: middle; }
+        .label { font-size: 12px; fill: #64748b; text-anchor: middle; }
+        .sid-text { font-family: monospace; font-size: 11px; fill: #dc2626; font-weight: bold; }
+        .sid-new { font-family: monospace; font-size: 11px; fill: #16a34a; font-weight: bold; }
+        .driver-text { font-size: 10px; fill: #475569; }
+        
+        /* --- MASTER PC ANIMATIONS --- */
+        
+        /* The specific ID (SID) on the master PC */
+        .master-sid {
+            animation: fadeOutID var(--cycle-duration) linear infinite;
+        }
+
+        /* The "Generalize" Wiper Bar */
+        .sysprep-wiper {
+            fill: #3b82f6;
+            opacity: 0.5;
+            animation: wipeDown var(--cycle-duration) ease-in-out infinite;
+        }
+
+        /* The "Generalized" Stamp */
+        .gen-stamp {
+            opacity: 0;
+            animation: stampAppear var(--cycle-duration) steps(1) infinite;
+        }
+
+        /* --- CLONING ANIMATIONS --- */
+        
+        /* Packets moving to clones */
+        .clone-packet {
+            opacity: 0;
+            animation: packetMove var(--cycle-duration) ease-in infinite;
+        }
+
+        /* --- TARGET PC ANIMATIONS --- */
+
+        /* OOBE Spinner */
+        .spinner {
+            transform-origin: center;
+            opacity: 0;
+            animation: spin 1s linear infinite, showSpinner var(--cycle-duration) linear infinite;
+        }
+
+        /* New IDs appearing */
+        .new-sid-1 { opacity: 0; animation: showNewID var(--cycle-duration) linear infinite; }
+        .new-sid-2 { opacity: 0; animation: showNewID var(--cycle-duration) linear infinite; }
+
+        /* --- KEYFRAMES --- */
+
+        @keyframes wipeDown {
+            0%, 10% { transform: translateY(-50px); opacity: 0; }
+            15% { opacity: 0.8; }
+            30% { transform: translateY(120px); opacity: 0.8; } /* Finished wiping */
+            35%, 100% { transform: translateY(120px); opacity: 0; }
+        }
+
+        @keyframes fadeOutID {
+            0%, 20% { opacity: 1; }
+            25%, 100% { opacity: 0.2; filter: grayscale(100%); } /* ID erased */
+        }
+
+        @keyframes stampAppear {
+            0%, 30% { opacity: 0; transform: scale(2); }
+            35% { opacity: 1; transform: scale(1); } /* Stamp hits */
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes packetMove {
+            0%, 35% { opacity: 0; offset-distance: 0%; }
+            40% { opacity: 1; }
+            60% { offset-distance: 100%; opacity: 1; }
+            65%, 100% { opacity: 0; }
+        }
+
+        @keyframes showSpinner {
+            0%, 60% { opacity: 0; }
+            61%, 75% { opacity: 1; } /* OOBE Running */
+            76%, 100% { opacity: 0; }
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        @keyframes showNewID {
+            0%, 75% { opacity: 0; transform: scale(0.5); }
+            80% { opacity: 1; transform: scale(1.2); }
+            85%, 100% { opacity: 1; transform: scale(1); }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- HEADER -->
+        <text x="400" y="40" class="title">SYSPREP: Generalizar y Clonar</text>
+        <line x1="50" y1="60" x2="750" y2="60" stroke="#e2e8f0" stroke-width="2" />
+
+        <!-- ================= PHASE 1: MASTER PC (Left) ================= -->
+        <g transform="translate(100, 100)">
+            <text x="75" y="-15" class="label" font-weight="bold">PC MAESTRO</text>
+            
+            <!-- PC Case -->
+            <rect x="0" y="0" width="150" height="200" rx="10" fill="#f1f5f9" stroke="#334155" stroke-width="3"/>
+            <rect x="10" y="10" width="130" height="120" rx="5" fill="#1e293b"/> <!-- Screen -->
+            
+            <!-- Content inside Master -->
+            <g class="master-sid">
+                <text x="20" y="40" fill="white" font-size="10">Windows Configurado</text>
+                <rect x="20" y="55" width="110" height="20" fill="#fee2e2" rx="2"/>
+                <text x="75" y="68" class="sid-text" text-anchor="middle">SID: S-1-5-21-XYZ</text>
+                <text x="20" y="95" class="driver-text" fill="#94a3b8">Drivers: Específicos</text>
+                <text x="20" y="110" class="driver-text" fill="#94a3b8">Nombre: PC-ADMIN</text>
+            </g>
+
+            <!-- Sysprep WIPER Overlay -->
+            <rect x="5" y="10" width="140" height="10" class="sysprep-wiper" rx="2" />
+            
+            <!-- Generalized Stamp -->
+            <g class="gen-stamp" transform-origin="75 100">
+                <rect x="15" y="150" width="120" height="30" fill="#3b82f6" rx="5"/>
+                <text x="75" y="170" fill="white" font-weight="bold" text-anchor="middle" font-size="14">GENERALIZADO</text>
+            </g>
+        </g>
+
+        <!-- ================= PHASE 2: DISTRIBUTION (Center) ================= -->
+        
+        <g transform="translate(280, 180)">
+            <!-- Connection Lines -->
+            <path d="M 0 20 L 100 20 L 100 -60 L 180 -60" fill="none" stroke="#cbd5e1" stroke-width="4" stroke-dasharray="5,5"/>
+            <path d="M 0 20 L 100 20 L 100 100 L 180 100" fill="none" stroke="#cbd5e1" stroke-width="4" stroke-dasharray="5,5"/>
+
+            <!-- Animated Packet 1 (To Top) -->
+            <circle r="8" fill="#3b82f6">
+                <animateMotion dur="10s" repeatCount="indefinite" path="M 0 20 L 100 20 L 100 -60 L 180 -60" keyPoints="0;0.3;0.4;0.6;1" keyTimes="0;0.3;0.4;0.6;1" calcMode="linear" begin="3.5s" />
+                <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="10s" repeatCount="indefinite" begin="3.5s"/>
+            </circle>
+
+            <!-- Animated Packet 2 (To Bottom) -->
+            <circle r="8" fill="#3b82f6">
+                 <animateMotion dur="10s" repeatCount="indefinite" path="M 0 20 L 100 20 L 100 100 L 180 100" keyPoints="0;0.3;0.4;0.6;1" keyTimes="0;0.3;0.4;0.6;1" calcMode="linear" begin="3.5s" />
+                 <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.9;1" dur="10s" repeatCount="indefinite" begin="3.5s"/>
+            </circle>
+            
+            <text x="50" y="50" class="label" fill="#3b82f6">CLONADO (Imagen Neutra)</text>
+        </g>
+
+        <!-- ================= PHASE 3: TARGET PCS (Right) ================= -->
+
+        <!-- CLONE 1 -->
+        <g transform="translate(500, 60)">
+            <text x="75" y="-10" class="label" font-weight="bold">CLON A (Primer Inicio)</text>
+            <rect x="0" y="0" width="150" height="140" rx="10" fill="#f1f5f9" stroke="#334155" stroke-width="3"/>
+            <rect x="10" y="10" width="130" height="90" rx="5" fill="#1e293b"/>
+            
+            <!-- OOBE Spinner -->
+            <g class="spinner" transform="translate(75, 55)">
+                <circle cx="0" cy="0" r="15" fill="none" stroke="#3b82f6" stroke-width="4" stroke-dasharray="20 60" />
+            </g>
+            
+            <!-- New ID Info -->
+            <g class="new-sid-1">
+                <text x="75" y="40" fill="white" font-size="10" text-anchor="middle">Generando ID...</text>
+                <rect x="20" y="55" width="110" height="20" fill="#dcfce7" rx="2"/>
+                <text x="75" y="68" class="sid-new" text-anchor="middle">SID: ...-999-NEW</text>
+                <text x="20" y="125" class="driver-text">Detectando Hardware...</text>
+            </g>
+        </g>
+
+        <!-- CLONE 2 -->
+        <g transform="translate(500, 220)">
+            <text x="75" y="-10" class="label" font-weight="bold">CLON B (Primer Inicio)</text>
+            <rect x="0" y="0" width="150" height="140" rx="10" fill="#f1f5f9" stroke="#334155" stroke-width="3"/>
+            <rect x="10" y="10" width="130" height="90" rx="5" fill="#1e293b"/>
+
+            <!-- OOBE Spinner -->
+            <g class="spinner" transform="translate(75, 55)">
+                <circle cx="0" cy="0" r="15" fill="none" stroke="#3b82f6" stroke-width="4" stroke-dasharray="20 60" />
+            </g>
+
+            <!-- New ID Info -->
+            <g class="new-sid-2">
+                <text x="75" y="40" fill="white" font-size="10" text-anchor="middle">Generando ID...</text>
+                <rect x="20" y="55" width="110" height="20" fill="#dcfce7" rx="2"/>
+                <text x="75" y="68" class="sid-new" text-anchor="middle">SID: ...-888-DIFF</text>
+                <text x="20" y="125" class="driver-text">Detectando Hardware...</text>
+            </g>
+        </g>
+
+        <!-- Legend -->
+        <g transform="translate(50, 350)">
+            <rect x="0" y="0" width="15" height="15" fill="#fee2e2" stroke="#ef4444"/>
+            <text x="25" y="12" font-size="12">ID Original (Peligro si se duplica)</text>
+            
+            <rect x="250" y="0" width="15" height="15" fill="#dcfce7" stroke="#22c55e"/>
+            <text x="275" y="12" font-size="12">ID Único (Correcto)</text>
+            
+            <rect x="450" y="0" width="15" height="15" fill="#3b82f6" opacity="0.5"/>
+            <text x="475" y="12" font-size="12">Acción Sysprep (Limpieza)</text>
+        </g>
+
+    </svg>
+</div>
+
+</body>
+</html>

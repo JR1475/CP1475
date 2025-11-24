@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utilidad del Registro de Windows</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #0f172a; /* Slate 900 */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container {
+            width: 95%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        /* --- VARIABLES --- */
+        :root {
+            --speed: 6s;
+        }
+
+        /* --- TEXT --- */
+        .title { font-size: 22px; font-weight: bold; fill: #334155; text-anchor: middle; }
+        .section-label { font-size: 12px; font-weight: bold; fill: #64748b; text-anchor: middle; text-transform: uppercase; }
+        .hive-text { font-family: monospace; font-size: 10px; fill: white; font-weight: bold; }
+        .desc-text { font-size: 10px; fill: #475569; text-anchor: middle; }
+
+        /* --- COMPONENT STYLES --- */
+        .reg-db { fill: #0ea5e9; stroke: #0369a1; stroke-width: 2; }
+        .reg-hive-machine { fill: #0369a1; }
+        .reg-hive-user { fill: #6366f1; }
+        
+        .device-box { fill: #f1f5f9; stroke: #cbd5e1; stroke-width: 2; rx: 5; }
+
+        /* --- ANIMATIONS --- */
+        
+        /* PATHS */
+        .flow-line {
+            fill: none;
+            stroke-width: 2;
+            stroke-dasharray: 5,5;
+            opacity: 0.3;
+        }
+
+        /* PACKETS */
+        .packet {
+            r: 4;
+            animation: flowMove var(--speed) linear infinite;
+        }
+
+        /* SCENARIO 1: THEME CHANGE (User) */
+        .theme-toggle { cursor: pointer; }
+        .toggle-bg { fill: #cbd5e1; transition: fill 0.3s; }
+        .toggle-circle { fill: white; transition: transform 0.3s; }
+        
+        /* Simulate toggle switching automatically */
+        .anim-toggle-bg { animation: toggleBg var(--speed) infinite; }
+        .anim-toggle-circle { animation: toggleCirc var(--speed) infinite; }
+
+        /* Resulting Screen Change */
+        .monitor-screen { animation: screenMode var(--speed) infinite; }
+
+        /* SCENARIO 2: HARDWARE (Machine) */
+        .usb-stick { animation: usbPlug var(--speed) infinite; }
+        .driver-gear { transform-origin: center; animation: gearSpin var(--speed) infinite; opacity: 0; }
+
+        /* SCENARIO 3: FILE EXTENSION (Software) */
+        .file-icon { animation: fileOpen var(--speed) infinite; opacity: 0; }
+
+        /* --- KEYFRAMES --- */
+
+        /* Flow Movement */
+        @keyframes flowMove {
+            0% { offset-distance: 0%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { offset-distance: 100%; opacity: 0; }
+        }
+
+        /* Theme Toggle Animation */
+        @keyframes toggleBg {
+            0%, 45% { fill: #cbd5e1; } /* OFF */
+            50%, 95% { fill: #10b981; } /* ON (Dark Mode) */
+            100% { fill: #cbd5e1; }
+        }
+        @keyframes toggleCirc {
+            0%, 45% { transform: cx(0); }
+            50%, 95% { transform: translateX(20px); }
+            100% { transform: cx(0); }
+        }
+        @keyframes screenMode {
+            0%, 60% { fill: #f8fafc; } /* Light */
+            65%, 95% { fill: #1e293b; } /* Dark */
+            100% { fill: #f8fafc; }
+        }
+
+        /* USB Animation */
+        @keyframes usbPlug {
+            0% { transform: translateX(-20px); opacity: 0; }
+            10% { transform: translateX(0); opacity: 1; } /* Plugged */
+            80% { transform: translateX(0); opacity: 1; }
+            90% { transform: translateX(-20px); opacity: 0; }
+            100% { opacity: 0; }
+        }
+        @keyframes gearSpin {
+            0%, 30% { opacity: 0; transform: rotate(0deg); }
+            35% { opacity: 1; }
+            90% { opacity: 1; transform: rotate(360deg); } /* Driver Working */
+            100% { opacity: 0; }
+        }
+
+        /* File Animation */
+        @keyframes fileOpen {
+            0%, 30% { opacity: 0; transform: translateY(10px); }
+            35% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Database Pulse */
+        .db-pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { filter: brightness(1); } 50% { filter: brightness(1.1); } 100% { filter: brightness(1); } }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <svg viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- TITLE -->
+        <text x="400" y="40" class="title">EL REGISTRO DE WINDOWS: BASE DE DATOS CENTRAL</text>
+        <line x1="100" y1="55" x2="700" y2="55" stroke="#e2e8f0" stroke-width="2" />
+
+        <!-- SECTIONS -->
+        <text x="150" y="80" class="section-label">ENTRADA (ACCIÓN)</text>
+        <text x="400" y="80" class="section-label">ALMACÉN (REGISTRO)</text>
+        <text x="650" y="80" class="section-label">SALIDA (EFECTO)</text>
+
+        <!-- ================= CENTER: THE REGISTRY (DATABASE) ================= -->
+        <g transform="translate(320, 120)">
+            <!-- Main Cylinder Body -->
+            <path d="M 0 30 V 180 C 0 200 160 200 160 180 V 30" fill="#f1f5f9" stroke="#94a3b8" stroke-width="2" />
+            <ellipse cx="80" cy="30" rx="80" ry="20" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2"/>
+            
+            <!-- HIVE 1: HKEY_LOCAL_MACHINE (Hardware/System) -->
+            <g transform="translate(10, 50)">
+                <rect x="0" y="0" width="140" height="40" rx="5" class="reg-hive-machine db-pulse" />
+                <text x="70" y="25" text-anchor="middle" class="hive-text">HKLM (SISTEMA)</text>
+                <text x="70" y="60" text-anchor="middle" font-size="8" fill="#64748b">Configuración Global</text>
+            </g>
+
+            <!-- HIVE 2: HKEY_CURRENT_USER (Preferences) -->
+            <g transform="translate(10, 120)">
+                <rect x="0" y="0" width="140" height="40" rx="5" class="reg-hive-user db-pulse" style="animation-delay: 0.5s"/>
+                <text x="70" y="25" text-anchor="middle" class="hive-text">HKCU (USUARIO)</text>
+                <text x="70" y="60" text-anchor="middle" font-size="8" fill="#64748b">Configuración Personal</text>
+            </g>
+
+            <text x="80" y="15" text-anchor="middle" font-size="10" font-weight="bold" fill="#475569">REGEDIT.EXE</text>
+        </g>
+
+        <!-- ================= SCENARIO 1: USER PREFERENCE (Purple Path) ================= -->
+        <!-- Input: Settings Toggle -->
+        <g transform="translate(100, 240)">
+            <rect x="0" y="0" width="100" height="60" class="device-box"/>
+            <text x="50" y="20" class="desc-text">Configuración</text>
+            <!-- Toggle Switch -->
+            <rect x="30" y="30" width="40" height="20" rx="10" class="anim-toggle-bg" />
+            <circle cx="40" cy="40" r="8" class="anim-toggle-circle" />
+            <text x="50" y="75" class="desc-text" font-weight="bold">Modo Oscuro</text>
+        </g>
+
+        <!-- Output: Monitor -->
+        <g transform="translate(600, 240)">
+            <rect x="0" y="0" width="100" height="70" fill="#334155" rx="5"/>
+            <rect x="5" y="5" width="90" height="50" class="monitor-screen" />
+            <rect x="40" y="70" width="20" height="10" fill="#334155"/>
+            <text x="50" y="40" text-anchor="middle" font-size="8" fill="#94a3b8">Aplicación</text>
+        </g>
+
+        <!-- Path HKCU -->
+        <path id="path-user" d="M 200 270 L 330 260 L 480 260 L 600 270" class="flow-line" stroke="#6366f1" />
+        <circle class="packet" fill="#6366f1">
+            <animateMotion href="#path-user" dur="6s" repeatCount="indefinite" />
+        </circle>
+        <!-- Value Text (Moving) -->
+        <text font-family="monospace" font-size="9" fill="#6366f1" font-weight="bold">
+            <textPath href="#path-user" startOffset="20%">AppTheme=1</textPath>
+        </text>
+
+        <!-- ================= SCENARIO 2: HARDWARE EVENT (Blue Path) ================= -->
+        <!-- Input: USB Stick -->
+        <g transform="translate(100, 150)">
+            <g class="usb-stick">
+                <rect x="0" y="10" width="40" height="20" fill="#3b82f6" rx="2"/>
+                <rect x="40" y="15" width="15" height="10" fill="#cbd5e1"/>
+                <text x="20" y="24" fill="white" font-size="8" text-anchor="middle">USB</text>
+            </g>
+            <text x="50" y="50" class="desc-text">Nuevo Hardware</text>
+        </g>
+
+        <!-- Output: Driver System -->
+        <g transform="translate(600, 150)">
+             <rect x="0" y="0" width="100" height="60" class="device-box"/>
+             <!-- Gear Icon -->
+             <g transform="translate(50, 30)">
+                 <path d="M -10 -10 L 10 10 M 10 -10 L -10 10 M 0 -15 V 15 M -15 0 H 15" stroke="#334155" stroke-width="4" class="driver-gear"/>
+                 <circle r="8" fill="#334155" class="driver-gear"/>
+             </g>
+             <text x="50" y="55" class="desc-text">Driver Cargado</text>
+        </g>
+
+        <!-- Path HKLM -->
+        <path id="path-machine" d="M 155 160 L 330 190 L 480 190 L 600 160" class="flow-line" stroke="#0369a1" />
+        <circle class="packet" fill="#0369a1">
+             <animateMotion href="#path-machine" dur="6s" repeatCount="indefinite" />
+        </circle>
+        <!-- Value Text (Moving) -->
+        <text font-family="monospace" font-size="9" fill="#0369a1" font-weight="bold">
+            <textPath href="#path-machine" startOffset="20%">DeviceID=USB\VID...</textPath>
+        </text>
+
+
+        <!-- LEGEND -->
+        <g transform="translate(150, 380)">
+            <rect x="0" y="0" width="500" height="50" rx="5" fill="#f8fafc" stroke="#e2e8f0"/>
+            
+            <circle cx="30" cy="25" r="5" fill="#0369a1"/>
+            <text x="40" y="28" font-size="10" fill="#334155">HKLM: Configuración de la Máquina (Todos los usuarios)</text>
+
+            <circle cx="280" cy="25" r="5" fill="#6366f1"/>
+            <text x="290" y="28" font-size="10" fill="#334155">HKCU: Configuración del Usuario Actual (Personalización)</text>
+        </g>
+
+    </svg>
+</div>
+
+</body>
+</html>

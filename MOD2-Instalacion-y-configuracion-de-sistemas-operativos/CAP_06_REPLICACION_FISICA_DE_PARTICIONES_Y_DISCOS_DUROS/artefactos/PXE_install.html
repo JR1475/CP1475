@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proceso de Arranque PXE</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #1e293b; /* Slate 900 */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container {
+            width: 95%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+
+        /* --- TIMING VARIABLES --- */
+        :root {
+            --total-time: 12s;
+        }
+
+        /* --- TEXT & LABELS --- */
+        .title { font-size: 22px; font-weight: bold; fill: #334155; text-anchor: middle; }
+        .label { font-size: 12px; fill: #64748b; text-anchor: middle; font-weight: bold; }
+        .small-label { font-size: 10px; fill: #94a3b8; text-anchor: middle; }
+        
+        /* --- SERVER & CLIENT STYLES --- */
+        .device-body { fill: #f1f5f9; stroke: #334155; stroke-width: 2; }
+        .screen-bg { fill: #0f172a; }
+        .server-led { animation: blink 0.5s steps(2) infinite; }
+
+        /* --- PACKET ANIMATIONS --- */
+        
+        /* 1. DHCP Request (Client -> Server) */
+        .packet-dhcp-req {
+            opacity: 0;
+            animation: moveRight 2s linear infinite, showP1 var(--total-time) linear infinite;
+        }
+        
+        /* 2. DHCP Offer + Options (Server -> Client) */
+        .packet-dhcp-ack {
+            opacity: 0;
+            animation: moveLeft 2s linear infinite, showP2 var(--total-time) linear infinite;
+        }
+
+        /* 3. TFTP Request (Client -> Server) */
+        .packet-tftp-req {
+            opacity: 0;
+            animation: moveRight 2s linear infinite, showP3 var(--total-time) linear infinite;
+        }
+
+        /* 4. TFTP File Download (Server -> Client) */
+        .packet-tftp-data {
+            opacity: 0;
+            animation: moveLeft 1s linear infinite, showP4 var(--total-time) linear infinite;
+        }
+
+        /* --- SCREEN TEXT ANIMATIONS --- */
+        .screen-text-1 { opacity: 0; animation: textStage1 var(--total-time) steps(1) infinite; } /* BIOS */
+        .screen-text-2 { opacity: 0; animation: textStage2 var(--total-time) steps(1) infinite; } /* IP OK */
+        .screen-text-3 { opacity: 0; animation: textStage3 var(--total-time) steps(1) infinite; } /* Loading */
+        .screen-text-4 { opacity: 0; animation: textStage4 var(--total-time) steps(1) infinite; } /* Install */
+
+        /* --- KEYFRAMES --- */
+
+        /* Packet Movement */
+        @keyframes moveRight {
+            0% { transform: translateX(150px); }
+            100% { transform: translateX(550px); }
+        }
+        @keyframes moveLeft {
+            0% { transform: translateX(550px); }
+            100% { transform: translateX(150px); }
+        }
+
+        /* Visibility Sequences (Stages) */
+        /* Stage 1: DHCP (0-3s) */
+        @keyframes showP1 { 0% { opacity: 1; } 15% { opacity: 1; } 16%, 100% { opacity: 0; } } 
+        @keyframes showP2 { 0%, 15% { opacity: 0; } 16% { opacity: 1; } 30% { opacity: 1; } 31%, 100% { opacity: 0; } }
+
+        /* Stage 2: TFTP (3.6s - 8s) */
+        @keyframes showP3 { 0%, 30% { opacity: 0; } 31% { opacity: 1; } 45% { opacity: 1; } 46%, 100% { opacity: 0; } }
+        @keyframes showP4 { 0%, 45% { opacity: 0; } 46% { opacity: 1; } 70% { opacity: 1; } 71%, 100% { opacity: 0; } }
+
+        /* Screen Content */
+        @keyframes textStage1 { 0% { opacity: 1; } 15% { opacity: 0; } 100% { opacity: 0; } } /* Searching DHCP */
+        @keyframes textStage2 { 0%, 15% { opacity: 0; } 16% { opacity: 1; } 30% { opacity: 0; } 100% { opacity: 0; } } /* IP Found */
+        @keyframes textStage3 { 0%, 30% { opacity: 0; } 31% { opacity: 1; } 70% { opacity: 0; } 100% { opacity: 0; } } /* TFTP Load */
+        @keyframes textStage4 { 0%, 70% { opacity: 0; } 71% { opacity: 1; } 95% { opacity: 1; } 100% { opacity: 0; } } /* Install */
+        
+        @keyframes blink { 0% { fill: #22c55e; } 100% { fill: #14532d; } }
+
+        /* Progress Bar */
+        .progress-bar {
+            width: 0;
+            animation: loadBar var(--total-time) linear infinite;
+        }
+        @keyframes loadBar {
+            0%, 70% { width: 0; }
+            95% { width: 100px; }
+            100% { width: 100px; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- TITLE -->
+        <text x="400" y="40" class="title">INSTALACIÓN POR RED (PXE)</text>
+        <line x1="50" y1="55" x2="750" y2="55" stroke="#e2e8f0" stroke-width="2" />
+
+        <!-- ================= CLIENTE (Left) ================= -->
+        <g transform="translate(50, 100)">
+            <text x="75" y="-15" class="label">CLIENTE (PXE)</text>
+            <!-- Monitor -->
+            <rect x="10" y="0" width="130" height="100" rx="5" class="device-body" fill="#f8fafc"/>
+            <rect x="15" y="5" width="120" height="90" fill="#0f172a"/> <!-- Screen -->
+            <!-- Stand -->
+            <rect x="60" y="100" width="30" height="20" fill="#cbd5e1"/>
+            <rect x="40" y="120" width="70" height="10" fill="#cbd5e1" rx="2"/>
+            
+            <!-- SCREEN TEXT (Animated) -->
+            <g font-family="monospace" font-size="10" fill="#22c55e">
+                <!-- Phase 1: BIOS -->
+                <g class="screen-text-1">
+                    <text x="20" y="25" fill="white">> Intel Boot Agent</text>
+                    <text x="20" y="40">MAC: AA:BB:CC:DD</text>
+                    <text x="20" y="55" class="blink">DHCP...</text>
+                </g>
+                <!-- Phase 2: IP OK -->
+                <g class="screen-text-2">
+                    <text x="20" y="25" fill="white">> IP: 192.168.1.50</text>
+                    <text x="20" y="40">Mask: 255.255.255.0</text>
+                    <text x="20" y="55">Next-Server: 1.10</text>
+                    <text x="20" y="70">File: boot.efi</text>
+                </g>
+                <!-- Phase 3: Loading NBP -->
+                <g class="screen-text-3">
+                    <text x="20" y="25" fill="white">> TFTP Download</text>
+                    <text x="20" y="40">Recibiendo...</text>
+                    <rect x="20" y="50" width="80" height="5" fill="#1e293b" stroke="#22c55e"/>
+                    <rect x="20" y="50" width="40" height="5" fill="#22c55e">
+                        <animate attributeName="width" values="0;80" dur="2s" repeatCount="indefinite"/>
+                    </rect>
+                </g>
+                <!-- Phase 4: OS Install -->
+                <g class="screen-text-4">
+                    <text x="20" y="25" fill="#3b82f6" font-weight="bold">WINDOWS SETUP</text>
+                    <text x="20" y="45" fill="white">Instalando...</text>
+                    <rect x="20" y="60" width="100" height="8" fill="#334155"/>
+                    <rect x="20" y="60" height="8" fill="#3b82f6" class="progress-bar"/>
+                </g>
+            </g>
+        </g>
+
+        <!-- ================= SERVIDOR (Right) ================= -->
+        <g transform="translate(600, 80)">
+            <text x="75" y="-15" class="label">SERVIDOR WDS / PXE</text>
+            <!-- Server Rack -->
+            <rect x="0" y="0" width="150" height="220" rx="5" fill="#1e293b" stroke="#475569" stroke-width="4"/>
+            
+            <!-- Module DHCP -->
+            <rect x="10" y="20" width="130" height="40" fill="#334155" rx="2"/>
+            <text x="75" y="45" fill="white" text-anchor="middle" font-size="12" font-weight="bold">SERVICIO DHCP</text>
+            <circle cx="25" cy="45" r="4" class="server-led" fill="#22c55e"/>
+
+            <!-- Module TFTP -->
+            <rect x="10" y="70" width="130" height="40" fill="#334155" rx="2"/>
+            <text x="75" y="95" fill="white" text-anchor="middle" font-size="12" font-weight="bold">SERVICIO TFTP</text>
+            <circle cx="25" cy="95" r="4" class="server-led" fill="#ef4444" style="animation-delay: 0.2s"/>
+
+            <!-- Module IMAGES -->
+            <rect x="10" y="120" width="130" height="80" fill="#334155" rx="2"/>
+            <text x="75" y="150" fill="#94a3b8" text-anchor="middle" font-size="10">IMÁGENES (.WIM / .ISO)</text>
+            <g transform="translate(35, 160)">
+                <rect width="10" height="30" fill="#0f172a" stroke="#64748b"/>
+                <rect x="20" width="10" height="30" fill="#0f172a" stroke="#64748b"/>
+                <rect x="40" width="10" height="30" fill="#0f172a" stroke="#64748b"/>
+                <rect x="60" width="10" height="30" fill="#0f172a" stroke="#64748b"/>
+            </g>
+        </g>
+
+        <!-- ================= NETWORK / SWITCH (Center) ================= -->
+        <g transform="translate(375, 250)">
+            <rect x="0" y="0" width="100" height="30" fill="#0f172a" stroke="#3b82f6"/>
+            <text x="50" y="20" fill="#3b82f6" text-anchor="middle" font-size="10">SWITCH / RED</text>
+            <!-- Cables -->
+            <line x1="-195" y1="-10" x2="0" y2="15" stroke="#64748b" stroke-width="2"/> <!-- To PC -->
+            <line x1="295" y1="-10" x2="100" y2="15" stroke="#64748b" stroke-width="2"/> <!-- To Server -->
+        </g>
+
+        <!-- ================= PACKETS ANIMATION ================= -->
+        <g transform="translate(0, 150)">
+            
+            <!-- 1. DHCP DISCOVER (Blue) -->
+            <g class="packet-dhcp-req">
+                <circle r="15" fill="#3b82f6" stroke="white" stroke-width="2"/>
+                <text x="0" y="4" text-anchor="middle" fill="white" font-size="8" font-weight="bold">DHCP?</text>
+                <text x="0" y="-20" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="bold">DISCOVER</text>
+            </g>
+
+            <!-- 2. DHCP OFFER (Green) -->
+            <g class="packet-dhcp-ack">
+                <rect x="-25" y="-15" width="50" height="30" rx="5" fill="#22c55e" stroke="white" stroke-width="2"/>
+                <text x="0" y="4" text-anchor="middle" fill="white" font-size="8" font-weight="bold">IP + OPT</text>
+                <text x="0" y="-25" text-anchor="middle" fill="#22c55e" font-size="10" font-weight="bold">OFFER (Opt 66/67)</text>
+            </g>
+
+            <!-- 3. TFTP REQUEST (Orange) -->
+            <g class="packet-tftp-req">
+                <rect x="-20" y="-15" width="40" height="30" fill="#f97316" stroke="white" stroke-width="2"/>
+                <text x="0" y="4" text-anchor="middle" fill="white" font-size="8" font-weight="bold">GET</text>
+                <text x="0" y="-25" text-anchor="middle" fill="#f97316" font-size="10" font-weight="bold">TFTP REQ</text>
+            </g>
+
+            <!-- 4. TFTP DATA (Purple Stream) -->
+            <g class="packet-tftp-data">
+                <g>
+                    <rect x="-10" y="-10" width="20" height="20" fill="#a855f7" opacity="0.8"/>
+                    <rect x="15" y="-10" width="20" height="20" fill="#a855f7" opacity="0.6"/>
+                    <rect x="40" y="-10" width="20" height="20" fill="#a855f7" opacity="0.4"/>
+                </g>
+                <text x="25" y="-25" text-anchor="middle" fill="#a855f7" font-size="10" font-weight="bold">BOOT FILE (NBP)</text>
+            </g>
+
+        </g>
+
+        <!-- LEGEND -->
+        <g transform="translate(50, 350)">
+            <circle r="5" cx="0" cy="0" fill="#3b82f6"/><text x="15" y="4" font-size="10" fill="#475569">Paso 1: Cliente busca IP (DHCP Discover)</text>
+            
+            <rect x="250" y="-5" width="10" height="10" fill="#22c55e"/><text x="270" y="4" font-size="10" fill="#475569">Paso 2: Server da IP + Opción 66 (IP Server) y 67 (Archivo)</text>
+
+            <rect x="550" y="-5" width="10" height="10" fill="#a855f7"/><text x="570" y="4" font-size="10" fill="#475569">Paso 3: Descarga Bootloader (TFTP)</text>
+        </g>
+
+    </svg>
+</div>
+
+</body>
+</html>
