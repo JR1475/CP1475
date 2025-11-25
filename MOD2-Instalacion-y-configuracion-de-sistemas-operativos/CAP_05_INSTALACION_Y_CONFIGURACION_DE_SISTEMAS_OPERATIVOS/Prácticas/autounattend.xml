@@ -88,10 +88,10 @@
             <UserAccounts>
                 <LocalAccounts>
                     <LocalAccount wcm:action="add">
-                        <Name>curso</Name>
+                        <Name>Tardes</Name>
                         <Group>Administrators</Group>
                         <Password>
-                            <Value>qwerty</Value>
+                            <Value>Tardes</Value>
                             <PlainText>true</PlainText>
                         </Password>
                     </LocalAccount>
