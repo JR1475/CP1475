@@ -10,22 +10,7 @@
 ## 🗂️ Estructura del Proyecto
 
   * **MÓDULO-2-Instalacion-y-configuracion-de-sistemas-operativos**
-      * **CAPITULO\_10\_CONFIGURACION\_DE\_LAS\_OPCIONES\_DE\_ACCESIBILIDAD**
-          * 10.1\_El\_centro\_de\_accesibilidad
-              * 10.1.1\_Opciones\_para\_facilitar\_la\_visualizacion\_de\_la\_pantalla
-              * 10.1.2\_Uso\_de\_narradores
-              * 10.1.3\_Opciones\_para\_hacer\_mas\_facil\_el\_uso\_del\_teclado\_o\_del\_raton
-              * 10.1.4\_Uso\_de\_alternativas\_visuales\_y\_de\_texto\_para\_personas\_con\_dificultades\_auditivas
-          * 10.2\_Reconocimiento\_de\_voz
-      * **CAPITULO\_11\_CONFIGURACION\_DEL\_SISTEMA\_INFORMATICO**
-          * 11.1\_Configuracion\_del\_entorno\_de\_trabajo
-              * 11.1.1\_Personalizacion\_del\_entorno\_visual
-          * 11.2\_Cambiar\_la\_configuracion\_regional\_del\_sistema
-          * 11.3\_Personalizacion\_de\_los\_perifericos\_basicos
-              * 11.3.1\_Como\_agregar\_una\_impresora\_local
-              * 11.3.2\_Como\_configurar\_las\_propiedades\_de\_la\_impresora
-          * 11.4\_Administrador\_de\_impresion
-          * 11.4.1\_Administrando\_documentos\_de\_la\_cola\_de\_impresion
+
       * **CAPITULO\_1\_ARQUITECTURAS\_DE\_UN\_SISTEMA\_MICROINFORMATICO**
           * 1.1\_Esquema\_funcional\_de\_un\_ordenador
           * 1.2\_La\_unidad\_central\_de\_procesamiento\_y\_sus\_elementos
@@ -156,4 +141,20 @@
               * 9.6.7\_Ordenar\_y\_agrupar
               * 9.6.8\_Opciones\_de\_carpeta
           * 9.7\_busqueda\_de\_archivos
+      * **CAPITULO\_10\_CONFIGURACION\_DE\_LAS\_OPCIONES\_DE\_ACCESIBILIDAD**
+          * 10.1\_El\_centro\_de\_accesibilidad
+              * 10.1.1\_Opciones\_para\_facilitar\_la\_visualizacion\_de\_la\_pantalla
+              * 10.1.2\_Uso\_de\_narradores
+              * 10.1.3\_Opciones\_para\_hacer\_mas\_facil\_el\_uso\_del\_teclado\_o\_del\_raton
+              * 10.1.4\_Uso\_de\_alternativas\_visuales\_y\_de\_texto\_para\_personas\_con\_dificultades\_auditivas
+          * 10.2\_Reconocimiento\_de\_voz
+      * **CAPITULO\_11\_CONFIGURACION\_DEL\_SISTEMA\_INFORMATICO**
+          * 11.1\_Configuracion\_del\_entorno\_de\_trabajo
+              * 11.1.1\_Personalizacion\_del\_entorno\_visual
+          * 11.2\_Cambiar\_la\_configuracion\_regional\_del\_sistema
+          * 11.3\_Personalizacion\_de\_los\_perifericos\_basicos
+              * 11.3.1\_Como\_agregar\_una\_impresora\_local
+              * 11.3.2\_Como\_configurar\_las\_propiedades\_de\_la\_impresora
+          * 11.4\_Administrador\_de\_impresion
+          * 11.4.1\_Administrando\_documentos\_de\_la\_cola\_de\_impresion
       * **Práctica**
