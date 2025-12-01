@@ -138,22 +138,7 @@
             * 5.3.4_Instalacion_de_paneles_o_displays
         * 🛠️ Práctica
 * **MÓDULO-2-Instalacion-y-configuracion-de-sistemas-operativos**
-    * **CAPITULO_10_CONFIGURACION_DE_LAS_OPCIONES_DE_ACCESIBILIDAD**
-        * 10.1_El_centro_de_accesibilidad
-            * 10.1.1_Opciones_para_facilitar_la_visualizacion_de_la_pantalla
-            * 10.1.2_Uso_de_narradores
-            * 10.1.3_Opciones_para_hacer_mas_facil_el_uso_del_teclado_o_del_raton
-            * 10.1.4_Uso_de_alternativas_visuales_y_de_texto_para_personas_con_dificultades_auditivas
-        * 10.2_Reconocimiento_de_voz
-    * **CAPITULO_11_CONFIGURACION_DEL_SISTEMA_INFORMATICO**
-        * 11.1_Configuracion_del_entorno_de_trabajo
-            * 11.1.1_Personalizacion_del_entorno_visual
-        * 11.2_Cambiar_la_configuracion_regional_del_sistema
-        * 11.3_Personalizacion_de_los_perifericos_basicos
-            * 11.3.1_Como_agregar_una_impresora_local
-            * 11.3.2_Como_configurar_las_propiedades_de_la_impresora
-        * 11.4_Administrador_de_impresion
-            * 11.4.1_Administrando_documentos_de_la_cola_de_impresion
+
     * **CAPITULO_1_ARQUITECTURAS_DE_UN_SISTEMA_MICROINFORMATICO**
         * 1.1_Esquema_funcional_de_un_ordenador
         * 1.2_La_unidad_central_de_procesamiento_y_sus_elementos
@@ -284,6 +269,22 @@
             * 9.6.7_Ordenar_y_agrupar
             * 9.6.8_Opciones_de_carpeta
         * 9.7_busqueda_de_archivos
+    * **CAPITULO_10_CONFIGURACION_DE_LAS_OPCIONES_DE_ACCESIBILIDAD**
+        * 10.1_El_centro_de_accesibilidad
+            * 10.1.1_Opciones_para_facilitar_la_visualizacion_de_la_pantalla
+            * 10.1.2_Uso_de_narradores
+            * 10.1.3_Opciones_para_hacer_mas_facil_el_uso_del_teclado_o_del_raton
+            * 10.1.4_Uso_de_alternativas_visuales_y_de_texto_para_personas_con_dificultades_auditivas
+        * 10.2_Reconocimiento_de_voz
+    * **CAPITULO_11_CONFIGURACION_DEL_SISTEMA_INFORMATICO**
+        * 11.1_Configuracion_del_entorno_de_trabajo
+            * 11.1.1_Personalizacion_del_entorno_visual
+        * 11.2_Cambiar_la_configuracion_regional_del_sistema
+        * 11.3_Personalizacion_de_los_perifericos_basicos
+            * 11.3.1_Como_agregar_una_impresora_local
+            * 11.3.2_Como_configurar_las_propiedades_de_la_impresora
+        * 11.4_Administrador_de_impresion
+            * 11.4.1_Administrando_documentos_de_la_cola_de_impresion
     * 🛠️ Practica
 * **MÓDULO-3-Reparacion-de-equipos-microinformaticos**
     * **CAPITULO_1_ELECTRICIDAD_ELECTRONICA_APLICADA**
