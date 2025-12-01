@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Clonezilla - Laboratorio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+        }
+
+        .mono {
+            font-family: 'Roboto Mono', monospace;
+        }
+
+        /* Animaciones SVG */
+        .packet {
+            opacity: 0;
+        }
+
+        @keyframes packetFlowLeft {
+            0% { offset-distance: 0%; opacity: 1; transform: scale(1); }
+            90% { opacity: 1; }
+            100% { offset-distance: 100%; opacity: 0; transform: scale(0.5); }
+        }
+
+        @keyframes packetFlowRight {
+            0% { offset-distance: 0%; opacity: 1; transform: scale(1); }
+            90% { opacity: 1; }
+            100% { offset-distance: 100%; opacity: 0; transform: scale(0.5); }
+        }
+
+        .animate-flow-left {
+            offset-path: path('M 150 250 L 400 250');
+            animation: packetFlowLeft 1.5s linear infinite;
+        }
+
+        .animate-flow-right-1 {
+            offset-path: path('M 400 250 L 650 150');
+            animation: packetFlowRight 1.5s linear infinite;
+            animation-delay: 0s;
+        }
+        .animate-flow-right-2 {
+            offset-path: path('M 400 250 L 650 250');
+            animation: packetFlowRight 1.5s linear infinite;
+            animation-delay: 0.5s;
+        }
+        .animate-flow-right-3 {
+            offset-path: path('M 400 250 L 650 350');
+            animation: packetFlowRight 1.5s linear infinite;
+            animation-delay: 1s;
+        }
+
+        .device-active {
+            filter: drop-shadow(0 0 8px rgba(59, 130, 246, 0.6));
+            transition: all 0.3s ease;
+        }
+
+        .screen-content {
+            fill: #1e293b;
+            transition: fill 0.5s;
+        }
+        
+        .screen-win11 {
+            fill: #00a4ef; /* Azul Windows */
+        }
+
+        .screen-clonezilla {
+            fill: #f97316; /* Naranja Clonezilla */
+        }
+        
+        .screen-restoring {
+            fill: #22c55e; /* Verde progreso */
+        }
+
+        /* Estilo de consola */
+        .console-line {
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+        .console-line.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+    </style>
+</head>
+<body class="h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Header -->
+    <header class="mb-6 text-center">
+        <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">Laboratorio Virtualización: Clonezilla + SSH</h1>
+        <p class="text-slate-500 mt-2">Simulación del flujo de clonación y despliegue de Windows 11</p>
+    </header>
+
+    <!-- Main Container -->
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-6xl p-6 flex flex-col lg:flex-row gap-6 border border-slate-200">
+        
+        <!-- Canvas Visualización -->
+        <div class="flex-1 bg-slate-50 rounded-xl border border-slate-200 relative overflow-hidden flex items-center justify-center min-h-[400px]">
+            
+            <svg width="800" height="500" viewBox="0 0 800 500" id="networkCanvas" class="w-full h-full">
+                <!-- Conexiones (Cables) -->
+                <path d="M 150 250 L 400 250" stroke="#cbd5e1" stroke-width="4" fill="none" />
+                <path d="M 400 250 L 650 150" stroke="#cbd5e1" stroke-width="4" fill="none" />
+                <path d="M 400 250 L 650 250" stroke="#cbd5e1" stroke-width="4" fill="none" />
+                <path d="M 400 250 L 650 350" stroke="#cbd5e1" stroke-width="4" fill="none" />
+
+                <!-- Profesor PC (Izquierda) -->
+                <g id="prof-pc" transform="translate(50, 200)">
+                    <rect x="0" y="0" width="100" height="70" rx="5" fill="#334155" /> <!-- Monitor Borde -->
+                    <rect id="prof-screen" x="5" y="5" width="90" height="60" rx="2" class="screen-content" /> <!-- Pantalla -->
+                    <rect x="10" y="75" width="80" height="10" rx="2" fill="#475569" /> <!-- Base -->
+                    <text x="50" y="110" text-anchor="middle" font-size="12" font-weight="bold" fill="#334155">PROFESOR</text>
+                    <text x="50" y="125" text-anchor="middle" font-size="10" fill="#64748b">Origen (Sysprep)</text>
+                </g>
+
+                <!-- Servidor SSH (Centro) -->
+                <g id="server-pc" transform="translate(350, 180)">
+                    <rect x="0" y="0" width="100" height="140" rx="5" fill="#1e293b" />
+                    <!-- Luces Servidor -->
+                    <circle cx="20" cy="20" r="3" fill="#ef4444" id="server-led-1" opacity="0.5"/>
+                    <circle cx="30" cy="20" r="3" fill="#eab308" id="server-led-2" opacity="0.5"/>
+                    <circle cx="40" cy="20" r="3" fill="#22c55e" id="server-led-3" opacity="0.5"/>
+                    
+                    <!-- Rack lines -->
+                    <rect x="10" y="40" width="80" height="2" fill="#334155" />
+                    <rect x="10" y="60" width="80" height="2" fill="#334155" />
+                    <rect x="10" y="80" width="80" height="2" fill="#334155" />
+                    
+                    <!-- Icono Archivo (Oculto inicialmente) -->
+                    <g id="file-icon" transform="translate(35, 95) scale(0)" style="transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                        <path d="M5 0h20l10 10v20h-30z" fill="#facc15" stroke="#ca8a04" stroke-width="2"/>
+                        <text x="15" y="20" font-size="10" text-anchor="middle" font-weight="bold" fill="#854d0e">IMG</text>
+                    </g>
+
+                    <text x="50" y="160" text-anchor="middle" font-size="12" font-weight="bold" fill="#334155">SERVIDOR SSH</text>
+                    <text x="50" y="175" text-anchor="middle" font-size="10" fill="#64748b" class="mono">10.1.6.248</text>
+                </g>
+
+                <!-- Alumnos PCs (Derecha) -->
+                <g id="student-group">
+                    <g transform="translate(650, 115)">
+                        <rect x="0" y="0" width="80" height="50" rx="4" fill="#475569" />
+                        <rect id="student-screen-1" x="4" y="4" width="72" height="42" rx="2" class="screen-content" />
+                        <rect x="10" y="55" width="60" height="6" rx="2" fill="#64748b" />
+                    </g>
+                    <g transform="translate(650, 215)">
+                        <rect x="0" y="0" width="80" height="50" rx="4" fill="#475569" />
+                        <rect id="student-screen-2" x="4" y="4" width="72" height="42" rx="2" class="screen-content" />
+                        <rect x="10" y="55" width="60" height="6" rx="2" fill="#64748b" />
+                        <text x="-40" y="25" text-anchor="end" font-size="12" font-weight="bold" fill="#334155">ALUMNOS</text>
+                    </g>
+                    <g transform="translate(650, 315)">
+                        <rect x="0" y="0" width="80" height="50" rx="4" fill="#475569" />
+                        <rect id="student-screen-3" x="4" y="4" width="72" height="42" rx="2" class="screen-content" />
+                        <rect x="10" y="55" width="60" height="6" rx="2" fill="#64748b" />
+                    </g>
+                </g>
+
+                <!-- Paquetes de Datos (Inicialmente ocultos) -->
+                <circle id="p-orange" r="6" fill="#f97316" class="packet" />
+                <circle id="p-green-1" r="6" fill="#22c55e" class="packet" />
+                <circle id="p-green-2" r="6" fill="#22c55e" class="packet" />
+                <circle id="p-green-3" r="6" fill="#22c55e" class="packet" />
+
+            </svg>
+
+            <!-- Status Badge Overlay -->
+            <div id="status-badge" class="absolute top-4 right-4 bg-white/90 backdrop-blur px-4 py-2 rounded-lg shadow-sm border border-slate-200 text-sm font-semibold text-slate-600">
+                Estado: Esperando inicio...
+            </div>
+        </div>
+
+        <!-- Panel de Control y Consola -->
+        <div class="w-full lg:w-80 flex flex-col gap-4">
+            
+            <!-- Controles -->
+            <div class="bg-white rounded-xl border border-slate-200 p-4 shadow-sm">
+                <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Controles</h3>
+                <div class="grid grid-cols-1 gap-2">
+                    <button onclick="startSimulation()" id="btn-start" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                        Iniciar Práctica
+                    </button>
+                    <button onclick="resetSimulation()" id="btn-reset" class="bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 px-4 rounded-lg font-medium transition flex items-center justify-center gap-2 hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74-2.74L3 12"></path></svg>
+                        Reiniciar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Terminal Simulado -->
+            <div class="bg-slate-900 rounded-xl p-4 flex-1 overflow-hidden flex flex-col font-mono text-xs shadow-inner">
+                <div class="flex items-center gap-1.5 mb-3 border-b border-slate-700 pb-2">
+                    <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                    <div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                    <span class="text-slate-500 ml-2">syslog - clonezilla</span>
+                </div>
+                <div id="console-output" class="text-slate-300 space-y-2 overflow-y-auto max-h-[300px]">
+                    <!-- Logs will appear here -->
+                    <div class="console-line visible text-slate-500">// Esperando comando...</div>
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm text-blue-900">
+                <h4 class="font-bold mb-1">Configuración Actual:</h4>
+                <p>IP Srv: <span class="font-mono bg-blue-100 px-1 rounded">10.1.6.248</span></p>
+                <p>User: <span class="font-mono bg-blue-100 px-1 rounded">curso</span></p>
+                <p>Pass: <span class="font-mono bg-blue-100 px-1 rounded">qwerty</span></p>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const consoleOutput = document.getElementById('console-output');
+        const profScreen = document.getElementById('prof-screen');
+        const serverIcon = document.getElementById('file-icon');
+        const statusBadge = document.getElementById('status-badge');
+        
+        const packetOrange = document.getElementById('p-orange');
+        const packetGreen1 = document.getElementById('p-green-1');
+        const packetGreen2 = document.getElementById('p-green-2');
+        const packetGreen3 = document.getElementById('p-green-3');
+
+        const studentScreens = [
+            document.getElementById('student-screen-1'),
+            document.getElementById('student-screen-2'),
+            document.getElementById('student-screen-3')
+        ];
+
+        function log(text, type = 'info') {
+            const div = document.createElement('div');
+            div.className = 'console-line';
+            let colorClass = 'text-slate-300';
+            if (type === 'cmd') colorClass = 'text-green-400 font-bold';
+            if (type === 'warn') colorClass = 'text-yellow-400';
+            if (type === 'error') colorClass = 'text-red-400';
+            
+            div.innerHTML = `<span class="${colorClass}">${type === 'cmd' ? '> ' : ''}${text}</span>`;
+            consoleOutput.appendChild(div);
+            
+            // Trigger reflow
+            void div.offsetWidth;
+            div.classList.add('visible');
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        function setStatus(text) {
+            statusBadge.innerText = text;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function startSimulation() {
+            document.getElementById('btn-start').classList.add('hidden');
+            document.getElementById('btn-reset').classList.remove('hidden');
+            consoleOutput.innerHTML = ''; // Limpiar consola
+
+            // FASE 1: PROFESOR
+            setStatus("Fase 1: Preparación Profesor");
+            log("Iniciando Práctica...", "info");
+            await sleep(800);
+            
+            profScreen.classList.remove('screen-content');
+            profScreen.classList.add('screen-clonezilla');
+            log("Profesor: Arrancando Clonezilla Live...", "info");
+            await sleep(1000);
+            
+            log("Configurando Teclado: pc105 / es / sin modificador", "cmd");
+            await sleep(1000);
+            
+            log("Montando SSH: 10.1.6.248:/home/curso/clone", "cmd");
+            log("Authenticating user 'curso'...", "warn");
+            await sleep(1000);
+            log("SSH Mounted successfully.", "info");
+
+            // FASE 2: CLONACIÓN (SUBIDA)
+            setStatus("Fase 2: Creando Imagen (Savedisk)");
+            log("Ejecutando: ocs-sr -q2 -c -j2 -z1p -i 4096 -sfsck savedisk img-win11-v1 sda", "cmd");
+            
+            packetOrange.classList.add('animate-flow-left'); // Animar paquete naranja
+            
+            // Simular proceso de carga
+            for(let i=0; i<=100; i+=20) {
+                await sleep(500);
+                log(`Guardando partición sda... ${i}%`, "info");
+            }
+
+            packetOrange.classList.remove('animate-flow-left'); // Parar animación
+            serverIcon.style.transform = "translate(35px, 95px) scale(1)"; // Mostrar icono archivo en servidor
+            log("Imagen guardada en: /home/curso/clone/img-win11-sysprep-v1", "cmd");
+            profScreen.classList.remove('screen-clonezilla'); // Apagar pantalla profe
+            profScreen.classList.add('screen-content');
+            
+            await sleep(1000);
+
+            // FASE 3: ALUMNOS
+            setStatus("Fase 3: Despliegue Alumnos");
+            log("Iniciando 15 equipos de alumnos...", "info");
+            
+            studentScreens.forEach(s => {
+                s.classList.remove('screen-content');
+                s.classList.add('screen-clonezilla');
+            });
+            await sleep(1500);
+            
+            log("Alumnos: Conectando a 10.1.6.248...", "cmd");
+            await sleep(1000);
+            
+            setStatus("Fase 3: Restaurando (Restoredisk)");
+            log("Ejecutando restoredisk en paralelo...", "cmd");
+            
+            // Iniciar flujo de datos a alumnos
+            packetGreen1.classList.add('animate-flow-right-1');
+            packetGreen2.classList.add('animate-flow-right-2');
+            packetGreen3.classList.add('animate-flow-right-3');
+            
+            studentScreens.forEach(s => {
+                s.classList.remove('screen-clonezilla');
+                s.classList.add('screen-restoring');
+            });
+
+            // Simular proceso de descarga
+            for(let i=0; i<=100; i+=25) {
+                await sleep(600);
+                log(`Restaurando bloques... ${i}%`, "info");
+            }
+
+            // Parar animaciones
+            packetGreen1.classList.remove('animate-flow-right-1');
+            packetGreen2.classList.remove('animate-flow-right-2');
+            packetGreen3.classList.remove('animate-flow-right-3');
+
+            log("Restauración completada.", "info");
+            log("Reiniciando equipos...", "warn");
+            
+            await sleep(1000);
+
+            // PANTALLA FINAL WINDOWS
+            setStatus("Despliegue Completado");
+            studentScreens.forEach(s => {
+                s.classList.remove('screen-restoring');
+                s.classList.add('screen-win11');
+            });
+            
+            log("Iniciando OOBE (Sysprep)...", "info");
+            log("¡Práctica finalizada con éxito!", "cmd");
+        }
+
+        function resetSimulation() {
+            // Reset UI
+            document.getElementById('btn-start').classList.remove('hidden');
+            document.getElementById('btn-reset').classList.add('hidden');
+            consoleOutput.innerHTML = '<div class="console-line visible text-slate-500">// Listo para reiniciar...</div>';
+            
+            // Reset SVG elements
+            profScreen.className = 'screen-content';
+            studentScreens.forEach(s => s.className = 'screen-content');
+            serverIcon.style.transform = "translate(35px, 95px) scale(0)";
+            packetOrange.classList.remove('animate-flow-left');
+            packetGreen1.classList.remove('animate-flow-right-1');
+            packetGreen2.classList.remove('animate-flow-right-2');
+            packetGreen3.classList.remove('animate-flow-right-3');
+            
+            setStatus("Estado: Reiniciado");
+        }
+    </script>
+</body>
+</html>
