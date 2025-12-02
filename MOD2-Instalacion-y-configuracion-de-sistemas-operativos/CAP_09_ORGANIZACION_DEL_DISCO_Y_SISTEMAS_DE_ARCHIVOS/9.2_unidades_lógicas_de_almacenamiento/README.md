@@ -2,6 +2,11 @@
 
 Este documento contiene un resumen del punto [9.2], generado con inteligencia artificial.
 
+ARTEFACTO RAID 
+
+https://gemini.google.com/share/13c968090905
+
+
 # 9.2 UNIDADES LÓGICAS DE ALMACENAMIENTO
 
 ## Definición y tipos de discos
