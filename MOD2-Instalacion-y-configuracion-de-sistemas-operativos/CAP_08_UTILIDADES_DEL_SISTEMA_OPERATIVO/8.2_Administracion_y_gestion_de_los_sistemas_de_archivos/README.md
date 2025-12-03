@@ -2,6 +2,12 @@
 
 Este documento contiene un resumen de los subpuntos del  [8.2], generado con inteligencia artificial.
 
+ARTEFACTO RAID 
+
+https://gemini.google.com/share/13c968090905
+
+https://gemini.google.com/share/6e4fe2c9fdd6
+
 # 8.2 ADMINISTRACIÓN Y GESTIÓN DE LOS SISTEMAS DE ARCHIVOS
 
 ## 8.2.1 CÓMO CREAR UNA PARTICIÓN EN WINDOWS 10 Y 11

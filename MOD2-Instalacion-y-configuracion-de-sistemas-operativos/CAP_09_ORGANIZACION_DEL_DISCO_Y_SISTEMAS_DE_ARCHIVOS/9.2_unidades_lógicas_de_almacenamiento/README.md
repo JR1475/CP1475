@@ -6,6 +6,8 @@ ARTEFACTO RAID
 
 https://gemini.google.com/share/13c968090905
 
+https://gemini.google.com/share/6e4fe2c9fdd6
+
 
 # 9.2 UNIDADES LÓGICAS DE ALMACENAMIENTO
 
