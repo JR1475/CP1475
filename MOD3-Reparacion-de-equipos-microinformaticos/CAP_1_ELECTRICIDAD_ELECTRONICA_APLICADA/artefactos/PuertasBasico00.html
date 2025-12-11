@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Puertas Lógicas</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel para JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate-900 oscuro */
+            color: #f8fafc;
+        }
+        .container-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+        }
+        .input-toggle {
+            transition: transform 0.1s ease-in-out, background-color 0.2s;
+        }
+        .input-toggle:hover {
+            transform: scale(1.05);
+        }
+        .logic-card {
+            min-height: 350px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+
+        // Constantes para los estados (0 o 1)
+        const LOW = 0;
+        const HIGH = 1;
+
+        // Colores base para la visualización
+        const OFF_COLOR = "bg-slate-700 hover:bg-slate-600";
+        const ON_COLOR = "bg-green-500 hover:bg-green-600";
+
+        // Componente visual para las entradas/salidas
+        const LogicToggle = ({ label, value, onClick, isOutput = false, isNotUsed = false }) => {
+            const displayValue = value === HIGH ? '1 (ALTO)' : '0 (BAJO)';
+            const colorClass = value === HIGH ? ON_COLOR : OFF_COLOR;
+            const pointerClass = isOutput ? 'cursor-default' : 'cursor-pointer';
+            const outputTextClass = isOutput ? 'text-2xl font-extrabold' : 'text-xl font-bold';
+            const unusedClass = isNotUsed ? 'opacity-40 pointer-events-none' : '';
+
+            return (
+                <div 
+                    className={`input-toggle w-full p-4 rounded-xl flex flex-col items-center justify-center transition-all ${colorClass} ${pointerClass} ${unusedClass}`}
+                    onClick={!isOutput ? onClick : undefined}
+                >
+                    <span className="text-sm font-medium text-slate-200 mb-1">{label}</span>
+                    <span className={`${outputTextClass} mt-1`}>{displayValue}</span>
+                </div>
+            );
+        };
+        
+        // Componente para el dibujo de la Puerta Lógica (SVG simple)
+        const GateDrawing = ({ type, output, label }) => {
+            const outputColor = output === HIGH ? '#10b981' : '#64748b'; // Verde o Gris
+            
+            // Dibuja un símbolo simplificado de cada puerta
+            let pathD = '';
+            let transform = '';
+            
+            switch (type) {
+                case 'AND':
+                    // Símbolo AND: Rectángulo y media luna
+                    pathD = "M 50 20 L 50 80 A 30 30 0 0 0 100 50 A 30 30 0 0 0 50 20 Z M 0 30 L 50 30 M 0 70 L 50 70";
+                    break;
+                case 'OR':
+                    // Símbolo OR: Arco y punta
+                    pathD = "M 20 20 C 50 20, 50 80, 20 80 C 40 80, 60 70, 60 50 C 60 30, 40 20, 20 20 Z M 0 30 L 20 30 M 0 70 L 20 70";
+                    transform = 'translate(40, 0)'; // Desplazar el OR para centrar
+                    break;
+                case 'NOT':
+                    // Símbolo NOT: Triángulo y círculo de negación
+                    pathD = "M 20 50 L 80 20 L 80 80 Z"; // Triángulo
+                    // Círculo de negación (pequeño)
+                    pathD += " M 85 50 A 5 5 0 1 0 95 50 A 5 5 0 1 0 85 50 Z M 0 50 L 20 50"; // Entrada y círculo
+                    break;
+            }
+
+            return (
+                <div className="flex flex-col items-center justify-center p-4 bg-slate-800 rounded-lg h-32 w-full mb-4">
+                    <svg viewBox="0 0 150 100" className="w-full h-24">
+                        {/* Líneas de entrada */}
+                        <line x1="0" y1="30" x2="10" y2="30" stroke="#64748b" strokeWidth="2" />
+                        <line x1="0" y1="70" x2="10" y2="70" stroke="#64748b" strokeWidth="2" />
+
+                        {/* Línea de salida */}
+                        <line x1="100" y1="50" x2="150" y2="50" stroke={outputColor} strokeWidth="3" />
+
+                        {/* Símbolo de la puerta */}
+                        <g transform={transform}>
+                            <path d={pathD} fill="none" stroke="#e2e8f0" strokeWidth="3" strokeLinejoin="round" />
+                        </g>
+
+                        {/* Etiqueta */}
+                        <text x="75" y="15" fill="#f8fafc" fontSize="12" textAnchor="middle" fontWeight="bold">{label}</text>
+                    </svg>
+                </div>
+            );
+        };
+
+
+        // Componente para la Tabla de Verdad
+        const TruthTable = ({ type, data, inputs }) => {
+            const isTwoInput = type !== 'NOT';
+
+            return (
+                <div className="mt-4 p-3 bg-slate-800 rounded-lg">
+                    <h4 className="text-lg font-semibold text-sky-400 mb-2">Tabla de Verdad {type}</h4>
+                    <table className="w-full text-left text-sm">
+                        <thead className="text-slate-400 border-b border-slate-600">
+                            <tr>
+                                <th className="p-1">A</th>
+                                {isTwoInput && <th className="p-1">B</th>}
+                                <th className="p-1 text-right">Salida (Y)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.map((row, index) => {
+                                // Determinar si esta fila coincide con las entradas actuales
+                                const isCurrentState = isTwoInput 
+                                    ? row.A === inputs.A && row.B === inputs.B 
+                                    : row.A === inputs.A;
+                                
+                                const rowClass = isCurrentState ? 'bg-sky-900/50 font-bold text-white' : 'text-slate-300';
+                                
+                                return (
+                                    <tr key={index} className={rowClass}>
+                                        <td className="p-1">{row.A}</td>
+                                        {isTwoInput && <td className="p-1">{row.B}</td>}
+                                        <td className={`p-1 text-right ${row.Y === HIGH ? 'text-green-400' : 'text-red-400'}`}>{row.Y}</td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            );
+        };
+
+        // Componente de la Puerta Lógica Individual (AND, OR, NOT)
+        const LogicGate = ({ type, inputs }) => {
+            let output;
+            let truthTableData = [];
+            let description = '';
+
+            // Lógica de las Puertas
+            switch (type) {
+                case 'AND':
+                    // AND: Salida 1 si A ES 1 Y B ES 1
+                    output = inputs.A === HIGH && inputs.B === HIGH ? HIGH : LOW;
+                    truthTableData = [
+                        { A: 0, B: 0, Y: 0 },
+                        { A: 0, B: 1, Y: 0 },
+                        { A: 1, B: 0, Y: 0 },
+                        { A: 1, B: 1, Y: 1 },
+                    ];
+                    description = 'La salida es ALTA (1) SÓLO si ambas entradas, A Y B, son ALTAS (1).';
+                    break;
+                case 'OR':
+                    // OR: Salida 1 si A ES 1 O B ES 1 (o ambos)
+                    output = inputs.A === HIGH || inputs.B === HIGH ? HIGH : LOW;
+                    truthTableData = [
+                        { A: 0, B: 0, Y: 0 },
+                        { A: 0, B: 1, Y: 1 },
+                        { A: 1, B: 0, Y: 1 },
+                        { A: 1, B: 1, Y: 1 },
+                    ];
+                    description = 'La salida es ALTA (1) si la entrada A O la entrada B (o ambas) son ALTAS (1).';
+                    break;
+                case 'NOT':
+                    // NOT: Invierte la entrada A (Ignora B)
+                    output = inputs.A === HIGH ? LOW : HIGH;
+                    truthTableData = [
+                        { A: 0, Y: 1 },
+                        { A: 1, Y: 0 },
+                    ];
+                    description = 'La salida siempre es el estado OPUESTO o INVERSO de la entrada A (negación).';
+                    break;
+                default:
+                    output = LOW;
+            }
+
+            const isTwoInput = type !== 'NOT';
+
+            return (
+                <div className="logic-card bg-slate-700 rounded-xl container-shadow p-6 flex flex-col">
+                    <h3 className="text-2xl font-bold text-white mb-4 text-center">{type}</h3>
+                    
+                    {/* Visualización del Símbolo */}
+                    <GateDrawing type={type} output={output} label={`${type} (A${isTwoInput ? ', B' : ''}) → Y`} />
+
+                    {/* Descripción */}
+                    <p className="text-sm text-slate-300 italic mb-4 text-center">{description}</p>
+                    
+                    {/* Visualización de la Salida */}
+                    <div className="mt-auto pt-4 border-t border-slate-600">
+                        <h4 className="text-xl font-semibold text-white mb-2 text-center">Salida (Y)</h4>
+                        <LogicToggle 
+                            label="Resultado" 
+                            value={output} 
+                            isOutput={true} 
+                        />
+                    </div>
+                    
+                    {/* Tabla de Verdad */}
+                    <TruthTable type={type} data={truthTableData} inputs={inputs} />
+                </div>
+            );
+        };
+
+
+        // Componente Principal de la Aplicación
+        const App = () => {
+            const [inputA, setInputA] = useState(LOW);
+            const [inputB, setInputB] = useState(LOW);
+
+            const inputs = useMemo(() => ({ A: inputA, B: inputB }), [inputA, inputB]);
+
+            const toggleInputA = () => setInputA(prev => prev === LOW ? HIGH : LOW);
+            const toggleInputB = () => setInputB(prev => prev === LOW ? HIGH : LOW);
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
+                    
+                    <header className="text-center mb-10">
+                        <h1 className="text-5xl font-extrabold text-sky-400 mb-2">
+                            Simulador de Puertas Lógicas
+                        </h1>
+                        <p className="text-slate-400 max-w-4xl mx-auto mt-2 text-lg">
+                            Modifica las Entradas (A y B) para observar cómo las puertas AND, OR y NOT calculan su Salida (Y).
+                        </p>
+                    </header>
+
+                    <div className="w-full max-w-6xl bg-slate-800 rounded-2xl container-shadow p-8 mb-8">
+                        
+                        <h2 className="text-3xl font-bold text-white mb-6 border-b border-slate-700 pb-4">
+                            1. Control de Entradas
+                        </h2>
+
+                        {/* Controles de Entrada */}
+                        <div className="grid grid-cols-2 gap-6 max-w-sm mx-auto">
+                            <LogicToggle 
+                                label="Entrada A" 
+                                value={inputA} 
+                                onClick={toggleInputA}
+                            />
+                            <LogicToggle 
+                                label="Entrada B" 
+                                value={inputB} 
+                                onClick={toggleInputB}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="w-full max-w-6xl bg-slate-800 rounded-2xl container-shadow p-8">
+
+                        <h2 className="text-3xl font-bold text-white mb-6 border-b border-slate-700 pb-4">
+                            2. Resultados de las Puertas Lógicas
+                        </h2>
+                        
+                        {/* Visualización de Puertas */}
+                        <div className="grid md:grid-cols-3 gap-8">
+                            <LogicGate type="AND" inputs={inputs} />
+                            <LogicGate type="OR" inputs={inputs} />
+                            
+                            {/* NOT solo usa A, por eso B se marca como no usado */}
+                            <div className="flex flex-col">
+                                <LogicGate 
+                                    type="NOT" 
+                                    inputs={{ A: inputs.A, B: LOW }} 
+                                />
+                                <div className="p-3 mt-4 bg-yellow-900/30 rounded-lg text-yellow-300 text-sm italic text-center">
+                                    <span className="font-bold">Nota:</span> La puerta NOT solo utiliza la Entrada A.
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    <footer className="mt-8 text-slate-400 text-sm">
+                        Simulador de Puertas Lógicas por Gemini.
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

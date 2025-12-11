@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diferencia entre Analógico y Digital</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel para JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #eef2ff; /* Indigo-50 */
+        }
+        canvas {
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        const SignalIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 8c4.17-2.31 8.83-2.31 13 0"></path><path d="M2 12c4.17-2.31 8.83-2.31 13 0"></path><path d="M2 16c4.17-2.31 8.83-2.31 13 0"></path></svg>;
+        
+        // Función principal del componente
+        const App = () => {
+            // Tasa de Muestreo: cuántas veces por segundo (horizontal) se mide la señal (10-100)
+            const [samplingRate, setSamplingRate] = useState(30); 
+            // Profundidad de Bits: cuántos niveles (vertical) hay para asignar el valor (2-8)
+            const [bitDepth, setBitDepth] = useState(3); // 2^3 = 8 niveles
+            const canvasRef = useRef(null);
+            
+            // Constantes de la simulación
+            const CANVAS_WIDTH = 800;
+            const CANVAS_HEIGHT = 300;
+            const PADDING = 20;
+
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+                const center_Y = CANVAS_HEIGHT / 2;
+                const amplitude = (CANVAS_HEIGHT / 2) - PADDING;
+                
+                // Número de niveles de cuantificación (2^bitDepth)
+                const numLevels = Math.pow(2, bitDepth);
+                // Distancia entre niveles
+                const levelStep = (CANVAS_HEIGHT - 2 * PADDING) / numLevels;
+                
+                // Función que calcula el valor de la señal analógica en el tiempo t
+                const analogSignal = (t) => {
+                    // Usamos una combinación de senos para una onda más interesante y no tan simple
+                    return amplitude * (0.6 * Math.sin(t * 0.05) + 0.4 * Math.sin(t * 0.12));
+                };
+
+                // --- 1. DIBUJAR EJES Y NIVELES ---
+
+                // Fondo de la gráfica
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+                
+                // Eje X (centro)
+                ctx.strokeStyle = '#9ca3af';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(0, center_Y);
+                ctx.lineTo(CANVAS_WIDTH, center_Y);
+                ctx.stroke();
+
+                // Dibujar niveles de cuantificación (Líneas divisorias)
+                ctx.strokeStyle = '#e5e7eb';
+                ctx.lineWidth = 0.5;
+                for (let i = 0; i <= numLevels; i++) {
+                    const y = PADDING + i * levelStep;
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(CANVAS_WIDTH, y);
+                    ctx.stroke();
+                }
+
+                // --- 2. DIBUJAR SEÑAL ANALÓGICA (VALORES INFINITOS) ---
+                
+                ctx.strokeStyle = '#10b981'; // Verde: Analógico
+                ctx.lineWidth = 2.5;
+                ctx.beginPath();
+                ctx.lineJoin = 'round';
+                
+                for (let x = 0; x < CANVAS_WIDTH; x += 1) {
+                    const y = center_Y - analogSignal(x);
+                    if (x === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.stroke();
+                
+                // --- 3. DIBUJAR SEÑAL DIGITAL (BINARIO) ---
+                
+                // Calcular puntos muestreados y cuantificados
+                const digitalPoints = [];
+                // La tasa de muestreo es la inversa de la distancia temporal entre muestras
+                const sampleInterval = CANVAS_WIDTH / samplingRate; 
+
+                for (let i = 0; i <= samplingRate; i++) {
+                    const x = i * sampleInterval;
+                    if (x > CANVAS_WIDTH) break;
+
+                    const analogValue = analogSignal(x);
+                    
+                    // 3a. Cuantificación
+                    // Mapear valor analógico (-amplitude a +amplitude) a un índice de nivel (0 a numLevels-1)
+                    // Normalizar de -1 a 1
+                    const normalizedValue = analogValue / amplitude; 
+                    // Escalar a (0 a numLevels-1) y redondear
+                    let levelIndex = Math.round(((normalizedValue + 1) / 2) * (numLevels - 1));
+                    
+                    // Asegurar que levelIndex esté dentro de los límites
+                    levelIndex = Math.max(0, Math.min(numLevels - 1, levelIndex));
+                    
+                    // Convertir el índice del nivel a la posición Y central de ese nivel
+                    // Nota: el nivel 0 es el de abajo
+                    const digitalValue = PADDING + (numLevels - 1 - levelIndex) * levelStep + (levelStep / 2);
+                    
+                    digitalPoints.push({ x, y: digitalValue, level: levelIndex });
+                }
+
+                // 3b. Dibujar Muestras (Puntos)
+                ctx.fillStyle = '#ef4444'; // Rojo: Muestras
+                digitalPoints.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, center_Y - analogSignal(p.x), 4, 0, Math.PI * 2); // Círculo en la señal analógica
+                    ctx.fill();
+                    
+                    // Línea vertical que muestra el salto al nivel digital
+                    ctx.strokeStyle = '#f87171';
+                    ctx.lineWidth = 1;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, center_Y - analogSignal(p.x));
+                    ctx.lineTo(p.x, p.y);
+                    ctx.stroke();
+                    ctx.setLineDash([]); // Resetear
+                });
+
+                // 3c. Dibujar la Señal Digital (Escalera)
+                ctx.strokeStyle = '#3b82f6'; // Azul: Digital (Escalera)
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                
+                for (let i = 0; i < digitalPoints.length; i++) {
+                    const current = digitalPoints[i];
+                    const next = digitalPoints[i + 1];
+
+                    if (i === 0) {
+                        ctx.moveTo(current.x, current.y);
+                    } else {
+                        // Conectar la muestra anterior con la actual (paso vertical)
+                        ctx.lineTo(current.x, current.y);
+                    }
+
+                    if (next) {
+                        // Trazar línea horizontal hasta el siguiente punto muestreado
+                        ctx.lineTo(next.x, current.y);
+                    }
+                }
+                ctx.stroke();
+
+                // Mostrar el valor binario del primer punto de la derecha (para demostración)
+                if (digitalPoints.length > 0) {
+                    const lastPoint = digitalPoints[digitalPoints.length - 1];
+                    const binaryValue = lastPoint.level.toString(2).padStart(bitDepth, '0');
+                    
+                    ctx.fillStyle = '#0f172a';
+                    ctx.font = '16px Inter, sans-serif';
+                    ctx.textAlign = 'right';
+                    ctx.fillText(`Valor Digital: ${binaryValue} (${bitDepth} bits)`, CANVAS_WIDTH - 10, 15);
+                }
+
+            }, [samplingRate, bitDepth]); // Redibujar al cambiar los parámetros
+
+            // Mapeo para slider de bits
+            const bitLabels = [
+                { value: 2, label: '4 Niveles (2 bits)' },
+                { value: 3, label: '8 Niveles (3 bits)' },
+                { value: 4, label: '16 Niveles (4 bits)' },
+                { value: 5, label: '32 Niveles (5 bits)' },
+                { value: 6, label: '64 Niveles (6 bits)' },
+                { value: 7, label: '128 Niveles (7 bits)' },
+                { value: 8, label: '256 Niveles (8 bits)' }
+            ];
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
+                    
+                    <header className="text-center mb-8">
+                        <h1 className="text-4xl font-bold text-slate-800 mb-2 flex items-center justify-center gap-3">
+                            <SignalIcon /> Analógico (Infinito) vs Digital (Binario)
+                        </h1>
+                        <p className="text-slate-600 max-w-2xl mx-auto">
+                            Observa cómo una señal continua (Analógica) se convierte en una serie de pasos discretos (Digital) mediante **Muestreo** y **Cuantificación**.
+                        </p>
+                    </header>
+
+                    <div className="w-full max-w-6xl bg-white rounded-2xl shadow-xl overflow-hidden p-6">
+                        
+                        <canvas 
+                            ref={canvasRef} 
+                            width={CANVAS_WIDTH} 
+                            height={CANVAS_HEIGHT} 
+                            className="w-full bg-white border-2 border-slate-200 rounded-lg mb-6"
+                        />
+
+                        {/* Controles */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-slate-50 rounded-lg">
+                            
+                            {/* Control de Muestreo (Horizontal) */}
+                            <div className="p-4 bg-white rounded-lg shadow-sm border border-slate-100">
+                                <label className="block text-lg font-semibold text-slate-700 mb-2">
+                                    1. Tasa de Muestreo (Horizontal)
+                                </label>
+                                <p className="text-sm text-slate-500 mb-4">
+                                    Define la frecuencia con la que se "toma una foto" de la señal analógica.
+                                    <span className="font-bold text-blue-600 ml-1">({samplingRate} puntos)</span>
+                                </p>
+                                <input 
+                                    type="range" 
+                                    min="10" 
+                                    max="100" 
+                                    step="1" 
+                                    value={samplingRate}
+                                    onChange={(e) => setSamplingRate(parseInt(e.target.value))}
+                                    className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                />
+                                <div className="flex justify-between text-xs text-slate-500 mt-1">
+                                    <span>Baja Frecuencia</span>
+                                    <span>Alta Frecuencia</span>
+                                </div>
+                            </div>
+
+                            {/* Control de Cuantificación (Vertical) */}
+                            <div className="p-4 bg-white rounded-lg shadow-sm border border-slate-100">
+                                <label className="block text-lg font-semibold text-slate-700 mb-2">
+                                    2. Profundidad de Bits (Vertical)
+                                </label>
+                                <p className="text-sm text-slate-500 mb-4">
+                                    Define el número de niveles discretos disponibles para asignar el valor medido.
+                                    <span className="font-bold text-blue-600 ml-1">({Math.pow(2, bitDepth)} niveles, {bitDepth} bits)</span>
+                                </p>
+                                <input 
+                                    type="range" 
+                                    min="2" 
+                                    max="8" 
+                                    step="1" 
+                                    value={bitDepth}
+                                    onChange={(e) => setBitDepth(parseInt(e.target.value))}
+                                    className="w-full h-2 bg-red-200 rounded-lg appearance-none cursor-pointer accent-red-600"
+                                />
+                                <div className="flex justify-between text-xs text-slate-500 mt-1">
+                                    <span>Baja Resolución (Pocos Niveles)</span>
+                                    <span>Alta Resolución (Más Niveles)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Leyenda y Explicación */}
+                        <div className="mt-8">
+                            <h3 className="text-2xl font-bold text-slate-800 mb-4">La Conversión Clave: Analógico → Digital</h3>
+                            <div className="space-y-4 text-slate-700">
+                                <p>
+                                    <span className="font-bold text-lg text-green-600">— Señal Analógica:</span> La línea verde representa el mundo real (sonido, luz, temperatura). Tiene **valores infinitos** en el tiempo y amplitud; no hay saltos.
+                                </p>
+                                <p>
+                                    <span className="font-bold text-lg text-red-600">● Muestreo:</span> Los puntos rojos muestran dónde se "lee" la señal analógica. Si la **Tasa de Muestreo es baja**, se pierde mucha información. Si es alta, la señal digital se acerca más a la original.
+                                </p>
+                                <p>
+                                    <span className="font-bold text-lg text-blue-600">— Señal Digital:</span> La línea azul en forma de escalera es la señal reconstruida. El valor de cada muestra se redondea al nivel más cercano (Cuantificación). Los **bits** definen cuántos niveles hay: a más bits, menos error de redondeo y más calidad.
+                                </p>
+                                <p className="mt-4 p-3 bg-indigo-100 rounded-lg text-indigo-800">
+                                    **Conclusión:** La señal digital siempre es una **aproximación** (pasos discretos) de la señal analógica original (curva suave), pero permite el almacenamiento, la transmisión y el procesamiento perfecto mediante sistemas binarios (ceros y unos).
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    <footer className="mt-8 text-slate-400 text-sm">
+                        Generado con React y Canvas API.
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

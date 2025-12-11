@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Puertas Lógicas (3 Entradas)</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel para JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate-900 oscuro */
+            color: #f8fafc;
+        }
+        .container-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+        }
+        .input-toggle {
+            transition: transform 0.1s ease-in-out, background-color 0.2s;
+        }
+        .input-toggle:hover {
+            transform: scale(1.05);
+        }
+        .logic-card {
+            min-height: 550px; /* Aumentado para acomodar la tabla de 8 filas */
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+
+        // Constantes para los estados (0 o 1)
+        const LOW = 0;
+        const HIGH = 1;
+
+        // Colores base para la visualización
+        const OFF_COLOR = "bg-slate-700 hover:bg-slate-600";
+        const ON_COLOR = "bg-green-500 hover:bg-green-600";
+        const ON_COLOR_NEGATED = "bg-red-500 hover:bg-red-600"; // Rojo para salidas negadas
+
+        // Componente visual para las entradas/salidas
+        const LogicToggle = ({ label, value, onClick, isOutput = false, isNegated = false }) => {
+            const displayValue = value === HIGH ? '1 (ALTO)' : '0 (BAJO)';
+            
+            let colorClass;
+            if (isOutput) {
+                // Si es negada, ALTO es rojo. Si es directa, ALTO es verde.
+                colorClass = value === HIGH ? (isNegated ? ON_COLOR_NEGATED : ON_COLOR) : OFF_COLOR;
+            } else {
+                // Entradas siempre verde/gris
+                colorClass = value === HIGH ? ON_COLOR : OFF_COLOR; 
+            }
+
+            const pointerClass = isOutput ? 'cursor-default' : 'cursor-pointer';
+            const outputTextClass = isOutput ? 'text-2xl font-extrabold' : 'text-xl font-bold';
+
+            return (
+                <div 
+                    className={`input-toggle w-full p-4 rounded-xl flex flex-col items-center justify-center transition-all ${colorClass} ${pointerClass}`}
+                    onClick={!isOutput ? onClick : undefined}
+                >
+                    <span className="text-sm font-medium text-slate-200 mb-1">{label}</span>
+                    <span className={`${outputTextClass} mt-1`}>{displayValue}</span>
+                </div>
+            );
+        };
+        
+        // Componente para el dibujo de la Puerta Lógica (SVG simple)
+        const GateDrawing = ({ type, output, label }) => {
+            const isNegated = type === 'NAND';
+            let outputColor = output === HIGH ? (isNegated ? '#ef4444' : '#10b981') : '#64748b'; 
+            
+            let pathD = '';
+            let negationCircle = '';
+            
+            // Símbolo AND de 3 entradas: extendido verticalmente
+            pathD = "M 50 10 L 50 90 A 40 40 0 0 0 100 50 A 40 40 0 0 0 50 10 Z";
+            
+            // Líneas de entrada
+            pathD += " M 0 20 L 50 20 M 0 50 L 50 50 M 0 80 L 50 80";
+            
+            if (isNegated) {
+                // Círculo de negación para NAND
+                negationCircle = "M 105 50 A 5 5 0 1 0 115 50 A 5 5 0 1 0 105 50 Z";
+            }
+            
+            const outputLineStart = isNegated ? "115" : "100";
+
+            return (
+                <div className="flex flex-col items-center justify-center p-4 bg-slate-800 rounded-lg h-32 w-full mb-4">
+                    <svg viewBox="0 0 150 100" className="w-full h-24">
+                        {/* Líneas de entrada A, B, C */}
+                        <line x1="0" y1="20" x2="10" y2="20" stroke="#64748b" strokeWidth="2" />
+                        <line x1="0" y1="50" x2="10" y2="50" stroke="#64748b" strokeWidth="2" />
+                        <line x1="0" y1="80" x2="10" y2="80" stroke="#64748b" strokeWidth="2" />
+                        
+                        {/* Línea de salida */}
+                        <line x1={outputLineStart} y1="50" x2="150" y2="50" stroke={outputColor} strokeWidth="3" />
+
+                        {/* Símbolo de la puerta */}
+                        <g>
+                            <path d={pathD} fill="none" stroke="#e2e8f0" strokeWidth="3" strokeLinejoin="round" />
+                            {/* Círculo de negación (si aplica) */}
+                            {negationCircle && <path d={negationCircle} fill="#0f172a" stroke="#e2e8f0" strokeWidth="3" />}
+                        </g>
+
+                        {/* Etiqueta */}
+                        <text x="75" y="15" fill="#f8fafc" fontSize="12" textAnchor="middle" fontWeight="bold">{label}</text>
+                    </svg>
+                </div>
+            );
+        };
+
+
+        // Componente para la Tabla de Verdad
+        const TruthTable = ({ type, data, inputs }) => {
+            const isNegated = type === 'NAND';
+
+            return (
+                <div className="mt-4 p-3 bg-slate-800 rounded-lg flex-grow">
+                    <h4 className="text-lg font-semibold text-sky-400 mb-2">Tabla de Verdad {type}</h4>
+                    <table className="w-full text-left text-sm">
+                        <thead className="text-slate-400 border-b border-slate-600">
+                            <tr>
+                                <th className="p-1">A</th>
+                                <th className="p-1">B</th>
+                                <th className="p-1">C</th>
+                                <th className="p-1 text-right">Salida (Y)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {data.map((row, index) => {
+                                // Determinar si esta fila coincide con las entradas actuales
+                                const isCurrentState = row.A === inputs.A && row.B === inputs.B && row.C === inputs.C;
+                                
+                                const rowClass = isCurrentState ? 'bg-sky-900/50 font-bold text-white' : 'text-slate-300';
+                                
+                                // Color de la salida en la tabla (verde para ALTO, rojo si es negada)
+                                const outputColorClass = row.Y === HIGH 
+                                    ? (isNegated ? 'text-red-400' : 'text-green-400') 
+                                    : 'text-slate-400';
+                                
+                                return (
+                                    <tr key={index} className={rowClass}>
+                                        <td className="p-1">{row.A}</td>
+                                        <td className="p-1">{row.B}</td>
+                                        <td className="p-1">{row.C}</td>
+                                        <td className={`p-1 text-right ${outputColorClass}`}>{row.Y}</td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            );
+        };
+
+        // Componente de la Puerta Lógica Individual (AND y NAND de 3 Entradas)
+        const LogicGate = ({ type, inputs }) => {
+            let output;
+            let truthTableData = [];
+            let description = '';
+            let isNegated = false;
+            
+            const isHighA = inputs.A === HIGH;
+            const isHighB = inputs.B === HIGH;
+            const isHighC = inputs.C === HIGH;
+
+            // Lógica para 3 entradas
+            const baseANDOutput = isHighA && isHighB && isHighC ? HIGH : LOW;
+
+            // Generación completa de la tabla de verdad para 3 entradas (A, B, C)
+            truthTableData = [
+                { A: 0, B: 0, C: 0, Y: type === 'AND' ? 0 : 1 },
+                { A: 0, B: 0, C: 1, Y: type === 'AND' ? 0 : 1 },
+                { A: 0, B: 1, C: 0, Y: type === 'AND' ? 0 : 1 },
+                { A: 0, B: 1, C: 1, Y: type === 'AND' ? 0 : 1 },
+                { A: 1, B: 0, C: 0, Y: type === 'AND' ? 0 : 1 },
+                { A: 1, B: 0, C: 1, Y: type === 'AND' ? 0 : 1 },
+                { A: 1, B: 1, C: 0, Y: type === 'AND' ? 0 : 1 },
+                { A: 1, B: 1, C: 1, Y: type === 'AND' ? 1 : 0 },
+            ];
+
+            if (type === 'AND') {
+                output = baseANDOutput;
+                description = 'La salida es ALTA (1) SÓLO si las tres entradas (A, B Y C) son ALTAS (1).';
+            } else if (type === 'NAND') {
+                isNegated = true;
+                output = baseANDOutput === HIGH ? LOW : HIGH;
+                description = 'Es el inverso de AND. La salida es BAJA (0) SÓLO si las tres entradas son ALTAS (1).';
+            }
+            
+            return (
+                <div className="logic-card bg-slate-700 rounded-xl container-shadow p-6 flex flex-col">
+                    <h3 className="text-2xl font-bold text-white mb-4 text-center">{type} (3 Entradas)</h3>
+                    
+                    {/* Visualización del Símbolo */}
+                    <GateDrawing type={type} output={output} label={`${type} (A, B, C) → Y`} />
+
+                    {/* Descripción */}
+                    <p className="text-sm text-slate-300 italic mb-4 text-center flex-grow">{description}</p>
+                    
+                    {/* Visualización de la Salida */}
+                    <div className="mt-auto pt-4 border-t border-slate-600">
+                        <h4 className="text-xl font-semibold text-white mb-2 text-center">Salida (Y)</h4>
+                        <LogicToggle 
+                            label="Resultado" 
+                            value={output} 
+                            isOutput={true} 
+                            isNegated={isNegated}
+                        />
+                    </div>
+                    
+                    {/* Tabla de Verdad */}
+                    <TruthTable type={type} data={truthTableData} inputs={inputs} />
+                </div>
+            );
+        };
+
+
+        // Componente Principal de la Aplicación
+        const App = () => {
+            // 3 estados de entrada
+            const [inputA, setInputA] = useState(LOW);
+            const [inputB, setInputB] = useState(LOW);
+            const [inputC, setInputC] = useState(LOW);
+
+            const inputs = useMemo(() => ({ A: inputA, B: inputB, C: inputC }), [inputA, inputB, inputC]);
+
+            const toggleInputA = () => setInputA(prev => prev === LOW ? HIGH : LOW);
+            const toggleInputB = () => setInputB(prev => prev === LOW ? HIGH : LOW);
+            const toggleInputC = () => setInputC(prev => prev === LOW ? HIGH : LOW);
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
+                    
+                    <header className="text-center mb-10">
+                        <h1 className="text-5xl font-extrabold text-sky-400 mb-2">
+                            Simulador de Puertas Lógicas (3 Entradas)
+                        </h1>
+                        <p className="text-slate-400 max-w-4xl mx-auto mt-2 text-lg">
+                            Modifica las tres Entradas (A, B y C) para ver el funcionamiento de las puertas AND y NAND.
+                        </p>
+                    </header>
+
+                    <div className="w-full max-w-lg bg-slate-800 rounded-2xl container-shadow p-8 mb-8">
+                        
+                        <h2 className="text-3xl font-bold text-white mb-6 border-b border-slate-700 pb-4 text-center">
+                            1. Control de Entradas (A, B, C)
+                        </h2>
+
+                        {/* Controles de Entrada: 3 columnas */}
+                        <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
+                            <LogicToggle 
+                                label="Entrada A" 
+                                value={inputA} 
+                                onClick={toggleInputA}
+                            />
+                            <LogicToggle 
+                                label="Entrada B" 
+                                value={inputB} 
+                                onClick={toggleInputB}
+                            />
+                            <LogicToggle 
+                                label="Entrada C" 
+                                value={inputC} 
+                                onClick={toggleInputC}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="w-full max-w-6xl bg-slate-800 rounded-2xl container-shadow p-8">
+
+                        <h2 className="text-3xl font-bold text-white mb-6 border-b border-slate-700 pb-4 text-center">
+                            2. Resultados para AND y NAND (3 Entradas)
+                        </h2>
+                        
+                        {/* Visualización de Puertas (2 en total) */}
+                        <div className="grid gap-8 grid-cols-1 md:grid-cols-2">
+                            
+                            <LogicGate type="AND" inputs={inputs} />
+                            <LogicGate type="NAND" inputs={inputs} />
+                        </div>
+                    </div>
+                    
+                    <footer className="mt-8 text-slate-400 text-sm">
+                        Simulador de Puertas Lógicas por Gemini.
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

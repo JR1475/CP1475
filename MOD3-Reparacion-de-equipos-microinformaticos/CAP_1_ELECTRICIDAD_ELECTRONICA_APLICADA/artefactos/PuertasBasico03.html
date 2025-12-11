@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Circuito en Cascada (Dos AND a NAND)</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel para JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate-900 oscuro */
+            color: #f8fafc;
+        }
+        .container-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+        }
+        .input-toggle {
+            transition: transform 0.1s ease-in-out, background-color 0.2s;
+        }
+        .input-toggle:hover {
+            transform: scale(1.05);
+        }
+        .svg-connector {
+            stroke: #64748b;
+            stroke-width: 2;
+        }
+        .svg-line-high-g1 { stroke: #10b981; } /* Verde para Salida G1 (AND) */
+        .svg-line-high-g2 { stroke: #fbbf24; } /* Amarillo para Salida G2 (AND) */
+        .svg-line-low { stroke: #64748b; }
+        .svg-line-final { stroke-width: 4; }
+        .truth-table-container {
+            max-height: 400px;
+            overflow-y: auto;
+            /* Scrollbar styling for aesthetics */
+            scrollbar-width: thin;
+            scrollbar-color: #475569 #1e293b;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useMemo } = React;
+
+        // Constantes para los estados (0 o 1)
+        const LOW = 0;
+        const HIGH = 1;
+
+        // Colores base para la visualización
+        const OFF_COLOR = "bg-slate-700 hover:bg-slate-600";
+        const ON_COLOR_PRIMARY = "bg-sky-500 hover:bg-sky-600"; 
+        const ON_COLOR_G1 = "bg-green-600 hover:bg-green-700"; 
+        const ON_COLOR_G2 = "bg-amber-500 hover:bg-amber-600"; 
+        const ON_COLOR_FINAL = "bg-purple-600 hover:bg-purple-700"; 
+        
+        // Componente visual para las entradas/salidas
+        const LogicToggle = ({ label, value, onClick, isOutput = false, customColor = ON_COLOR_PRIMARY }) => {
+            const displayValue = value === HIGH ? '1 (ALTO)' : '0 (BAJO)';
+            
+            const colorClass = value === HIGH ? customColor : OFF_COLOR;
+
+            const pointerClass = isOutput ? 'cursor-default' : 'cursor-pointer';
+            const outputTextClass = isOutput ? 'text-2xl font-extrabold' : 'text-xl font-bold';
+
+            return (
+                <div 
+                    className={`input-toggle w-full p-3 rounded-xl flex flex-col items-center justify-center transition-all ${colorClass} ${pointerClass}`}
+                    onClick={!isOutput ? onClick : undefined}
+                >
+                    <span className="text-sm font-medium text-slate-200 mb-1">{label}</span>
+                    <span className={`${outputTextClass} mt-1`}>{displayValue}</span>
+                </div>
+            );
+        };
+        
+        // Componente para la Tabla de Verdad (con 16 filas)
+        const TruthTable = ({ data, inputs }) => {
+
+            return (
+                <div className="mt-8 p-3 bg-slate-800 rounded-xl container-shadow">
+                    <h4 className="text-xl font-semibold text-sky-400 mb-3 border-b border-slate-700 pb-2">Tabla de Verdad Completa (16 Combinaciones)</h4>
+                    <div className="truth-table-container">
+                        <table className="w-full text-left text-sm table-fixed">
+                            <thead className="text-slate-400 border-b border-slate-600 sticky top-0 bg-slate-800">
+                                <tr>
+                                    <th className="p-1 w-1/12">A</th>
+                                    <th className="p-1 w-1/12">B</th>
+                                    <th className="p-1 w-1/12">C</th>
+                                    <th className="p-1 w-1/12">D</th>
+                                    <th className="p-1 w-3/12 text-center">G1 (A&middot;B)</th>
+                                    <th className="p-1 w-3/12 text-center">G2 (C&middot;D)</th>
+                                    <th className="p-1 w-2/12 text-right">Y Final</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {data.map((row, index) => {
+                                    // Determinar si esta fila coincide con las entradas actuales
+                                    const isCurrentState = row.A === inputs.A && row.B === inputs.B && row.C === inputs.C && row.D === inputs.D;
+                                    
+                                    const rowClass = isCurrentState ? 'bg-sky-900/50 font-bold text-white' : 'text-slate-300';
+                                    
+                                    return (
+                                        <tr key={index} className={rowClass}>
+                                            <td className="p-1">{row.A}</td>
+                                            <td className="p-1">{row.B}</td>
+                                            <td className="p-1">{row.C}</td>
+                                            <td className="p-1">{row.D}</td>
+                                            <td className={`p-1 text-center ${row.G1 === HIGH ? 'text-green-400' : 'text-slate-400'}`}>{row.G1}</td>
+                                            <td className={`p-1 text-center ${row.G2 === HIGH ? 'text-amber-400' : 'text-slate-400'}`}>{row.G2}</td>
+                                            <td className={`p-1 text-right ${row.Y_Final === HIGH ? 'text-purple-400 font-extrabold' : 'text-slate-400'}`}>{row.Y_Final}</td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        };
+
+
+        // Componente Principal de la Aplicación
+        const App = () => {
+            // 4 estados de entrada primaria: A, B, C, D
+            const [inputA, setInputA] = useState(LOW);
+            const [inputB, setInputB] = useState(LOW);
+            const [inputC, setInputC] = useState(LOW);
+            const [inputD, setInputD] = useState(LOW); // Nueva entrada D
+
+            const primaryInputs = useMemo(() => ({ A: inputA, B: inputB, C: inputC, D: inputD }), [inputA, inputB, inputC, inputD]);
+
+            // ----------------------------------------------------
+            // LÓGICA DEL CIRCUITO COMBINACIONAL: Y = (A·B) NAND (C·D)
+            // ----------------------------------------------------
+            
+            // 1. Gate 1: G1 = A AND B
+            const outputG1 = primaryInputs.A === HIGH && primaryInputs.B === HIGH ? HIGH : LOW; 
+            
+            // 2. Gate 2: G2 = C AND D
+            const outputG2 = primaryInputs.C === HIGH && primaryInputs.D === HIGH ? HIGH : LOW; 
+            
+            // 3. Final Gate: Y_Final = G1 NAND G2 (NOT (G1 AND G2))
+            const intermediateAND = outputG1 === HIGH && outputG2 === HIGH;
+            const finalOutputY = intermediateAND ? LOW : HIGH; 
+
+            // ----------------------------------------------------
+            // Generación de la Tabla de Verdad Completa (16 filas)
+            // ----------------------------------------------------
+            const truthTableData = useMemo(() => {
+                const data = [];
+                for (let a = 0; a <= 1; a++) {
+                    for (let b = 0; b <= 1; b++) {
+                        for (let c = 0; c <= 1; c++) {
+                            for (let d = 0; d <= 1; d++) {
+                                const G1 = a === HIGH && b === HIGH ? HIGH : LOW;
+                                const G2 = c === HIGH && d === HIGH ? HIGH : LOW;
+                                
+                                const intermediateAND = G1 === HIGH && G2 === HIGH;
+                                const Y_Final = intermediateAND ? LOW : HIGH;
+
+                                data.push({ A: a, B: b, C: c, D: d, G1, G2, Y_Final });
+                            }
+                        }
+                    }
+                }
+                return data;
+            }, []);
+
+
+            const toggleInputA = () => setInputA(prev => prev === LOW ? HIGH : LOW);
+            const toggleInputB = () => setInputB(prev => prev === LOW ? HIGH : LOW);
+            const toggleInputC = () => setInputC(prev => prev === LOW ? HIGH : LOW);
+            const toggleInputD = () => setInputD(prev => prev === LOW ? HIGH : LOW);
+
+
+            const getLineClass = (value, gateName) => {
+                if (value === LOW) return 'svg-line-low';
+                if (gateName === 'G1') return 'svg-line-high-g1';
+                if (gateName === 'G2') return 'svg-line-high-g2';
+                if (gateName === 'Y') return 'stroke-purple-400';
+                return 'svg-connector';
+            }
+
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
+                    
+                    <header className="text-center mb-10">
+                        <h1 className="text-5xl font-extrabold text-sky-400 mb-2">
+                            Simulador de Circuito en Cascada (Dos AND a NAND)
+                        </h1>
+                        <p className="text-slate-400 max-w-4xl mx-auto mt-2 text-lg">
+                            <span className="font-bold">Circuito Lógico:</span> Y = (A &middot; B) &darr; (C &middot; D) = ((A &middot; B) &middot; (C &middot; D))'
+                        </p>
+                    </header>
+
+                    <div className="w-full max-w-6xl bg-slate-800 rounded-2xl container-shadow p-8 mb-8">
+                        
+                        <h2 className="text-3xl font-bold text-white mb-6 border-b border-slate-700 pb-4 text-center">
+                            1. Control de Entradas Primarias (A, B, C, D)
+                        </h2>
+
+                        {/* Controles de Entrada: 4 columnas */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto">
+                            <LogicToggle label="Entrada A" value={inputA} onClick={toggleInputA} />
+                            <LogicToggle label="Entrada B" value={inputB} onClick={toggleInputB} />
+                            <LogicToggle label="Entrada C" value={inputC} onClick={toggleInputC} />
+                            <LogicToggle label="Entrada D" value={inputD} onClick={toggleInputD} />
+                        </div>
+                    </div>
+
+                    <div className="w-full max-w-6xl bg-slate-800 rounded-2xl container-shadow p-8">
+
+                        <h2 className="text-3xl font-bold text-white mb-6 border-b border-slate-700 pb-4 text-center">
+                            2. Diagrama del Circuito y Resultados
+                        </h2>
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                            {/* Columna 1: Resultados Intermedios */}
+                            <div className="flex flex-col gap-4 p-4 rounded-xl bg-slate-700/50">
+                                <h3 className="text-xl font-bold text-white mb-2 border-b border-slate-600 pb-2">Salidas Intermedias</h3>
+                                <LogicToggle 
+                                    label="Salida G1 (A AND B)" 
+                                    value={outputG1} 
+                                    isOutput={true}
+                                    customColor={ON_COLOR_G1}
+                                />
+                                <LogicToggle 
+                                    label="Salida G2 (C AND D)" 
+                                    value={outputG2} 
+                                    isOutput={true}
+                                    customColor={ON_COLOR_G2}
+                                />
+                                <h3 className="text-xl font-bold text-white mt-4 border-t border-slate-600 pt-2">Salida Final</h3>
+                                <LogicToggle 
+                                    label="Salida Y (G1 NAND G2)" 
+                                    value={finalOutputY} 
+                                    isOutput={true}
+                                    customColor={ON_COLOR_FINAL}
+                                />
+                            </div>
+
+                            {/* Columna 2: Visualización del Circuito SVG */}
+                            <div className="lg:col-span-2 relative h-[500px] p-4 bg-slate-700 rounded-xl flex items-center justify-center container-shadow">
+                                <svg viewBox="0 0 700 450" className="w-full h-full">
+                                    {/* Título */}
+                                    <text x="350" y="20" textAnchor="middle" fill="#f8fafc" fontSize="18" fontWeight="bold">Circuito Lógico: Y = (A·B) NAND (C·D)</text>
+
+                                    {/* -------------------- ENTRADAS -------------------- */}
+                                    <g id="Inputs">
+                                        {/* Bloque A, B */}
+                                        <text x="5" y="80" fill="#e2e8f0" fontSize="14">A:</text>
+                                        <text x="5" y="150" fill="#e2e8f0" fontSize="14">B:</text>
+                                        <line x1="20" y1="75" x2="80" y2="75" className="svg-connector" />
+                                        <line x1="20" y1="145" x2="80" y2="145" className="svg-connector" />
+                                        {/* Bloque C, D */}
+                                        <text x="5" y="270" fill="#e2e8f0" fontSize="14">C:</text>
+                                        <text x="5" y="340" fill="#e2e8f0" fontSize="14">D:</text>
+                                        <line x1="20" y1="265" x2="80" y2="265" className="svg-connector" />
+                                        <line x1="20" y1="335" x2="80" y2="335" className="svg-connector" />
+                                    </g>
+
+                                    {/* -------------------- GATE 1: AND (A, B) -> G1 -------------------- */}
+                                    <g id="Gate-AND1" transform="translate(100, 50)">
+                                        {/* Símbolo AND */}
+                                        <path d="M 0 40 L 0 140 A 50 50 0 0 0 50 90 A 50 50 0 0 0 0 40 Z" fill="none" stroke="#e2e8f0" strokeWidth="3" />
+                                        {/* Entradas */}
+                                        <line x1="0" y1="50" x2="0" y2="50" className="svg-connector" />
+                                        <line x1="0" y1="120" x2="0" y2="120" className="svg-connector" />
+                                        {/* Salida G1 (horizontal) */}
+                                        <line x1="50" y1="90" x2="250" y2="90" className={`svg-connector ${getLineClass(outputG1, 'G1')}`} />
+                                        <text x="60" y="110" fill="#10b981" fontSize="16" fontWeight="bold">G1</text>
+                                    </g>
+                                    
+                                    {/* -------------------- GATE 2: AND (C, D) -> G2 -------------------- */}
+                                    <g id="Gate-AND2" transform="translate(100, 240)">
+                                        {/* Símbolo AND */}
+                                        <path d="M 0 40 L 0 140 A 50 50 0 0 0 50 90 A 50 50 0 0 0 0 40 Z" fill="none" stroke="#e2e8f0" strokeWidth="3" />
+                                        {/* Entradas */}
+                                        <line x1="0" y1="50" x2="0" y2="50" className="svg-connector" />
+                                        <line x1="0" y1="120" x2="0" y2="120" className="svg-connector" />
+                                        {/* Salida G2 (horizontal) */}
+                                        <line x1="50" y1="90" x2="250" y2="90" className={`svg-connector ${getLineClass(outputG2, 'G2')}`} />
+                                        <text x="60" y="110" fill="#fbbf24" fontSize="16" fontWeight="bold">G2</text>
+                                    </g>
+
+                                    {/* -------------------- GATE 3: NAND (G1, G2) -> Y -------------------- */}
+                                    <g id="Gate-NAND-Final" transform="translate(350, 140)">
+                                        {/* Taps de G1 y G2 */}
+                                        {/* Línea G1 (vertical) */}
+                                        <line x1="-100" y1="-50" x2="-100" y2="55" className={`svg-connector ${getLineClass(outputG1, 'G1')}`} />
+                                        {/* Línea G2 (vertical) */}
+                                        <line x1="-100" y1="180" x2="-100" y2="115" className={`svg-connector ${getLineClass(outputG2, 'G2')}`} />
+
+                                        {/* Entradas de NAND (horizontal) */}
+                                        <line x1="-100" y1="55" x2="0" y2="55" className={`svg-connector ${getLineClass(outputG1, 'G1')}`} />
+                                        <line x1="-100" y1="115" x2="0" y2="115" className={`svg-connector ${getLineClass(outputG2, 'G2')}`} />
+
+                                        {/* Símbolo NAND (AND + Círculo) */}
+                                        <path d="M 0 40 L 0 130 A 45 45 0 0 0 45 85 A 45 45 0 0 0 0 40 Z" fill="none" stroke="#e2e8f0" strokeWidth="3" />
+                                        <circle cx="50" cy="85" r="5" fill="#0f172a" stroke="#e2e8f0" strokeWidth="3" />
+                                        
+                                        {/* Salida Final Y */}
+                                        <line x1="55" y1="85" x2="150" y2="85" className={`svg-line-final svg-connector ${getLineClass(finalOutputY, 'Y')}`} />
+                                        <text x="100" y="75" fill="#c084fc" fontSize="18" fontWeight="extrabold">Y</text>
+                                    </g>
+                                </svg>
+                            </div>
+                        </div>
+
+                        {/* Tabla de Verdad del Circuito */}
+                        <TruthTable data={truthTableData} inputs={primaryInputs} />
+
+                    </div>
+                    
+                    <footer className="mt-8 text-slate-400 text-sm">
+                        Simulador de Circuito en Cascada por Gemini.
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

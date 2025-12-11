@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de la Ley de Ohm</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel para JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate-900 oscuro */
+            color: #f8fafc;
+        }
+        .container-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+        }
+        .input-range {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 10px;
+            background: #1e293b;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+            border-radius: 5px;
+        }
+        .input-range:hover {
+            opacity: 1;
+        }
+        .input-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #38bdf8; /* Sky-400 */
+            cursor: pointer;
+        }
+        .input-range::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #38bdf8; 
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useRef } = React;
+
+        // Constantes para el Canvas
+        const CANVAS_WIDTH = 600;
+        const CANVAS_HEIGHT = 300;
+        
+        // Componente para el icono del Voltaje
+        const BoltIcon = ({ className = "w-6 h-6" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+        );
+
+        // Componente para el icono de la Resistencia
+        const ZapIcon = ({ className = "w-6 h-6" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 12 4 12 7 21 17 3 20 12"></polyline>
+            </svg>
+        );
+
+        // Componente para el icono de la Intensidad
+        const CircuitIcon = ({ className = "w-6 h-6" }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M12 2v5"></path>
+                <path d="M12 17v5"></path>
+                <path d="M5 12h2"></path>
+                <path d="M17 12h2"></path>
+            </svg>
+        );
+
+        // Lógica Principal de la Aplicación
+        const App = () => {
+            // Estado para los valores V, I, R. I es el valor calculado.
+            const [voltage, setVoltage] = useState(5.0); // V (Voltios)
+            const [resistance, setResistance] = useState(50.0); // R (Ohmios)
+            const [current, setCurrent] = useState(0.0); // I (Amperios)
+
+            const canvasRef = useRef(null);
+
+            // Calcular la Corriente (I) basada en V y R
+            useEffect(() => {
+                // Ley de Ohm: I = V / R
+                const newCurrent = voltage / resistance;
+                setCurrent(newCurrent);
+            }, [voltage, resistance]);
+
+            // Función de dibujo del Canvas
+            const drawCircuit = useCallback(() => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+                const center_y = CANVAS_HEIGHT / 2;
+                const half_w = CANVAS_WIDTH / 2;
+                const circuit_radius = 100;
+
+                // --- 1. DIBUJAR EL CÍRCULO (CIRCUITO) ---
+                ctx.strokeStyle = '#64748b'; // Gris
+                ctx.lineWidth = 4;
+                ctx.beginPath();
+                ctx.arc(half_w, center_y, circuit_radius, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // --- 2. DIBUJAR EL VOLTAJE (BATERÍA) ---
+                const battery_x = half_w;
+                const battery_y = center_y - circuit_radius;
+                const battery_h = 30;
+
+                // Símbolo de la batería
+                ctx.fillStyle = '#10b981'; // Esmeralda
+                ctx.fillRect(battery_x - 5, battery_y - battery_h / 2, 10, battery_h);
+                ctx.strokeStyle = '#10b981';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(battery_x - 15, battery_y - battery_h / 4);
+                ctx.lineTo(battery_x + 15, battery_y - battery_h / 4);
+                ctx.moveTo(battery_x - 15, battery_y + battery_h / 4);
+                ctx.lineTo(battery_x + 15, battery_y + battery_h / 4);
+                ctx.stroke();
+
+                // Etiqueta del Voltaje
+                ctx.fillStyle = '#10b981';
+                ctx.font = 'bold 16px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`V = ${voltage.toFixed(1)} V`, battery_x, battery_y - 20);
+
+                // --- 3. DIBUJAR LA RESISTENCIA (COMPONENTES) ---
+                const resistor_x = half_w;
+                const resistor_y = center_y + circuit_radius;
+                const resistor_w = 40;
+                
+                // Símbolo de la Resistencia (zigzag)
+                ctx.strokeStyle = '#f97316'; // Naranja
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(resistor_x - resistor_w * 1.5, resistor_y);
+                ctx.lineTo(resistor_x - resistor_w, resistor_y - 15);
+                ctx.lineTo(resistor_x - resistor_w / 2, resistor_y + 15);
+                ctx.lineTo(resistor_x, resistor_y - 15);
+                ctx.lineTo(resistor_x + resistor_w / 2, resistor_y + 15);
+                ctx.lineTo(resistor_x + resistor_w, resistor_y - 15);
+                ctx.lineTo(resistor_x + resistor_w * 1.5, resistor_y);
+                ctx.stroke();
+
+                // Etiqueta de la Resistencia
+                ctx.fillStyle = '#f97316';
+                ctx.font = 'bold 16px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`R = ${resistance.toFixed(1)} Ω`, resistor_x, resistor_y + 30);
+
+
+                // --- 4. DIBUJAR EL FLUJO DE CORRIENTE (ANIMACIÓN) ---
+                const intensityFactor = Math.min(1.0, current * 5); // Escalar I para el tamaño del flujo
+                const flowSpeed = Math.max(0.5, intensityFactor * 2); // Velocidad del flujo
+
+                // Flujo principal (círculo)
+                ctx.strokeStyle = `rgba(56, 189, 248, ${intensityFactor + 0.2})`; // Sky-400
+                ctx.lineWidth = 8 * intensityFactor;
+                ctx.beginPath();
+                ctx.arc(half_w, center_y, circuit_radius - 10, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Mostrar la Intensidad (Corriente)
+                ctx.fillStyle = '#38bdf8';
+                ctx.font = 'bold 24px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`I = ${current.toFixed(2)} A`, half_w, center_y + 8);
+                
+            }, [voltage, resistance, current]);
+
+            // Redibujar el canvas cada vez que cambian V o R
+            useEffect(() => {
+                drawCircuit();
+            }, [drawCircuit]);
+
+            // Manejadores de cambio para los sliders
+            const handleVoltageChange = (e) => {
+                setVoltage(parseFloat(e.target.value));
+            };
+
+            const handleResistanceChange = (e) => {
+                setResistance(parseFloat(e.target.value));
+            };
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
+                    
+                    <header className="text-center mb-8">
+                        <h1 className="text-4xl font-bold text-sky-400 mb-2">
+                            Simulador Interactivo de la Ley de Ohm
+                        </h1>
+                        <p className="text-slate-400 max-w-3xl mx-auto">
+                            Explora cómo el **Voltaje (V)** y la **Resistencia (R)** controlan la **Intensidad de Corriente (I)** en un circuito simple.
+                        </p>
+                    </header>
+
+                    {/* Contenedor Principal: Gráfico y Controles */}
+                    <div className="w-full max-w-6xl bg-slate-800 rounded-2xl container-shadow p-6 mb-6 flex flex-col lg:flex-row gap-6">
+                        
+                        {/* Panel de Controles (Izquierda/Arriba) */}
+                        <div className="lg:w-1/3 space-y-8 p-4 bg-slate-700 rounded-xl">
+                            
+                            <h2 className="text-xl font-semibold text-white border-b border-slate-600 pb-2">Ajustar Variables</h2>
+
+                            {/* Control de Voltaje (V) */}
+                            <div>
+                                <label className="flex items-center gap-2 font-medium text-lg text-emerald-400 mb-2">
+                                    <BoltIcon className="w-5 h-5" /> Voltaje (V)
+                                    <span className="ml-auto text-xl font-bold">{voltage.toFixed(1)} V</span>
+                                </label>
+                                <input 
+                                    type="range" 
+                                    min="1" 
+                                    max="24" 
+                                    step="0.1" 
+                                    value={voltage} 
+                                    onChange={handleVoltageChange} 
+                                    className="input-range bg-emerald-500"
+                                    style={{ '--tw-bg-opacity': '1', backgroundColor: '#10b981' }}
+                                />
+                                <div className="flex justify-between text-xs text-slate-400">
+                                    <span>1 V</span>
+                                    <span>24 V</span>
+                                </div>
+                            </div>
+
+                            {/* Control de Resistencia (R) */}
+                            <div>
+                                <label className="flex items-center gap-2 font-medium text-lg text-orange-400 mb-2">
+                                    <ZapIcon className="w-5 h-5" /> Resistencia (R)
+                                    <span className="ml-auto text-xl font-bold">{resistance.toFixed(1)} $\Omega$</span>
+                                </label>
+                                <input 
+                                    type="range" 
+                                    min="10" 
+                                    max="200" 
+                                    step="1" 
+                                    value={resistance} 
+                                    onChange={handleResistanceChange} 
+                                    className="input-range bg-orange-500"
+                                    style={{ '--tw-bg-opacity': '1', backgroundColor: '#f97316' }}
+                                />
+                                <div className="flex justify-between text-xs text-slate-400">
+                                    <span>10 $\Omega$</span>
+                                    <span>200 $\Omega$</span>
+                                </div>
+                            </div>
+                            
+                            {/* Resultado Calculado (I) */}
+                            <div className="pt-4 border-t border-slate-600">
+                                <label className="flex items-center gap-2 font-medium text-lg text-sky-400 mb-2">
+                                    <CircuitIcon className="w-5 h-5" /> Intensidad (I)
+                                    <span className="ml-auto text-3xl font-extrabold text-sky-300">
+                                        {current.toFixed(2)} A
+                                    </span>
+                                </label>
+                                <p className="text-sm text-slate-400">
+                                    La intensidad de corriente es el resultado de la relación V/R.
+                                </p>
+                            </div>
+
+                        </div>
+                        
+                        {/* Visualización del Circuito (Derecha/Abajo) */}
+                        <div className="lg:w-2/3 p-4 bg-slate-700 rounded-xl flex flex-col items-center justify-center">
+                            <h2 className="text-xl font-semibold text-white mb-4">Representación del Circuito</h2>
+                            <canvas 
+                                ref={canvasRef} 
+                                width={CANVAS_WIDTH} 
+                                height={CANVAS_HEIGHT} 
+                                className="w-full max-w-md h-auto bg-slate-800 rounded-lg border-4 border-slate-600 shadow-xl"
+                            />
+                            <div className="mt-4 text-center">
+                                <p className="text-lg font-mono text-white bg-slate-900 p-2 rounded-lg">
+                                    I = V / R
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    {/* Explicación de Conceptos */}
+                    <div className="w-full max-w-6xl p-6 bg-slate-800 rounded-2xl container-shadow">
+                        <h3 className="text-2xl font-bold text-white mb-4">Conceptos Clave de la Ley de Ohm</h3>
+                        <div className="grid md:grid-cols-3 gap-4 text-slate-300">
+                            <div>
+                                <p className="font-semibold text-lg text-emerald-400 mb-1 flex items-center gap-2"><BoltIcon className="w-4 h-4" /> Voltaje (V)</p>
+                                <p className="text-sm">Es la **fuerza** o presión eléctrica. Es el potencial que empuja a los electrones a moverse. A mayor Voltaje, mayor es la fuerza impulsora.</p>
+                                <p className="text-xs mt-1 text-slate-400">Unidad: Voltios (V)</p>
+                            </div>
+                            <div>
+                                <p className="font-semibold text-lg text-orange-400 mb-1 flex items-center gap-2"><ZapIcon className="w-4 h-4" /> Resistencia (R)</p>
+                                <p className="text-sm">Es la **oposición** al flujo de la corriente. Cuanto mayor es la Resistencia, más difícil es que la corriente fluya a través del circuito.</p>
+                                <p className="text-xs mt-1 text-slate-400">Unidad: Ohmios ($\Omega$)</p>
+                            </div>
+                            <div>
+                                <p className="font-semibold text-lg text-sky-400 mb-1 flex items-center gap-2"><CircuitIcon className="w-4 h-4" /> Intensidad (I)</p>
+                                <p className="text-sm">Es la **cantidad** de electrones que fluyen por el circuito en un segundo. Es el resultado directo de la lucha entre el Voltaje y la Resistencia.</p>
+                                <p className="text-xs mt-1 text-slate-400">Unidad: Amperios (A)</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <footer className="mt-8 text-slate-400 text-sm">
+                        Simulación de Ley de Ohm por Gemini.
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Energía Estática (ESD)</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel para JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a; /* Slate-900 oscuro */
+            color: #f8fafc;
+        }
+        .container-shadow {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+        }
+        canvas {
+            background-color: #1e293b; /* Slate-800 */
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .charge-area {
+            cursor: grab;
+            user-select: none;
+            transition: all 0.1s;
+        }
+        .charge-area:active {
+            cursor: grabbing;
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useCallback } = React;
+
+        const ZapIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>;
+        const ChipIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><line x1="9" y1="18" x2="9" y2="21"></line><line x1="15" y1="18" x2="15" y2="21"></line><line x1="9" y1="3" x2="9" y2="6"></line><line x1="15" y1="3" x2="15" y2="6"></line><line x1="18" y1="9" x2="21" y2="9"></line><line x1="3" y1="9" x2="6" y2="9"></line><line x1="18" y1="15" x2="21" y2="15"></line><line x1="3" y1="15" x2="6" y2="15"></line></svg>;
+        
+        const CANVAS_WIDTH = 800;
+        const CANVAS_HEIGHT = 400;
+        const CHARGE_THRESHOLD = 80; // Nivel de carga mínimo para causar daño permanente
+
+        // Componente principal
+        const App = () => {
+            const [chargeLevel, setChargeLevel] = useState(0); // 0-100
+            const [isCharging, setIsCharging] = useState(false);
+            const [isDischarged, setIsDischarged] = useState(false);
+            const [isDamaged, setIsDamaged] = useState(false);
+            const canvasRef = useRef(null);
+            const animationFrameRef = useRef(null);
+            const chargeIntervalRef = useRef(null);
+            const [sparkProgress, setSparkProgress] = useState(0);
+
+            // Iniciar o detener la carga continua al mantener pulsado
+            const handleChargeStart = () => {
+                setIsCharging(true);
+                // Aumentar la carga rápidamente mientras se pulsa
+                chargeIntervalRef.current = setInterval(() => {
+                    setChargeLevel(prev => Math.min(100, prev + 2)); 
+                }, 20);
+            };
+
+            const handleChargeEnd = () => {
+                setIsCharging(false);
+                clearInterval(chargeIntervalRef.current);
+                // La carga se disipa lentamente al soltar
+                chargeIntervalRef.current = setInterval(() => {
+                    setChargeLevel(prev => Math.max(0, prev - 1)); 
+                    if (prev - 1 <= 0) clearInterval(chargeIntervalRef.current);
+                }, 100);
+            };
+
+            // Simular el contacto y la descarga
+            const handleContact = () => {
+                if (chargeLevel > 0 && !isDischarged) {
+                    clearInterval(chargeIntervalRef.current);
+                    setIsDischarged(true);
+                    setSparkProgress(0); // Reiniciar la chispa
+                } else if (isDamaged) {
+                    // Resetear el experimento si ya hay daño
+                    setChargeLevel(0);
+                    setIsDischarged(false);
+                    setIsDamaged(false);
+                    setSparkProgress(0);
+                }
+            };
+
+            // Animación de la chispa
+            const animateSpark = useCallback(() => {
+                if (isDischarged && sparkProgress < 100) {
+                    // Actualización directa, fix para ReferenceError: prev
+                    setSparkProgress(sparkProgress + 10);
+                } else if (sparkProgress >= 100) {
+                    // Descarga completa
+                    setSparkProgress(100);
+                    // Si la carga era alta, causar daño permanente
+                    if (chargeLevel >= CHARGE_THRESHOLD && !isDamaged) {
+                        setIsDamaged(true);
+                    }
+                    // Después de mostrar el daño, la simulación se congela
+                    setChargeLevel(0); // La carga se ha ido
+                    return; 
+                }
+
+                if (isDischarged) {
+                    animationFrameRef.current = requestAnimationFrame(animateSpark);
+                }
+            }, [isDischarged, sparkProgress, chargeLevel, isDamaged]);
+
+            useEffect(() => {
+                if (isDischarged) {
+                    animationFrameRef.current = requestAnimationFrame(animateSpark);
+                }
+                return () => cancelAnimationFrame(animationFrameRef.current);
+            }, [isDischarged, animateSpark]);
+
+            // Función de dibujo del Canvas
+            const drawSimulation = useCallback(() => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+                // --- 1. DIBUJAR LA MANO/CUERPO CARGADO ---
+                const chargeX = 100;
+                const chargeY = CANVAS_HEIGHT / 2;
+                const handSize = 80;
+                const chargeAlpha = chargeLevel / 100;
+                const chargeColor = `rgba(59, 130, 246, ${chargeAlpha})`; 
+                const textColor = chargeLevel >= CHARGE_THRESHOLD ? '#f87171' : '#fef08a';
+
+                // Globo de carga
+                ctx.fillStyle = chargeColor;
+                ctx.beginPath();
+                ctx.arc(chargeX, chargeY, handSize + chargeLevel * 0.15, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Representación de la mano
+                ctx.fillStyle = '#64748b'; 
+                ctx.beginPath();
+                ctx.arc(chargeX, chargeY, handSize, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Mostrar voltaje (texto)
+                ctx.fillStyle = textColor;
+                ctx.font = 'bold 20px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${chargeLevel * 100} V`, chargeX, chargeY + 8);
+                ctx.font = '12px Inter, sans-serif';
+                ctx.fillText(`(Cuerpo cargado)`, chargeX, chargeY + 25);
+                
+                // --- 2. DIBUJAR EL CIRCUITO INTEGRADO (IC) ---
+                const icX = 400;
+                const icY = CANVAS_HEIGHT / 2 - 50;
+                const icWidth = 350;
+                const icHeight = 100;
+                const icMidY = icY + icHeight / 2;
+
+                // Carcasa del IC
+                ctx.strokeStyle = '#94a3b8';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(icX, icY, icWidth, icHeight);
+
+                // Pines de conexión (Entrada)
+                const inputPinX = icX + 5;
+                const inputPinY = icMidY;
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(inputPinX - 50, inputPinY);
+                ctx.lineTo(inputPinX, inputPinY);
+                ctx.stroke();
+
+                // Etiqueta
+                ctx.fillStyle = '#cbd5e1';
+                ctx.font = '14px Inter, sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText('Entrada (Pin)', inputPinX - 60, inputPinY + 5);
+
+                // --- 3. CIRCUITO INTERNO Y DAÑO (MOSFET Gate) ---
+                
+                const gateX = icX + 250;
+                
+                // Capa de óxido sensible (Gate Oxide)
+                ctx.fillStyle = isDamaged ? '#ef4444' : '#64748b'; // Rojo si dañado
+                ctx.fillRect(gateX - 5, icMidY - 30, 10, 60);
+
+                // Etiqueta del Óxido
+                ctx.fillStyle = isDamaged ? '#f87171' : '#94a3b8';
+                ctx.font = '12px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Óxido (Capacitor)', gateX, icMidY + 40);
+
+                // Conexión del pin a la compuerta
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(inputPinX, inputPinY);
+                ctx.lineTo(gateX - 5, inputPinY);
+                ctx.stroke();
+                
+                // Diodos de protección (representación conceptual)
+                const diodeY1 = icMidY - 30;
+                const diodeY2 = icMidY + 30;
+                
+                ctx.fillStyle = '#64748b';
+                ctx.font = '10px Inter, sans-serif';
+                ctx.textAlign = 'left';
+
+                // Diodo a GND (abajo) - solo para explicación, no dibujamos el símbolo
+                ctx.fillRect(icX + 150, diodeY2 - 5, 2, 10);
+                ctx.fillText('Protección ESD', icX + 155, diodeY2 - 10);
+
+                // Diodo a VCC (arriba)
+                ctx.fillRect(icX + 150, diodeY1 - 5, 2, 10);
+                ctx.fillText('Protección ESD', icX + 155, diodeY1 + 15);
+                
+                // --- 4. LA CHISPA (DESCARGA) ---
+                if (isDischarged && sparkProgress < 100) {
+                    const startX = chargeX + handSize;
+                    const endX = inputPinX - 50;
+                    
+                    const currentX = startX + (endX - startX) * (sparkProgress / 100);
+
+                    // Dibujar el rayo
+                    ctx.strokeStyle = '#fef08a'; // Amarillo brillante
+                    ctx.lineWidth = 5;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(startX, chargeY);
+                    ctx.lineTo(currentX, inputPinY);
+                    ctx.stroke();
+
+                    // Rastro eléctrico
+                    ctx.strokeStyle = 'rgba(254, 240, 138, 0.4)';
+                    ctx.lineWidth = 10;
+                    ctx.beginPath();
+                    ctx.moveTo(startX, chargeY);
+                    ctx.lineTo(currentX, inputPinY);
+                    ctx.stroke();
+
+                } else if (isDischarged && isDamaged) {
+                    // Mostrar el camino de la descarga permanente si hay daño
+                    ctx.strokeStyle = '#ef4444'; 
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.beginPath();
+                    ctx.moveTo(inputPinX, inputPinY);
+                    ctx.lineTo(gateX - 5, inputPinY);
+                    ctx.stroke();
+                    ctx.setLineDash([]); 
+
+                    // Daño visual en el óxido
+                    ctx.strokeStyle = '#f87171';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.moveTo(gateX - 5, inputPinY);
+                    ctx.lineTo(gateX + 5, inputPinY);
+                    ctx.stroke();
+                }
+
+                // Si no está descargado y el mouse está sobre el IC, dibujar un pequeño arco de espera
+                if (!isDischarged && chargeLevel > 0) {
+                     const dx = 5;
+                     const dy = 5;
+                     const arcX = icX + 10;
+                     const arcY = icMidY;
+                     ctx.strokeStyle = '#fef08a';
+                     ctx.lineWidth = 1.5;
+                     ctx.beginPath();
+                     ctx.moveTo(arcX, arcY);
+                     ctx.lineTo(arcX + dx, arcY - dy);
+                     ctx.lineTo(arcX + dx * 2, arcY + dy);
+                     ctx.lineTo(arcX + dx * 3, arcY - dy);
+                     ctx.lineTo(arcX + dx * 4, arcY);
+                     ctx.stroke();
+                     
+                }
+
+            }, [chargeLevel, isDischarged, isDamaged, sparkProgress]);
+
+            useEffect(() => {
+                drawSimulation();
+            }, [drawSimulation]);
+
+            // Manejo de eventos de ratón para el área de carga (para dispositivos de escritorio y móviles)
+            const handleTouchStart = (e) => {
+                e.preventDefault();
+                handleChargeStart();
+            };
+            const handleTouchEnd = (e) => {
+                e.preventDefault();
+                handleChargeEnd();
+            };
+
+            const getStatusMessage = () => {
+                if (isDamaged) {
+                    return {
+                        title: "¡DAÑO PERMANENTE!",
+                        detail: "La capa de óxido se ha perforado (cortocircuito). El chip es inservible.",
+                        color: "bg-red-600",
+                        action: "Haz clic en el IC para reiniciar el experimento."
+                    };
+                }
+                if (isDischarged) {
+                    return {
+                        title: "Descarga completada.",
+                        detail: "La carga se ha disipado, pero el daño es inminente si la tensión era alta.",
+                        color: "bg-amber-500",
+                        action: "Observa el estado final del IC."
+                    };
+                }
+                if (chargeLevel >= CHARGE_THRESHOLD) {
+                    return {
+                        title: "¡ALTO RIESGO! (Tensión > 8000 V)",
+                        detail: "El cuerpo está cargado con un voltaje suficiente para dañar un IC sensible.",
+                        color: "bg-orange-500",
+                        action: "Haz clic en el IC para simular el contacto."
+                    };
+                }
+                if (chargeLevel > 0) {
+                    return {
+                        title: "Carga Acumulada.",
+                        detail: "Estás cargado. El voltaje no es crítico, pero ten cuidado.",
+                        color: "bg-yellow-400",
+                        action: "Haz clic en el IC para simular el contacto."
+                    };
+                }
+                return {
+                    title: "Esperando Carga",
+                    detail: "Simula el frotamiento (caminar sobre alfombra, quitarse un suéter).",
+                    color: "bg-slate-500",
+                    action: "Mantén pulsada el área de la 'Mano Cargada' para acumular voltaje estático."
+                };
+            };
+            
+            const status = getStatusMessage();
+
+            return (
+                <div className="min-h-screen p-4 md:p-8 flex flex-col items-center">
+                    
+                    <header className="text-center mb-8">
+                        {/* Se corrige la sintaxis de Tailwind de 4xl a text-4xl */}
+                        <h1 className="text-4xl font-bold text-sky-400 mb-2 flex items-center justify-center gap-3">
+                            <ZapIcon /> Energía Estática y el IC
+                        </h1>
+                        <p className="text-slate-400 max-w-3xl mx-auto">
+                            Simulación de la **Descarga Electrostática (ESD)**, donde una simple chispa puede generar picos de **más de 10,000 voltios**, destruyendo componentes internos microscópicos.
+                        </p>
+                    </header>
+
+                    <div className="w-full max-w-6xl bg-slate-800 rounded-2xl container-shadow p-6 mb-6">
+                        
+                        {/* Área de la Simulación */}
+                        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                            
+                            {/* Control de Carga (Izquierda) */}
+                            <div 
+                                className={`charge-area p-6 rounded-xl border-4 ${isCharging ? 'border-sky-400 shadow-sky-600/50' : 'border-slate-700'}`}
+                                onMouseDown={handleChargeStart}
+                                onMouseUp={handleChargeEnd}
+                                onMouseLeave={handleChargeEnd}
+                                onTouchStart={handleTouchStart}
+                                onTouchEnd={handleTouchEnd}
+                            >
+                                <div className="text-center">
+                                    <p className="text-lg font-bold text-white">Mano Cargada ({chargeLevel}%)</p>
+                                    <p className="text-sm text-slate-400">Mantén pulsado aquí para acumular carga.</p>
+                                </div>
+                            </div>
+                            
+                            {/* Canvas de Visualización (Centro) */}
+                            <div className="flex-1 w-full relative">
+                                <canvas 
+                                    ref={canvasRef} 
+                                    width={CANVAS_WIDTH} 
+                                    height={CANVAS_HEIGHT} 
+                                    onClick={handleContact}
+                                    className={`w-full transition-all duration-300 ${isDischarged ? 'border-amber-400' : 'border-slate-700'} border-4`}
+                                />
+                                <div className="absolute top-2 right-2 text-sm font-semibold flex items-center gap-1 text-slate-400">
+                                    <ChipIcon size={16} /> CIRCUITO INTEGRADO (IC)
+                                </div>
+                            </div>
+
+                        </div>
+
+                        {/* Barra de Estado */}
+                        <div className={`mt-6 p-4 rounded-lg text-white font-bold transition-colors duration-300 ${status.color}`}>
+                            <p className="text-xl">{status.title}</p>
+                            <p className="font-medium text-sm mt-1">{status.detail}</p>
+                            <p className="font-light text-xs mt-2">{status.action}</p>
+                        </div>
+                    </div>
+                    
+                    {/* Explicación de Conceptos */}
+                    <div className="w-full max-w-6xl p-6 bg-slate-800 rounded-2xl container-shadow">
+                        {/* Se corrige la sintaxis de Tailwind de 2xl a text-2xl */}
+                        <h3 className="text-2xl font-bold text-sky-400 mb-4">¿Cómo Afecta la Energía Estática a un IC?</h3>
+                        <ol className="list-decimal list-inside space-y-3 text-slate-300">
+                            <li>
+                                **El Problema del Voltaje:** La fricción (frotar) puede transferir electrones, creando un desequilibrio de carga. Aunque la energía total es baja (corriente baja), el **voltaje** resultante es extremadamente alto (miles de voltios).
+                            </li>
+                            <li>
+                                **Estructura Interna (Óxido):** Los CI modernos (especialmente los basados en MOSFET/CMOS) tienen una capa de óxido de silicio (<span className="text-red-400">Óxido</span>) que actúa como aislante de la compuerta. Esta capa es increíblemente delgada (a veces solo unos pocos átomos de grosor).
+                            </li>
+                            <li>
+                                **La Perforación (Dielectric Breakdown):** Cuando el pico de alto voltaje de una descarga electrostática golpea la entrada del IC, es tan alto que **supera la capacidad aislante del óxido**. Este voltaje literalmente "perfora" la capa de óxido.
+                            </li>
+                            <li>
+                                **Daño Permanente:** Esta perforación crea un canal de conducción (<span className="text-red-400">Daño</span>) que antes no existía. El IC ha sufrido un **cortocircuito permanente** y ya no funcionará correctamente (o dejará de funcionar totalmente).
+                            </li>
+                        </ol>
+                        <p className="mt-4 text-sm text-slate-500">
+                            **Prevención:** Por eso los técnicos usan pulseras antiestáticas y trabajan sobre tapetes conductivos, para mantener el potencial de la persona y el IC al mismo nivel (conectados a tierra) y evitar cualquier descarga.
+                        </p>
+                    </div>
+                    
+                    <footer className="mt-8 text-slate-400 text-sm">
+                        Simulación de ESD por Gemini.
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
