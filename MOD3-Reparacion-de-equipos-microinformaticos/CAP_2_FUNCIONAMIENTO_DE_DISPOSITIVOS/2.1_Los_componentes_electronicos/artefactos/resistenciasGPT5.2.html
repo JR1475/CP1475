@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador de resistencias variables: Termistor, LDR y más</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <style>
+    :root { color-scheme: light; }
+    .mono { font-variant-numeric: tabular-nums; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    canvas { image-rendering: crisp-edges; }
+    .focus-ring:focus { outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,.35); }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-slate-100">
+  <header class="border-b border-slate-800 bg-slate-950/70 backdrop-blur">
+    <div class="mx-auto max-w-6xl px-4 py-5">
+      <div class="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h1 class="text-2xl md:text-3xl font-semibold tracking-tight">Simulación: Termistor (NTC), LDR y otras resistencias variables</h1>
+          <p class="text-slate-300">Entiende cómo cambian su resistencia y cómo se convierten en voltaje con un <span class="font-semibold">divisor de tensión</span> y un ADC.</p>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-slate-300">
+          <span class="inline-flex items-center gap-2 rounded-full border border-slate-800 bg-slate-900 px-3 py-1">
+            <span class="h-2 w-2 rounded-full bg-emerald-400"></span>
+            Interactivo (sin librerías externas)
+          </span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 py-6">
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
+      <!-- Panel de controles -->
+      <section class="lg:col-span-5">
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <h2 class="text-lg font-semibold">1) Elige el sensor/resistencia variable</h2>
+              <p class="mt-1 text-sm text-slate-300">Todos se leen igual: cambian <span class="font-semibold">R</span> y eso cambia <span class="font-semibold">Vout</span>.</p>
+            </div>
+            <button id="btnReset" class="focus-ring rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm hover:bg-slate-900">Reiniciar</button>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label class="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+              <div class="text-xs text-slate-300">Tipo</div>
+              <select id="sensorType" class="focus-ring mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm">
+                <option value="ntc">Termistor NTC (temperatura)</option>
+                <option value="ldr">LDR (luz)</option>
+                <option value="pot">Potenciómetro (posición)</option>
+                <option value="fsr">FSR (fuerza/presión)</option>
+              </select>
+            </label>
+
+            <label class="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+              <div class="text-xs text-slate-300">Conexión del divisor</div>
+              <select id="wiring" class="focus-ring mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm">
+                <option value="topVar">R variable arriba (a Vcc)</option>
+                <option value="bottomVar">R variable abajo (a GND)</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="mt-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h3 class="font-semibold">2) Ajusta el estímulo</h3>
+                <p id="stimHelp" class="text-sm text-slate-300">—</p>
+              </div>
+              <div class="text-right">
+                <div class="text-xs text-slate-400">Valor</div>
+                <div id="stimValue" class="mono text-lg">—</div>
+              </div>
+            </div>
+            <div class="mt-3">
+              <input id="stim" type="range" min="0" max="100" value="50" class="w-full" />
+              <div class="mt-2 flex justify-between text-xs text-slate-400">
+                <span id="stimMin">—</span>
+                <span id="stimMid">—</span>
+                <span id="stimMax">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label class="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-xs text-slate-300">Vcc</div>
+                  <div class="text-xs text-slate-400">Alimentación del divisor</div>
+                </div>
+                <div id="vccLabel" class="mono text-sm">5.00 V</div>
+              </div>
+              <input id="vcc" type="range" min="3" max="12" step="0.1" value="5" class="mt-2 w-full" />
+            </label>
+
+            <label class="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-xs text-slate-300">Resistencia fija (R fija)</div>
+                  <div class="text-xs text-slate-400">Ej. 10k para NTC/LDR</div>
+                </div>
+                <div id="rfLabel" class="mono text-sm">10.00 kΩ</div>
+              </div>
+              <input id="rf" type="range" min="100" max="100000" step="100" value="10000" class="mt-2 w-full" />
+            </label>
+          </div>
+
+          <div class="mt-4 rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+            <h3 class="font-semibold">3) Lectura digital (ADC)</h3>
+            <div class="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <label class="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                <div class="text-xs text-slate-300">Resolución</div>
+                <select id="adcBits" class="focus-ring mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm">
+                  <option value="8">8 bits (0–255)</option>
+                  <option value="10" selected>10 bits (0–1023)</option>
+                  <option value="12">12 bits (0–4095)</option>
+                </select>
+              </label>
+              <label class="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                <div class="text-xs text-slate-300">Referencia ADC</div>
+                <select id="vrefMode" class="focus-ring mt-1 w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm">
+                  <option value="vcc" selected>Vref = Vcc</option>
+                  <option value="fixed">Vref fija</option>
+                </select>
+              </label>
+              <label id="vrefWrap" class="hidden rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                <div class="flex items-center justify-between">
+                  <div class="text-xs text-slate-300">Vref</div>
+                  <div id="vrefLabel" class="mono text-sm">3.30 V</div>
+                </div>
+                <input id="vref" type="range" min="1" max="12" step="0.1" value="3.3" class="mt-2 w-full" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+          <h2 class="text-lg font-semibold">Qué está pasando (en 3 ideas)</h2>
+          <ol class="mt-3 list-decimal space-y-2 pl-5 text-sm text-slate-300">
+            <li><span class="font-semibold text-slate-100">El sensor cambia su resistencia</span> con temperatura/luz/etc. (no genera voltaje por sí solo).</li>
+            <li>Con una resistencia fija forma un <span class="font-semibold text-slate-100">divisor de tensión</span>: el punto medio es <span class="font-semibold">Vout</span>.</li>
+            <li>El microcontrolador mide <span class="font-semibold text-slate-100">Vout</span> con un <span class="font-semibold">ADC</span> y obtiene un número proporcional.</li>
+          </ol>
+          <details class="mt-4 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+            <summary class="cursor-pointer text-sm font-semibold">Fórmulas usadas</summary>
+            <div class="mt-3 space-y-2 text-sm text-slate-300">
+              <p><span class="font-semibold text-slate-100">Divisor de tensión:</span></p>
+              <p class="mono">Vout = Vcc · (R_abajo / (R_arriba + R_abajo))</p>
+              <p>Según el selector, la <span class="font-semibold">R variable</span> puede estar arriba o abajo.</p>
+              <p><span class="font-semibold text-slate-100">ADC ideal:</span></p>
+              <p class="mono">ADC = round( (Vout / Vref) · (2^N − 1) )</p>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Visualización -->
+      <section class="lg:col-span-7">
+        <div class="rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+          <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+              <h2 class="text-lg font-semibold">Vista del circuito + resultados</h2>
+              <p class="text-sm text-slate-300">Mira cómo cambian <span class="font-semibold">R</span>, <span class="font-semibold">Vout</span> y el valor del <span class="font-semibold">ADC</span>.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnHold" class="focus-ring rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm hover:bg-slate-900">Congelar gráfica</button>
+              <button id="btnClear" class="focus-ring rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm hover:bg-slate-900">Limpiar</button>
+            </div>
+          </div>
+
+          <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+              <div class="flex items-center justify-between">
+                <div class="text-sm font-semibold">Circuito (divisor)</div>
+                <div id="equation" class="mono text-xs text-slate-300"></div>
+              </div>
+              <svg id="circuit" viewBox="0 0 520 260" class="mt-3 w-full rounded-xl border border-slate-800 bg-slate-950">
+                <defs>
+                  <linearGradient id="wire" x1="0" x2="1">
+                    <stop offset="0" stop-color="#94a3b8" />
+                    <stop offset="1" stop-color="#e2e8f0" />
+                  </linearGradient>
+                  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+                <!-- rails -->
+                <line x1="80" y1="30" x2="440" y2="30" stroke="url(#wire)" stroke-width="6" stroke-linecap="round" />
+                <line x1="80" y1="230" x2="440" y2="230" stroke="url(#wire)" stroke-width="6" stroke-linecap="round" />
+                <text x="38" y="36" fill="#e2e8f0" font-size="14" class="mono">Vcc</text>
+                <text x="38" y="235" fill="#e2e8f0" font-size="14" class="mono">GND</text>
+
+                <!-- left supply node -->
+                <circle cx="80" cy="30" r="7" fill="#e2e8f0" />
+                <circle cx="80" cy="230" r="7" fill="#e2e8f0" />
+
+                <!-- resistor top -->
+                <g id="rTop">
+                  <line x1="260" y1="30" x2="260" y2="70" stroke="url(#wire)" stroke-width="6" stroke-linecap="round" />
+                  <rect x="230" y="70" width="60" height="60" rx="10" fill="#0b1220" stroke="#334155" stroke-width="2" />
+                  <path d="M235 100 L245 85 L255 115 L265 85 L275 115 L285 100" fill="none" stroke="#e2e8f0" stroke-width="2" />
+                  <line x1="260" y1="130" x2="260" y2="150" stroke="url(#wire)" stroke-width="6" stroke-linecap="round" />
+                  <text id="topLabel" x="300" y="105" fill="#e2e8f0" font-size="14" class="mono">R↑</text>
+                </g>
+
+                <!-- node Vout -->
+                <circle id="voutNode" cx="260" cy="150" r="7" fill="#22c55e" filter="url(#glow)" />
+                <text x="292" y="156" fill="#e2e8f0" font-size="14" class="mono">Vout</text>
+
+                <!-- resistor bottom -->
+                <g id="rBottom">
+                  <line x1="260" y1="150" x2="260" y2="170" stroke="url(#wire)" stroke-width="6" stroke-linecap="round" />
+                  <rect x="230" y="170" width="60" height="60" rx="10" fill="#0b1220" stroke="#334155" stroke-width="2" />
+                  <path d="M235 200 L245 185 L255 215 L265 185 L275 215 L285 200" fill="none" stroke="#e2e8f0" stroke-width="2" />
+                  <line x1="260" y1="230" x2="260" y2="230" stroke="url(#wire)" stroke-width="6" stroke-linecap="round" />
+                  <text id="bottomLabel" x="300" y="205" fill="#e2e8f0" font-size="14" class="mono">R↓</text>
+                </g>
+
+                <!-- ADC tap -->
+                <line x1="260" y1="150" x2="420" y2="150" stroke="url(#wire)" stroke-width="6" stroke-linecap="round" />
+                <rect x="420" y="115" width="70" height="70" rx="12" fill="#0b1220" stroke="#334155" stroke-width="2" />
+                <text x="455" y="145" text-anchor="middle" fill="#e2e8f0" font-size="12" class="mono">ADC</text>
+                <text id="adcRead" x="455" y="165" text-anchor="middle" fill="#22c55e" font-size="12" class="mono">—</text>
+              </svg>
+
+              <div class="mt-3 grid grid-cols-2 gap-3">
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                  <div class="text-xs text-slate-300">Resistencia variable (Rvar)</div>
+                  <div id="rvarOut" class="mono mt-1 text-lg">—</div>
+                  <div id="rvarHint" class="mt-1 text-xs text-slate-400">—</div>
+                </div>
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                  <div class="text-xs text-slate-300">Vout (punto medio)</div>
+                  <div id="voutOut" class="mono mt-1 text-lg">—</div>
+                  <div id="voutHint" class="mt-1 text-xs text-slate-400">—</div>
+                </div>
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                  <div class="text-xs text-slate-300">R arriba (R↑)</div>
+                  <div id="rtOut" class="mono mt-1 text-base">—</div>
+                </div>
+                <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                  <div class="text-xs text-slate-300">R abajo (R↓)</div>
+                  <div id="rbOut" class="mono mt-1 text-base">—</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-slate-800 bg-slate-950/40 p-4">
+              <div class="flex items-center justify-between">
+                <div class="text-sm font-semibold">Gráficas en tiempo real</div>
+                <div class="text-xs text-slate-400">Últimos 20 s</div>
+              </div>
+              <div class="mt-3 grid gap-3">
+                <div class="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                  <div class="flex items-center justify-between">
+                    <div class="text-xs text-slate-300">Vout / Vref</div>
+                    <div id="ratioOut" class="mono text-xs text-slate-200">—</div>
+                  </div>
+                  <canvas id="chartV" height="120" class="mt-2 w-full"></canvas>
+                </div>
+                <div class="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                  <div class="flex items-center justify-between">
+                    <div class="text-xs text-slate-300">Resistencia variable (escala log)</div>
+                    <div id="rlogOut" class="mono text-xs text-slate-200">—</div>
+                  </div>
+                  <canvas id="chartR" height="120" class="mt-2 w-full"></canvas>
+                </div>
+                <div class="rounded-xl border border-slate-800 bg-slate-950 p-3">
+                  <div class="flex items-center justify-between">
+                    <div class="text-xs text-slate-300">Lectura ADC</div>
+                    <div id="adcOut" class="mono text-xs text-slate-200">—</div>
+                  </div>
+                  <canvas id="chartA" height="120" class="mt-2 w-full"></canvas>
+                </div>
+              </div>
+
+              <div class="mt-4 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+                <h3 class="font-semibold">Interpretación rápida</h3>
+                <ul class="mt-2 space-y-2 text-sm text-slate-300">
+                  <li id="interp1">—</li>
+                  <li id="interp2">—</li>
+                  <li id="interp3">—</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 rounded-2xl border border-slate-800 bg-slate-900/40 p-5">
+          <h2 class="text-lg font-semibold">Ejemplos típicos (qué esperar)</h2>
+          <div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+              <div class="font-semibold">NTC</div>
+              <p class="mt-1 text-sm text-slate-300">Al subir la temperatura, <span class="font-semibold">baja</span> la resistencia. Dependiendo de si va arriba/abajo, <span class="font-semibold">Vout sube o baja</span>.</p>
+            </div>
+            <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+              <div class="font-semibold">LDR</div>
+              <p class="mt-1 text-sm text-slate-300">Con más luz, <span class="font-semibold">baja</span> la resistencia (normalmente). En oscuridad sube mucho (logarítmico).</p>
+            </div>
+            <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+              <div class="font-semibold">Potenciómetro</div>
+              <p class="mt-1 text-sm text-slate-300">Se usa como divisor directo (3 patillas). Aquí lo modelamos como resistencia variable equivalente para ver el efecto.</p>
+            </div>
+            <div class="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
+              <div class="font-semibold">FSR</div>
+              <p class="mt-1 text-sm text-slate-300">Con más fuerza, <span class="font-semibold">baja</span> la resistencia. Suele ser muy no lineal, útil para detección cualitativa.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <footer class="mt-10 pb-10 text-center text-xs text-slate-500">
+      Hecho para aprendizaje: modelos aproximados (no sustituyen hojas de datos). Ajusta R fija y la conexión para ver inversión de comportamiento.
+    </footer>
+  </main>
+
+  <script>
+    // ---- Utilities ----
+    const $ = (id) => document.getElementById(id);
+    const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+    const lerp = (a, b, t) => a + (b - a) * t;
+    const fmtOhm = (r) => {
+      if (!isFinite(r)) return '∞ Ω';
+      const abs = Math.abs(r);
+      if (abs >= 1e6) return (r/1e6).toFixed(2) + ' MΩ';
+      if (abs >= 1e3) return (r/1e3).toFixed(2) + ' kΩ';
+      return r.toFixed(0) + ' Ω';
+    };
+    const fmtV = (v) => v.toFixed(3) + ' V';
+
+    // ---- Sensor models (approximate, educational) ----
+    function ntcResistanceFromTempC(Tc, R25=10000, B=3950) {
+      const Tk = Tc + 273.15;
+      const T25 = 25 + 273.15;
+      return R25 * Math.exp(B * (1/Tk - 1/T25));
+    }
+
+    // LDR: map lux -> resistance using a simple power law.
+    // Typical: in dark (1 lux) ~ 500k-1M, in bright (1000 lux) ~ 1k-5k.
+    function ldrResistanceFromLux(lux) {
+      const L = Math.max(0.1, lux);
+      // R = a * L^{-b}
+      const a = 500000; // at ~1 lux
+      const b = 0.8;
+      const R = a * Math.pow(L, -b);
+      return clamp(R, 200, 2000000);
+    }
+
+    // Pot modeled as 0..Rpot (wiper as variable resistor to ground with series to Vcc in divider model)
+    function potResistanceFromPos(pos01, Rpot=10000) {
+      // Equivalent variable resistor for this simulator: 1%..99% to avoid zero/inf issues.
+      const p = clamp(pos01, 0.01, 0.99);
+      return Rpot * p;
+    }
+
+    // FSR: force -> resistance (very non-linear). Rough model.
+    function fsrResistanceFromForceN(F) {
+      const f = Math.max(0, F);
+      // At 0N very high, at 10N maybe ~2k-10k.
+      const R = 1000000 / Math.pow(1 + f, 1.6);
+      return clamp(R, 300, 2000000);
+    }
+
+    function divider(Vcc, Rtop, Rbottom) {
+      const denom = (Rtop + Rbottom);
+      if (denom <= 0) return 0;
+      return Vcc * (Rbottom / denom);
+    }
+
+    // ---- Charts ----
+    function makeChart(canvas, opts) {
+      const ctx = canvas.getContext('2d');
+      let data = [];
+      let t0 = performance.now();
+      const windowMs = opts.windowMs ?? 20000;
+
+      function resize() {
+        const dpr = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = Math.max(1, Math.floor(rect.width * dpr));
+        canvas.height = Math.max(1, Math.floor((opts.heightPx ?? 120) * dpr));
+      }
+
+      function push(value, now=performance.now()) {
+        const t = now - t0;
+        data.push({t, value});
+        const minT = t - windowMs;
+        while (data.length && data[0].t < minT) data.shift();
+      }
+
+      function clear() { data = []; t0 = performance.now(); }
+
+      function draw(yMin, yMax, formatter) {
+        resize();
+        const w = canvas.width, h = canvas.height;
+        ctx.clearRect(0,0,w,h);
+
+        // background
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0,0,w,h);
+
+        // grid
+        ctx.strokeStyle = 'rgba(148,163,184,0.18)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        const gridN = 4;
+        for (let i=1;i<gridN;i++) {
+          const y = (h*i)/gridN;
+          ctx.moveTo(0,y);
+          ctx.lineTo(w,y);
+        }
+        for (let i=1;i<6;i++) {
+          const x = (w*i)/6;
+          ctx.moveTo(x,0);
+          ctx.lineTo(x,h);
+        }
+        ctx.stroke();
+
+        // line
+        if (data.length < 2) return;
+        const tMax = data[data.length-1].t;
+        const tMin = tMax - windowMs;
+        const mapX = (t) => ( (t - tMin) / windowMs ) * w;
+        const mapY = (v) => {
+          const y = (v - yMin) / (yMax - yMin);
+          return h - clamp(y, 0, 1) * h;
+        };
+
+        ctx.strokeStyle = opts.stroke ?? '#22c55e';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let i=0;i<data.length;i++) {
+          const x = mapX(data[i].t);
+          const y = mapY(data[i].value);
+          if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        ctx.stroke();
+
+        // last dot
+        const last = data[data.length-1];
+        ctx.fillStyle = opts.stroke ?? '#22c55e';
+        ctx.beginPath();
+        ctx.arc(mapX(last.t), mapY(last.value), 4, 0, Math.PI*2);
+        ctx.fill();
+
+        // labels
+        ctx.fillStyle = 'rgba(226,232,240,0.85)';
+        ctx.font = `${Math.floor(11*(window.devicePixelRatio||1))}px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace`;
+        ctx.fillText(formatter(yMax), 8, 14);
+        ctx.fillText(formatter(yMin), 8, h-8);
+      }
+
+      return { push, draw, clear };
+    }
+
+    // ---- State ----
+    const state = {
+      hold: false,
+      sensorType: 'ntc',
+      wiring: 'topVar',
+      stim: 50,
+      vcc: 5,
+      rf: 10000,
+      adcBits: 10,
+      vrefMode: 'vcc',
+      vref: 3.3,
+    };
+
+    const chartV = makeChart($('chartV'), { stroke: '#38bdf8' });
+    const chartR = makeChart($('chartR'), { stroke: '#f59e0b' });
+    const chartA = makeChart($('chartA'), { stroke: '#22c55e' });
+
+    function computeSensor() {
+      const s = state.sensorType;
+      const x = state.stim / 100;
+
+      if (s === 'ntc') {
+        const Tc = lerp(-10, 80, x);
+        const R = ntcResistanceFromTempC(Tc, 10000, 3950);
+        return { name: 'NTC', stimLabel: 'Temperatura', stimUnit: '°C', stimValue: Tc, Rvar: R, hint: 'NTC: ↑T → ↓R' };
+      }
+      if (s === 'ldr') {
+        // Map slider to lux logarithmically: 0..100 -> 1..10000 lux
+        const lux = Math.pow(10, lerp(0, 4, x));
+        const R = ldrResistanceFromLux(lux);
+        return { name: 'LDR', stimLabel: 'Iluminancia', stimUnit: 'lux', stimValue: lux, Rvar: R, hint: 'LDR típico: ↑luz → ↓R' };
+      }
+      if (s === 'pot') {
+        const pos = lerp(0, 100, x);
+        const R = potResistanceFromPos(x, 10000);
+        return { name: 'Potenciómetro', stimLabel: 'Posición', stimUnit: '%', stimValue: pos, Rvar: R, hint: 'Pot: posición lineal → R aprox. lineal' };
+      }
+      // fsr
+      const F = lerp(0, 20, x);
+      const R = fsrResistanceFromForceN(F);
+      return { name: 'FSR', stimLabel: 'Fuerza', stimUnit: 'N', stimValue: F, Rvar: R, hint: 'FSR: ↑fuerza → ↓R (muy no lineal)' };
+    }
+
+    function computeAll() {
+      const sensor = computeSensor();
+      const Rvar = sensor.Rvar;
+      const Rfixed = state.rf;
+
+      let Rtop, Rbottom;
+      if (state.wiring === 'topVar') {
+        Rtop = Rvar;
+        Rbottom = Rfixed;
+      } else {
+        Rtop = Rfixed;
+        Rbottom = Rvar;
+      }
+
+      const Vcc = state.vcc;
+      const Vout = divider(Vcc, Rtop, Rbottom);
+      const Vref = (state.vrefMode === 'vcc') ? Vcc : state.vref;
+      const bits = state.adcBits;
+      const maxCode = Math.pow(2, bits) - 1;
+      const adc = Math.round(clamp(Vout / Vref, 0, 1) * maxCode);
+      const ratio = clamp(Vout / Vref, 0, 1);
+
+      return { sensor, Rvar, Rfixed, Rtop, Rbottom, Vcc, Vout, Vref, bits, maxCode, adc, ratio };
+    }
+
+    function updateUI(pushToCharts=true) {
+      const r = computeAll();
+
+      // Labels
+      $('vccLabel').textContent = r.Vcc.toFixed(2) + ' V';
+      $('rfLabel').textContent = fmtOhm(r.Rfixed).replace('Ω','Ω');
+
+      // Stimulus labels
+      $('stimHelp').textContent = `${r.sensor.stimLabel}: mueve el control para ver cómo cambia la resistencia.`;
+      const stimVal = r.sensor.stimValue;
+      if (state.sensorType === 'ldr') {
+        $('stimValue').textContent = stimVal >= 1000 ? (stimVal/1000).toFixed(2) + ' klux' : stimVal.toFixed(0) + ' lux';
+      } else {
+        $('stimValue').textContent = (state.sensorType === 'pot') ? stimVal.toFixed(0) + ' %' : stimVal.toFixed(1) + ' ' + r.sensor.stimUnit;
+      }
+
+      // Min/mid/max
+      const setStimTicks = () => {
+        if (state.sensorType === 'ntc') {
+          $('stimMin').textContent = '-10 °C';
+          $('stimMid').textContent = '25 °C';
+          $('stimMax').textContent = '80 °C';
+        } else if (state.sensorType === 'ldr') {
+          $('stimMin').textContent = '1 lux (oscuro)';
+          $('stimMid').textContent = '100 lux (interior)';
+          $('stimMax').textContent = '10k lux (exterior)';
+        } else if (state.sensorType === 'pot') {
+          $('stimMin').textContent = '0 %';
+          $('stimMid').textContent = '50 %';
+          $('stimMax').textContent = '100 %';
+        } else {
+          $('stimMin').textContent = '0 N';
+          $('stimMid').textContent = '10 N';
+          $('stimMax').textContent = '20 N';
+        }
+      };
+      setStimTicks();
+
+      // Outputs
+      $('rvarOut').textContent = fmtOhm(r.Rvar);
+      $('rvarHint').textContent = r.sensor.hint;
+      $('voutOut').textContent = fmtV(r.Vout);
+      $('voutHint').textContent = `Vout es ${ (r.ratio*100).toFixed(1) }% de Vref`;
+      $('rtOut').textContent = fmtOhm(r.Rtop);
+      $('rbOut').textContent = fmtOhm(r.Rbottom);
+
+      // Equation
+      const topName = (state.wiring === 'topVar') ? 'Rvar' : 'Rfija';
+      const botName = (state.wiring === 'topVar') ? 'Rfija' : 'Rvar';
+      $('equation').textContent = `Vout = Vcc · (${botName}/(${topName}+${botName}))`;
+
+      // Circuit labels
+      $('topLabel').textContent = (state.wiring === 'topVar') ? 'Rvar' : 'Rfija';
+      $('bottomLabel').textContent = (state.wiring === 'topVar') ? 'Rfija' : 'Rvar';
+
+      // ADC
+      $('adcRead').textContent = `${r.adc}/${r.maxCode}`;
+      $('adcOut').textContent = `${r.adc} (N=${r.bits}, Vref=${r.Vref.toFixed(2)}V)`;
+      $('ratioOut').textContent = (r.ratio*100).toFixed(1) + '%';
+
+      // R log out
+      $('rlogOut').textContent = `log10(R)= ${Math.log10(r.Rvar).toFixed(3)}`;
+
+      // Interpretation
+      const inv = (state.wiring === 'topVar') ? 'inversa' : 'directa';
+      const sense = (state.wiring === 'topVar')
+        ? 'si Rvar sube, Vout baja (porque Rarriba aumenta)'
+        : 'si Rvar sube, Vout sube (porque Rabajo aumenta)';
+
+      $('interp1').textContent = `Conexión: Rvar está ${state.wiring === 'topVar' ? 'arriba (a Vcc)' : 'abajo (a GND)'}, por eso la relación es ${inv}.`; 
+      $('interp2').textContent = `Regla rápida del divisor: ${sense}.`;
+      $('interp3').textContent = `El ADC mide Vout respecto a Vref: más Vout ⇒ número ADC más alto.`;
+
+      // Vref UI
+      const showVref = (state.vrefMode === 'fixed');
+      $('vrefWrap').classList.toggle('hidden', !showVref);
+      $('vrefLabel').textContent = state.vref.toFixed(2) + ' V';
+
+      if (!state.hold && pushToCharts) {
+        chartV.push(r.ratio);
+        chartR.push(Math.log10(r.Rvar));
+        chartA.push(r.adc);
+      }
+
+      // Draw charts
+      chartV.draw(0, 1, (x) => (x*100).toFixed(0) + '%');
+      // log scale: keep in sensible range
+      const logR = Math.log10(r.Rvar);
+      chartR.draw(2, 6.3, (x) => `10^${x.toFixed(1)}Ω`);
+      chartA.draw(0, r.maxCode, (x) => Math.round(x).toString());
+    }
+
+    // ---- Wire events ----
+    function bind() {
+      $('sensorType').addEventListener('change', (e) => { state.sensorType = e.target.value; updateUI(false); });
+      $('wiring').addEventListener('change', (e) => { state.wiring = e.target.value; updateUI(false); });
+      $('stim').addEventListener('input', (e) => { state.stim = +e.target.value; updateUI(true); });
+      $('vcc').addEventListener('input', (e) => { state.vcc = +e.target.value; updateUI(false); });
+      $('rf').addEventListener('input', (e) => { state.rf = +e.target.value; updateUI(false); });
+      $('adcBits').addEventListener('change', (e) => { state.adcBits = +e.target.value; updateUI(false); });
+      $('vrefMode').addEventListener('change', (e) => { state.vrefMode = e.target.value; updateUI(false); });
+      $('vref').addEventListener('input', (e) => { state.vref = +e.target.value; updateUI(false); });
+
+      $('btnHold').addEventListener('click', () => {
+        state.hold = !state.hold;
+        $('btnHold').textContent = state.hold ? 'Reanudar gráfica' : 'Congelar gráfica';
+      });
+      $('btnClear').addEventListener('click', () => { chartV.clear(); chartR.clear(); chartA.clear(); updateUI(false); });
+      $('btnReset').addEventListener('click', () => {
+        state.hold = false;
+        state.sensorType = 'ntc';
+        state.wiring = 'topVar';
+        state.stim = 50;
+        state.vcc = 5;
+        state.rf = 10000;
+        state.adcBits = 10;
+        state.vrefMode = 'vcc';
+        state.vref = 3.3;
+
+        $('sensorType').value = state.sensorType;
+        $('wiring').value = state.wiring;
+        $('stim').value = state.stim;
+        $('vcc').value = state.vcc;
+        $('rf').value = state.rf;
+        $('adcBits').value = String(state.adcBits);
+        $('vrefMode').value = state.vrefMode;
+        $('vref').value = state.vref;
+        $('btnHold').textContent = 'Congelar gráfica';
+        chartV.clear(); chartR.clear(); chartA.clear();
+        updateUI(false);
+      });
+
+      // animate (for time axis even when not moving)
+      function tick() {
+        updateUI(true);
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+
+      // Initial
+      updateUI(false);
+    }
+
+    bind();
+  </script>
+</body>
+</html>

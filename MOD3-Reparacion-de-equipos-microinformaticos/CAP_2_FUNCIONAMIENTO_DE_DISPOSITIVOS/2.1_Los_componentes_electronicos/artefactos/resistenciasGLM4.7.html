@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Resistencias Variables</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        .circuit-wire {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: drawWire 1s ease-out forwards;
+        }
+        @keyframes drawWire {
+            to { stroke-dashoffset: 0; }
+        }
+        .glow {
+            filter: drop-shadow(0 0 10px currentColor);
+        }
+        .electron {
+            animation: flow 1s linear infinite;
+        }
+        @keyframes flow {
+            0% { offset-distance: 0%; }
+            100% { offset-distance: 100%; }
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 8px;
+            border-radius: 4px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-yellow-400 via-red-500 to-purple-500 bg-clip-text text-transparent mb-4">
+                🔬 Simulación de Resistencias Variables
+            </h1>
+            <p class="text-gray-400 text-lg max-w-3xl mx-auto">
+                Aprende cómo funcionan diferentes tipos de resistencias variables mediante simulaciones interactivas
+            </p>
+        </header>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <!-- TERMISTOR -->
+            <div class="bg-gray-800 rounded-2xl p-6 shadow-xl border border-orange-500/30">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="text-3xl">🌡️</span>
+                    <div>
+                        <h2 class="text-2xl font-bold text-orange-400">Termistor NTC</h2>
+                        <p class="text-sm text-gray-400">Coeficiente de Temperatura Negativo</p>
+                    </div>
+                </div>
+                
+                <p class="text-gray-300 mb-4 text-sm">
+                    Un <strong>termistor NTC</strong> disminuye su resistencia cuando aumenta la temperatura. 
+                    Se usa en sensores de temperatura, protección de circuitos y control de sistemas.
+                </p>
+                
+                <!-- Termistor Simulation -->
+                <div class="bg-gray-900 rounded-xl p-4 mb-4">
+                    <svg viewBox="0 0 300 150" class="w-full">
+                        <!-- Circuit -->
+                        <rect x="20" y="60" width="260" height="30" fill="none" stroke="#4B5563" stroke-width="3" rx="5"/>
+                        <!-- Termistor Symbol -->
+                        <circle cx="150" cy="75" r="25" fill="#1F2937" stroke="#F97316" stroke-width="2"/>
+                        <text x="150" y="70" text-anchor="middle" fill="#F97316" font-size="12" font-weight="bold">NTC</text>
+                        <text x="150" y="85" text-anchor="middle" fill="#F97316" font-size="10">°C↓</text>
+                        <!-- Temperature indicator -->
+                        <circle id="tempIndicator" cx="150" cy="75" r="15" fill="#F97316" opacity="0.5"/>
+                    </svg>
+                    
+                    <!-- Controls -->
+                    <div class="mt-4">
+                        <label class="block text-sm text-gray-400 mb-2">
+                            Temperatura: <span id="tempValue" class="text-orange-400 font-bold text-lg">25</span>°C
+                        </label>
+                        <input type="range" id="tempSlider" min="-20" max="100" value="25" 
+                            class="w-full bg-gradient-to-r from-blue-500 via-yellow-500 to-red-500">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>-20°C</span>
+                            <span>25°C</span>
+                            <span>100°C</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Readings -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-900 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-400">Resistencia</p>
+                        <p id="thermistorR" class="text-2xl font-bold text-orange-400">10 kΩ</p>
+                    </div>
+                    <div class="bg-gray-900 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-400">Corriente (5V)</p>
+                        <p id="thermistorI" class="text-2xl font-bold text-green-400">0.5 mA</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LDR -->
+            <div class="bg-gray-800 rounded-2xl p-6 shadow-xl border border-yellow-500/30">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="text-3xl">☀️</span>
+                    <div>
+                        <h2 class="text-2xl font-bold text-yellow-400">LDR</h2>
+                        <p class="text-sm text-gray-400">Light Dependent Resistor</p>
+                    </div>
+                </div>
+                
+                <p class="text-gray-300 mb-4 text-sm">
+                    Una <strong>LDR</strong> (fotorresistencia) disminuye su resistencia cuando aumenta la intensidad de luz. 
+                    Se usa en detectores de luz, interruptores automáticos y cámaras.
+                </p>
+                
+                <!-- LDR Simulation -->
+                <div class="bg-gray-900 rounded-xl p-4 mb-4 relative overflow-hidden">
+                    <div id="ldrBackground" class="absolute inset-0 transition-all duration-300"></div>
+                    <svg viewBox="0 0 300 150" class="w-full relative z-10">
+                        <!-- Circuit -->
+                        <rect x="20" y="60" width="260" height="30" fill="none" stroke="#4B5563" stroke-width="3" rx="5"/>
+                        <!-- LDR Symbol -->
+                        <rect x="130" y="55" width="40" height="40" fill="#1F2937" stroke="#EAB308" stroke-width="2" rx="3"/>
+                        <path d="M135 65 L145 75 L135 85 M165 65 L155 75 L165 85" stroke="#EAB308" stroke-width="2" fill="none"/>
+                        <!-- Arrows for light -->
+                        <g id="lightArrows" stroke="#FBBF24" stroke-width="2">
+                            <line x1="50" y1="30" x2="80" y2="55"/>
+                            <line x1="100" y1="20" x2="120" y2="55"/>
+                            <line x1="150" y1="15" x2="150" y2="55"/>
+                            <line x1="180" y1="20" x2="180" y2="55"/>
+                            <line x1="200" y1="30" x2="220" y2="55"/>
+                        </g>
+                        <!-- Arrow heads -->
+                        <g fill="#FBBF24">
+                            <polygon points="78,50 82,55 74,55"/>
+                            <polygon points="118,45 122,55 114,55"/>
+                            <polygon points="150,40 154,55 146,55"/>
+                            <polygon points="182,45 186,55 178,55"/>
+                            <polygon points="218,50 222,55 214,55"/>
+                        </g>
+                    </svg>
+                    
+                    <!-- Controls -->
+                    <div class="mt-4 relative z-10">
+                        <label class="block text-sm text-gray-400 mb-2">
+                            Intensidad de Luz: <span id="lightValue" class="text-yellow-400 font-bold text-lg">500</span> Lux
+                        </label>
+                        <input type="range" id="lightSlider" min="0" max="1000" value="500" 
+                            class="w-full bg-gradient-to-r from-gray-700 via-yellow-600 to-yellow-300">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>🌑 Oscuridad</span>
+                            <span>☀️ Plena luz</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Readings -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-900 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-400">Resistencia</p>
+                        <p id="ldrR" class="text-2xl font-bold text-yellow-400">10 kΩ</p>
+                    </div>
+                    <div class="bg-gray-900 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-400">Corriente (5V)</p>
+                        <p id="ldrI" class="text-2xl font-bold text-green-400">0.5 mA</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- POTENCIÓMETRO -->
+            <div class="bg-gray-800 rounded-2xl p-6 shadow-xl border border-blue-500/30">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="text-3xl">🎚️</span>
+                    <div>
+                        <h2 class="text-2xl font-bold text-blue-400">Potenciómetro</h2>
+                        <p class="text-sm text-gray-400">Resistencia Ajustable Manual</p>
+                    </div>
+                </div>
+                
+                <p class="text-gray-300 mb-4 text-sm">
+                    Un <strong>potenciómetro</strong> es una resistencia variable de tres terminales que actúa como divisor de voltaje. 
+                    Se usa en controles de volumen, dimmers y ajustes de calibración.
+                </p>
+                
+                <!-- Potentiometer Simulation -->
+                <div class="bg-gray-900 rounded-xl p-4 mb-4">
+                    <svg viewBox="0 0 300 180" class="w-full">
+                        <!-- Resistor body -->
+                        <rect x="50" y="70" width="200" height="40" fill="#1F2937" stroke="#3B82F6" stroke-width="2" rx="5"/>
+                        <!-- Resistance track -->
+                        <rect x="60" y="80" width="180" height="20" fill="#374151" rx="2"/>
+                        <!-- Wiper -->
+                        <g id="wiper" transform="translate(150, 0)">
+                            <polygon points="0,60 -10,80 10,80" fill="#60A5FA"/>
+                            <line x1="0" y1="60" x2="0" y2="30" stroke="#60A5FA" stroke-width="3"/>
+                            <circle cx="0" cy="30" r="8" fill="#3B82F6"/>
+                        </g>
+                        <!-- Terminals -->
+                        <circle cx="50" cy="90" r="6" fill="#FBBF24"/>
+                        <circle cx="150" cy="30" r="6" fill="#FBBF24"/>
+                        <circle cx="250" cy="90" r="6" fill="#FBBF24"/>
+                        <!-- Labels -->
+                        <text x="50" y="115" text-anchor="middle" fill="#9CA3AF" font-size="10">A</text>
+                        <text x="150" y="20" text-anchor="middle" fill="#9CA3AF" font-size="10">W</text>
+                        <text x="250" y="115" text-anchor="middle" fill="#9CA3AF" font-size="10">B</text>
+                    </svg>
+                    
+                    <!-- Controls -->
+                    <div class="mt-4">
+                        <label class="block text-sm text-gray-400 mb-2">
+                            Posición del cursor: <span id="potValue" class="text-blue-400 font-bold text-lg">50</span>%
+                        </label>
+                        <input type="range" id="potSlider" min="0" max="100" value="50" 
+                            class="w-full bg-blue-900">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>0% (0Ω)</span>
+                            <span>50%</span>
+                            <span>100% (10kΩ)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Readings -->
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="bg-gray-900 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-400">R1 (A-W)</p>
+                        <p id="potR1" class="text-xl font-bold text-blue-400">5 kΩ</p>
+                    </div>
+                    <div class="bg-gray-900 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-400">R2 (W-B)</p>
+                        <p id="potR2" class="text-xl font-bold text-blue-400">5 kΩ</p>
+                    </div>
+                    <div class="bg-gray-900 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-400">Vout (5V)</p>
+                        <p id="potVout" class="text-xl font-bold text-purple-400">2.5 V</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REOSTATO -->
+            <div class="bg-gray-800 rounded-2xl p-6 shadow-xl border border-green-500/30">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="text-3xl">🔧</span>
+                    <div>
+                        <h2 class="text-2xl font-bold text-green-400">Reostato</h2>
+                        <p class="text-sm text-gray-400">Resistencia Variable de Dos Terminales</p>
+                    </div>
+                </div>
+                
+                <p class="text-gray-300 mb-4 text-sm">
+                    Un <strong>reostato</strong> es una resistencia variable de dos terminales usada para controlar la corriente. 
+                    Se usa en arranque de motores, control de intensidad luminosa y regulación de potencia.
+                </p>
+                
+                <!-- Rheostat Simulation -->
+                <div class="bg-gray-900 rounded-xl p-4 mb-4">
+                    <svg viewBox="0 0 300 160" class="w-full">
+                        <!-- Coil representation -->
+                        <path d="M60 80 Q70 60 80 80 Q90 100 100 80 Q110 60 120 80 Q130 100 140 80 Q150 60 160 80 Q170 100 180 80 Q190 60 200 80 Q210 100 220 80 Q230 60 240 80" 
+                            fill="none" stroke="#22C55E" stroke-width="4"/>
+                        <!-- Terminal A -->
+                        <circle cx="60" cy="80" r="8" fill="#FBBF24"/>
+                        <text x="60" y="105" text-anchor="middle" fill="#9CA3AF" font-size="10">A</text>
+                        <!-- Wiper contact -->
+                        <g id="rheostatWiper">
+                            <line x1="150" y1="50" x2="150" y2="80" stroke="#22C55E" stroke-width="3"/>
+                            <circle cx="150" cy="50" r="8" fill="#FBBF24"/>
+                            <polygon points="145,80 155,80 150,65" fill="#4ADE80"/>
+                        </g>
+                        <!-- Label for wiper -->
+                        <text id="rheostatLabel" x="150" y="35" text-anchor="middle" fill="#9CA3AF" font-size="10">C</text>
+                        <!-- Terminal B (unused) -->
+                        <circle cx="240" cy="80" r="6" fill="#6B7280" stroke="#4B5563" stroke-width="2"/>
+                        <text x="240" y="105" text-anchor="middle" fill="#6B7280" font-size="10">B (NC)</text>
+                    </svg>
+                    
+                    <!-- Controls -->
+                    <div class="mt-4">
+                        <label class="block text-sm text-gray-400 mb-2">
+                            Posición del contacto: <span id="rheostatValue" class="text-green-400 font-bold text-lg">50</span>%
+                        </label>
+                        <input type="range" id="rheostatSlider" min="0" max="100" value="50" 
+                            class="w-full bg-green-900">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>Mínima R</span>
+                            <span>Mitad</span>
+                            <span>Máxima R</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Readings -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-900 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-400">Resistencia Total</p>
+                        <p id="rheostatR" class="text-2xl font-bold text-green-400">5 kΩ</p>
+                    </div>
+                    <div class="bg-gray-900 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-400">Potencia (5V)</p>
+                        <p id="rheostatP" class="text-2xl font-bold text-red-400">5 mW</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="mt-10 bg-gray-800 rounded-2xl p-6 shadow-xl">
+            <h2 class="text-2xl font-bold text-center mb-6 bg-gradient-to-r from-orange-400 via-yellow-400 to-green-400 bg-clip-text text-transparent">
+                📊 Comparativa de Resistencias Variables
+            </h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-gray-700">
+                            <th class="py-3 px-4 text-left text-gray-400">Tipo</th>
+                            <th class="py-3 px-4 text-left text-gray-400">Variable de Control</th>
+                            <th class="py-3 px-4 text-left text-gray-400">Relación</th>
+                            <th class="py-3 px-4 text-left text-gray-400">Aplicaciones Típicas</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-300">
+                        <tr class="border-b border-gray-700/50">
+                            <td class="py-3 px-4"><span class="text-orange-400 font-semibold">Termistor NTC</span></td>
+                            <td class="py-3 px-4">Temperatura</td>
+                            <td class="py-3 px-4">T ↑ → R ↓</td>
+                            <td class="py-3 px-4">Sensores térmicos, protección de circuitos</td>
+                        </tr>
+                        <tr class="border-b border-gray-700/50">
+                            <td class="py-3 px-4"><span class="text-yellow-400 font-semibold">LDR</span></td>
+                            <td class="py-3 px-4">Intensidad de luz</td>
+                            <td class="py-3 px-4">Luz ↑ → R ↓</td>
+                            <td class="py-3 px-4">Interruptores crepusculares, cámaras</td>
+                        </tr>
+                        <tr class="border-b border-gray-700/50">
+                            <td class="py-3 px-4"><span class="text-blue-400 font-semibold">Potenciómetro</span></td>
+                            <td class="py-3 px-4">Posición mecánica</td>
+                            <td class="py-3 px-4">Posición ↑ → Vout ↑</td>
+                            <td class="py-3 px-4">Control de volumen, calibración</td>
+                        </tr>
+                        <tr>
+                            <td class="py-3 px-4"><span class="text-green-400 font-semibold">Reostato</span></td>
+                            <td class="py-3 px-4">Posición mecánica</td>
+                            <td class="py-3 px-4">Posición ↑ → R ↑</td>
+                            <td class="py-3 px-4">Control de motores, dimmers</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Formulas Section -->
+        <div class="mt-8 bg-gray-800 rounded-2xl p-6 shadow-xl">
+            <h2 class="text-2xl font-bold text-center mb-6 text-purple-400">📐 Fórmulas y Leyes</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-gray-900 rounded-lg p-4">
+                    <h3 class="font-bold text-blue-400 mb-2">Ley de Ohm</h3>
+                    <p class="text-2xl text-center font-mono text-white">V = I × R</p>
+                    <p class="text-xs text-gray-500 mt-2 text-center">Voltaje = Corriente × Resistencia</p>
+                </div>
+                <div class="bg-gray-900 rounded-lg p-4">
+                    <h3 class="font-bold text-orange-400 mb-2">Termistor NTC</h3>
+                    <p class="text-lg text-center font-mono text-white">R = R₀ × e<sup>B(1/T-1/T₀)</sup></p>
+                    <p class="text-xs text-gray-500 mt-2 text-center">Ecuación de Steinhart-Hart</p>
+                </div>
+                <div class="bg-gray-900 rounded-lg p-4">
+                    <h3 class="font-bold text-yellow-400 mb-2">LDR</h3>
+                    <p class="text-2xl text-center font-mono text-white">R ∝ 1/Lux<sup>γ</sup></p>
+                    <p class="text-xs text-gray-500 mt-2 text-center">Resistencia inversa a la luz</p>
+                </div>
+                <div class="bg-gray-900 rounded-lg p-4">
+                    <h3 class="font-bold text-green-400 mb-2">Divisor de Voltaje</h3>
+                    <p class="text-2xl text-center font-mono text-white">Vout = Vin × R₂/(R₁+R₂)</p>
+                    <p class="text-xs text-gray-500 mt-2 text-center">Salida del potenciómetro</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-10 text-center text-gray-500 text-sm">
+            <p>🔬 Simulación educativa de resistencias variables | Interactúa con los controles para ver cómo cambian los valores</p>
+        </footer>
+    </div>
+
+    <script>
+        // Termistor NTC Simulation
+        const tempSlider = document.getElementById('tempSlider');
+        const tempValue = document.getElementById('tempValue');
+        const tempIndicator = document.getElementById('tempIndicator');
+        const thermistorR = document.getElementById('thermistorR');
+        const thermistorI = document.getElementById('thermistorI');
+
+        function updateThermistor() {
+            const temp = parseInt(tempSlider.value);
+            tempValue.textContent = temp;
+            
+            // NTC: Higher temp = Lower resistance (simplified model)
+            // At 25°C: 10kΩ, at -20°C: ~100kΩ, at 100°C: ~500Ω
+            const R0 = 10000; // 10kΩ at 25°C
+            const T0 = 298.15; // 25°C in Kelvin
+            const B = 3950; // B constant
+            const T = temp + 273.15;
+            const resistance = R0 * Math.exp(B * (1/T - 1/T0));
+            
+            // Calculate current at 5V
+            const current = 5 / resistance;
+            
+            // Update displays
+            thermistorR.textContent = formatResistance(resistance);
+            thermistorI.textContent = formatCurrent(current);
+            
+            // Update visual indicator
+            const opacity = 0.2 + (temp + 20) / 120 * 0.8;
+            const hue = 240 - ((temp + 20) / 120) * 240; // Blue to red
+            tempIndicator.setAttribute('opacity', opacity);
+            tempIndicator.setAttribute('fill', `hsl(${hue}, 100%, 50%)`);
+        }
+
+        // LDR Simulation
+        const lightSlider = document.getElementById('lightSlider');
+        const lightValue = document.getElementById('lightValue');
+        const ldrBackground = document.getElementById('ldrBackground');
+        const ldrR = document.getElementById('ldrR');
+        const ldrI = document.getElementById('ldrI');
+
+        function updateLDR() {
+            const lux = parseInt(lightSlider.value);
+            lightValue.textContent = lux;
+            
+            // LDR: More light = Lower resistance (simplified model)
+            // At 0 lux: ~1MΩ, at 1000 lux: ~100Ω
+            const resistance = 1000000 * Math.exp(-lux / 200);
+            
+            // Calculate current at 5V
+            const current = 5 / resistance;
+            
+            // Update displays
+            ldrR.textContent = formatResistance(resistance);
+            ldrI.textContent = formatCurrent(current);
+            
+            // Update background brightness
+            const brightness = Math.round(lux / 1000 * 40);
+            ldrBackground.style.backgroundColor = `rgba(251, 191, 36, ${brightness / 100})`;
+        }
+
+        // Potentiometer Simulation
+        const potSlider = document.getElementById('potSlider');
+        const potValue = document.getElementById('potValue');
+        const wiper = document.getElementById('wiper');
+        const potR1 = document.getElementById('potR1');
+        const potR2 = document.getElementById('potR2');
+        const potVout = document.getElementById('potVout');
+
+        function updatePotentiometer() {
+            const position = parseInt(potSlider.value);
+            potValue.textContent = position;
+            
+            // Total resistance = 10kΩ
+            const Rtotal = 10000;
+            const R1 = (position / 100) * Rtotal;
+            const R2 = Rtotal - R1;
+            
+            // Voltage divider with 5V input
+            const Vin = 5;
+            const Vout = Vin * (R2 / Rtotal);
+            
+            // Update displays
+            potR1.textContent = formatResistance(R1);
+            potR2.textContent = formatResistance(R2);
+            potVout.textContent = Vout.toFixed(2) + ' V';
+            
+            // Update wiper position visually
+            const x = 50 + (position / 100) * 200;
+            wiper.setAttribute('transform', `translate(${x}, 0)`);
+        }
+
+        // Rheostat Simulation
+        const rheostatSlider = document.getElementById('rheostatSlider');
+        const rheostatValue = document.getElementById('rheostatValue');
+        const rheostatWiper = document.getElementById('rheostatWiper');
+        const rheostatLabel = document.getElementById('rheostatLabel');
+        const rheostatR = document.getElementById('rheostatR');
+        const rheostatP = document.getElementById('rheostatP');
+
+        function updateRheostat() {
+            const position = parseInt(rheostatSlider.value);
+            rheostatValue.textContent = position;
+            
+            // Total resistance = 10kΩ
+            const Rtotal = 10000;
+            const R = (position / 100) * Rtotal;
+            
+            // Calculate power at 5V
+            const V = 5;
+            const P = (V * V) / R;
+            
+            // Update displays
+            rheostatR.textContent = formatResistance(R);
+            rheostatP.textContent = formatPower(P);
+            
+            // Update wiper position visually
+            const x = 60 + (position / 100) * 180;
+            rheostatWiper.setAttribute('transform', `translate(${x - 150}, 0)`);
+            rheostatLabel.setAttribute('x', x);
+        }
+
+        // Helper functions
+        function formatResistance(ohms) {
+            if (ohms >= 1000000) {
+                return (ohms / 1000000).toFixed(2) + ' MΩ';
+            } else if (ohms >= 1000) {
+                return (ohms / 1000).toFixed(2) + ' kΩ';
+            } else {
+                return Math.round(ohms) + ' Ω';
+            }
+        }
+
+        function formatCurrent(amps) {
+            if (amps >= 1) {
+                return amps.toFixed(2) + ' A';
+            } else if (amps >= 0.001) {
+                return (amps * 1000).toFixed(2) + ' mA';
+            } else {
+                return (amps * 1000000).toFixed(2) + ' µA';
+            }
+        }
+
+        function formatPower(watts) {
+            if (watts >= 1) {
+                return watts.toFixed(2) + ' W';
+            } else if (watts >= 0.001) {
+                return (watts * 1000).toFixed(2) + ' mW';
+            } else {
+                return (watts * 1000000).toFixed(2) + ' µW';
+            }
+        }
+
+        // Event listeners
+        tempSlider.addEventListener('input', updateThermistor);
+        lightSlider.addEventListener('input', updateLDR);
+        potSlider.addEventListener('input', updatePotentiometer);
+        rheostatSlider.addEventListener('input', updateRheostat);
+
+        // Initial updates
+        updateThermistor();
+        updateLDR();
+        updatePotentiometer();
+        updateRheostat();
+    </script>
+</body>
+</html>
+

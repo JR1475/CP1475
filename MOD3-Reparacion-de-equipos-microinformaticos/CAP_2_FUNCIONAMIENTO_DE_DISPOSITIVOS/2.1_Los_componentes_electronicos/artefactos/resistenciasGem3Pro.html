@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Resistencias Variables</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        .circuit-canvas {
+            background-color: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+        }
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #cbd5e1;
+            border-radius: 5px;
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #3b82f6;
+            cursor: pointer;
+            transition: background .15s ease-in-out;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            background: #2563eb;
+        }
+        .component-card {
+            transition: all 0.3s ease;
+        }
+        .component-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white p-6 shadow-lg">
+        <div class="container mx-auto text-center">
+            <h1 class="text-3xl font-bold mb-2">Simulador de Sensores Resistivos</h1>
+            <p class="text-blue-100">Explora cómo funcionan el Termistor (NTC), el LDR y el Potenciómetro en un circuito divisor de voltaje.</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto p-4 md:p-8">
+        
+        <!-- Dashboard Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+
+            <!-- Thermistor Section -->
+            <section class="component-card bg-white p-6 rounded-xl shadow-md border-t-4 border-red-500">
+                <h2 class="text-2xl font-bold mb-4 flex items-center text-red-600">
+                    <span class="text-3xl mr-2">🌡️</span> Termistor (NTC)
+                </h2>
+                <p class="text-sm text-gray-600 mb-4 h-16">
+                    Resistencia variable con la temperatura. En un NTC, al <strong>aumentar</strong> la temperatura, la resistencia <strong>disminuye</strong>.
+                </p>
+                
+                <!-- Controls -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Temperatura Ambiente</label>
+                    <input type="range" id="tempSlider" min="0" max="100" value="25" class="mb-2">
+                    <div class="flex justify-between text-xs text-gray-500">
+                        <span>0°C (Frío)</span>
+                        <span id="tempValueDisplay" class="font-bold text-red-600 text-lg">25°C</span>
+                        <span>100°C (Caliente)</span>
+                    </div>
+                </div>
+
+                <!-- Circuit Visualization -->
+                <div class="relative h-48 mb-4">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <!-- Simple SVG Circuit -->
+                        <svg viewBox="0 0 200 150" class="w-full h-full circuit-svg">
+                            <!-- Circuit Lines -->
+                            <path d="M50 20 V50" stroke="#333" stroke-width="2" /> <!-- VCC to R_fixed -->
+                            <rect x="40" y="50" width="20" height="40" fill="#ddd" stroke="#333" stroke-width="2" /> <!-- R_fixed -->
+                            <text x="70" y="75" font-size="10" fill="#666">R_fija (10kΩ)</text>
+                            
+                            <path d="M50 90 V110" stroke="#333" stroke-width="2" /> <!-- Middle to Thermistor -->
+                            <path d="M50 110 H100" stroke="#333" stroke-width="2" /> <!-- Output tap -->
+                            <circle cx="100" cy="110" r="3" fill="#333" /> <!-- Vout Node -->
+                            <text x="105" y="105" font-size="12" fill="#d97706" font-weight="bold">V_out</text>
+
+                            <path d="M50 110 V130" stroke="#333" stroke-width="2" /> <!-- To Thermistor -->
+                            <!-- Thermistor Symbol -->
+                            <rect x="40" y="130" width="20" height="40" fill="#fee2e2" stroke="#ef4444" stroke-width="2" />
+                            <path d="M35 165 L65 135" stroke="#ef4444" stroke-width="2" /> <!-- Diagonal line -->
+                            <path d="M35 165 H45" stroke="#ef4444" stroke-width="2" /> <!-- Foot -->
+                            <text x="70" y="155" font-size="10" fill="#ef4444">NTC</text>
+                            
+                            <path d="M50 170 V180" stroke="#333" stroke-width="2" /> <!-- To GND -->
+                            <path d="M40 180 H60" stroke="#333" stroke-width="2" /> <!-- GND line -->
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="bg-slate-50 p-4 rounded-lg">
+                    <div class="flex justify-between mb-2 border-b pb-2">
+                        <span class="text-gray-600">Resistencia NTC:</span>
+                        <span id="ntcResistance" class="font-mono font-bold text-slate-800">10000 Ω</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Voltaje Salida (Vout):</span>
+                        <div class="text-right">
+                            <div id="ntcVoltage" class="font-mono font-bold text-orange-600 text-xl">2.50 V</div>
+                            <div class="text-xs text-gray-400">Vcc = 5V</div>
+                        </div>
+                    </div>
+                    <!-- Visual bar for voltage -->
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                        <div id="ntcVoltageBar" class="bg-orange-500 h-2.5 rounded-full transition-all duration-100" style="width: 50%"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- LDR Section -->
+            <section class="component-card bg-white p-6 rounded-xl shadow-md border-t-4 border-yellow-500">
+                <h2 class="text-2xl font-bold mb-4 flex items-center text-yellow-600">
+                    <span class="text-3xl mr-2">☀️</span> LDR (Fotoresistencia)
+                </h2>
+                <p class="text-sm text-gray-600 mb-4 h-16">
+                    Resistencia dependiente de la luz. Al <strong>aumentar</strong> la luz incidente, la resistencia <strong>disminuye</strong> drásticamente.
+                </p>
+
+                <!-- Controls -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Intensidad de Luz (Lux)</label>
+                    <input type="range" id="luxSlider" min="0" max="1000" value="500" class="mb-2">
+                    <div class="flex justify-between text-xs text-gray-500">
+                        <span>Oscuridad</span>
+                        <span id="luxValueDisplay" class="font-bold text-yellow-600 text-lg">500 Lux</span>
+                        <span>Luz Brillante</span>
+                    </div>
+                </div>
+
+                <!-- Circuit Visualization -->
+                <div class="relative h-48 mb-4">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <svg viewBox="0 0 200 150" class="w-full h-full circuit-svg">
+                            <path d="M50 20 V50" stroke="#333" stroke-width="2" />
+                            <rect x="40" y="50" width="20" height="40" fill="#ddd" stroke="#333" stroke-width="2" />
+                            <text x="70" y="75" font-size="10" fill="#666">R_fija (10kΩ)</text>
+                            
+                            <path d="M50 90 V110" stroke="#333" stroke-width="2" />
+                            <path d="M50 110 H100" stroke="#333" stroke-width="2" />
+                            <circle cx="100" cy="110" r="3" fill="#333" />
+                            <text x="105" y="105" font-size="12" fill="#d97706" font-weight="bold">V_out</text>
+
+                            <path d="M50 110 V130" stroke="#333" stroke-width="2" />
+                            <!-- LDR Symbol -->
+                            <rect x="40" y="130" width="20" height="40" fill="#fef08a" stroke="#eab308" stroke-width="2" />
+                            <circle cx="50" cy="150" r="15" fill="none" stroke="#eab308" stroke-width="1.5" />
+                            <!-- Light arrows -->
+                            <path d="M20 130 L35 145" stroke="#eab308" stroke-width="2" />
+                            <path d="M25 125 L40 140" stroke="#eab308" stroke-width="2" />
+                            <text x="70" y="155" font-size="10" fill="#eab308">LDR</text>
+                            
+                            <path d="M50 170 V180" stroke="#333" stroke-width="2" />
+                            <path d="M40 180 H60" stroke="#333" stroke-width="2" />
+                        </svg>
+                    </div>
+                    <!-- Light effect overlay -->
+                    <div id="lightOverlay" class="absolute inset-0 rounded pointer-events-none transition-opacity duration-300 bg-yellow-400 opacity-50 mix-blend-overlay"></div>
+                </div>
+
+                <!-- Stats -->
+                <div class="bg-slate-50 p-4 rounded-lg">
+                    <div class="flex justify-between mb-2 border-b pb-2">
+                        <span class="text-gray-600">Resistencia LDR:</span>
+                        <span id="ldrResistance" class="font-mono font-bold text-slate-800">5000 Ω</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Voltaje Salida (Vout):</span>
+                        <div class="text-right">
+                            <div id="ldrVoltage" class="font-mono font-bold text-orange-600 text-xl">1.66 V</div>
+                            <div class="text-xs text-gray-400">Vcc = 5V</div>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                        <div id="ldrVoltageBar" class="bg-orange-500 h-2.5 rounded-full transition-all duration-100" style="width: 33%"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Potentiometer Section -->
+            <section class="component-card bg-white p-6 rounded-xl shadow-md border-t-4 border-blue-500">
+                <h2 class="text-2xl font-bold mb-4 flex items-center text-blue-600">
+                    <span class="text-3xl mr-2">🎛️</span> Potenciómetro
+                </h2>
+                <p class="text-sm text-gray-600 mb-4 h-16">
+                    Resistencia variable mecánica. Divide el voltaje directamente según la posición de la perilla (wiper).
+                </p>
+
+                <!-- Controls -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Posición Perilla (%)</label>
+                    <input type="range" id="potSlider" min="0" max="100" value="50" class="mb-2">
+                    <div class="flex justify-between text-xs text-gray-500">
+                        <span>0% (GND)</span>
+                        <span id="potValueDisplay" class="font-bold text-blue-600 text-lg">50%</span>
+                        <span>100% (Vcc)</span>
+                    </div>
+                </div>
+
+                <!-- Circuit Visualization -->
+                <div class="relative h-48 mb-4">
+                    <div class="absolute inset-0 flex items-center justify-center">
+                         <svg viewBox="0 0 200 150" class="w-full h-full circuit-svg">
+                            <path d="M50 20 V40" stroke="#333" stroke-width="2" />
+                            <text x="30" y="30" font-size="10" fill="#666">Vcc</text>
+                            
+                            <!-- Potentiometer Body -->
+                            <rect x="40" y="40" width="20" height="100" fill="#bfdbfe" stroke="#2563eb" stroke-width="2" />
+                            
+                            <!-- Wiper Arrow logic handled via CSS transform usually, but simplified here -->
+                            <path d="M60 90 H100" stroke="#333" stroke-width="2" id="potWiperLine" /> 
+                            <polygon points="60,90 50,85 50,95" fill="#333" id="potWiperTri" />
+                            
+                            <circle cx="100" cy="90" r="3" fill="#333" id="potNode" />
+                            <text x="105" y="85" font-size="12" fill="#d97706" font-weight="bold" id="potText">V_out</text>
+
+                            <path d="M50 140 V160" stroke="#333" stroke-width="2" />
+                            <path d="M40 160 H60" stroke="#333" stroke-width="2" />
+                            <text x="70" y="90" font-size="10" fill="#2563eb" transform="rotate(-90 70 90)">Resistencia Total 10kΩ</text>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="bg-slate-50 p-4 rounded-lg">
+                    <div class="flex justify-between mb-2 border-b pb-2">
+                        <span class="text-gray-600">Resistencia (GND-Vout):</span>
+                        <span id="potResistance" class="font-mono font-bold text-slate-800">5000 Ω</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">Voltaje Salida (Vout):</span>
+                        <div class="text-right">
+                            <div id="potVoltage" class="font-mono font-bold text-orange-600 text-xl">2.50 V</div>
+                            <div class="text-xs text-gray-400">Vcc = 5V</div>
+                        </div>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5 mt-2">
+                        <div id="potVoltageBar" class="bg-orange-500 h-2.5 rounded-full transition-all duration-100" style="width: 50%"></div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Explanation Section -->
+        <section class="mt-12 bg-white p-8 rounded-xl shadow-lg">
+            <h3 class="text-2xl font-bold mb-4 text-slate-800">¿Cómo funciona el Divisor de Voltaje?</h3>
+            <div class="flex flex-col md:flex-row gap-8 items-center">
+                <div class="md:w-1/2">
+                    <p class="mb-4 leading-relaxed">
+                        En la mayoría de sensores analógicos (como el NTC y el LDR), el microcontrolador no mide resistencia, mide <strong>voltaje</strong>. 
+                        Para convertir el cambio de resistencia en cambio de voltaje, usamos un <strong>Divisor de Voltaje</strong>.
+                    </p>
+                    <div class="bg-blue-50 p-4 rounded border border-blue-200 mb-4">
+                        <p class="font-mono text-center text-lg text-blue-800">
+                            V_out = V_cc × (R_sensor / (R_fija + R_sensor))
+                        </p>
+                        <p class="text-xs text-center text-blue-600 mt-2">
+                            *Nota: En esta simulación, el sensor está en la parte inferior del divisor (conectado a tierra).
+                        </p>
+                    </div>
+                    <p class="text-sm text-gray-600">
+                        Si la resistencia del sensor baja (por ejemplo, hace más calor o hay más luz), el voltaje en V_out disminuye porque la "cuota" de voltaje que se queda el sensor es menor.
+                    </p>
+                </div>
+                <div class="md:w-1/2 bg-slate-100 p-6 rounded-lg">
+                    <h4 class="font-bold mb-2">Comportamiento Resumido:</h4>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <span class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center mr-3 font-bold">1</span>
+                            <div>
+                                <span class="font-bold text-red-600">Termistor NTC:</span>
+                                <span class="text-gray-700">Más Calor = Menos Resistencia = Menos Voltaje</span>
+                            </div>
+                        </li>
+                        <li class="flex items-center">
+                            <span class="w-8 h-8 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center mr-3 font-bold">2</span>
+                            <div>
+                                <span class="font-bold text-yellow-600">LDR:</span>
+                                <span class="text-gray-700">Más Luz = Menos Resistencia = Menos Voltaje</span>
+                            </div>
+                        </li>
+                        <li class="flex items-center">
+                            <span class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3 font-bold">3</span>
+                            <div>
+                                <span class="font-bold text-blue-600">Potenciómetro:</span>
+                                <span class="text-gray-700">Ajuste Lineal Directo (0V a 5V)</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-800 text-slate-400 py-8 mt-12 text-center">
+        <p>Simulador Educativo de Electrónica Básica</p>
+    </footer>
+
+    <script>
+        // Constants
+        const VCC = 5.0; // Volts
+        const R_FIXED = 10000; // 10k Ohms for voltage dividers
+        const R_POT_TOTAL = 10000; // 10k Potentiometer
+
+        // --- Thermistor (NTC) Logic ---
+        // Simplified NTC model: R = R25 * exp(B * (1/(T+273.15) - 1/(25+273.15)))
+        const R25 = 10000; // 10k at 25C
+        const BETA = 3950; // Beta coefficient
+        
+        const tempSlider = document.getElementById('tempSlider');
+        const tempValueDisplay = document.getElementById('tempValueDisplay');
+        const ntcResistanceDisplay = document.getElementById('ntcResistance');
+        const ntcVoltageDisplay = document.getElementById('ntcVoltage');
+        const ntcVoltageBar = document.getElementById('ntcVoltageBar');
+
+        function updateThermistor() {
+            const tempC = parseInt(tempSlider.value);
+            tempValueDisplay.textContent = `${tempC}°C`;
+
+            // Calculate Resistance
+            const tempK = tempC + 273.15;
+            const tempK25 = 25 + 273.15;
+            const resistance = R25 * Math.exp(BETA * (1/tempK - 1/tempK25));
+
+            // Calculate Voltage Divider Output (Sensor at bottom)
+            // Vout = Vcc * (R_sensor / (R_fixed + R_sensor))
+            const voltage = VCC * (resistance / (R_FIXED + resistance));
+
+            // Update UI
+            ntcResistanceDisplay.textContent = `${Math.round(resistance)} Ω`;
+            ntcVoltageDisplay.textContent = `${voltage.toFixed(2)} V`;
+            ntcVoltageBar.style.width = `${(voltage / VCC) * 100}%`;
+        }
+
+        tempSlider.addEventListener('input', updateThermistor);
+
+
+        // --- LDR Logic ---
+        // Simplified LDR model: R = A * Lux^B (roughly log-log linear)
+        // Let's assume approx: 10 Lux -> 50k, 1000 Lux -> 100 Ohm approx
+        
+        const luxSlider = document.getElementById('luxSlider');
+        const luxValueDisplay = document.getElementById('luxValueDisplay');
+        const ldrResistanceDisplay = document.getElementById('ldrResistance');
+        const ldrVoltageDisplay = document.getElementById('ldrVoltage');
+        const ldrVoltageBar = document.getElementById('ldrVoltageBar');
+        const lightOverlay = document.getElementById('lightOverlay');
+
+        function updateLDR() {
+            const lux = parseInt(luxSlider.value);
+            luxValueDisplay.textContent = `${lux} Lux`;
+
+            // Avoid division by zero and create a reasonable curve
+            // Approximation for visualization: Resistance decreases as Lux increases
+            // Using a simple inverse relationship for ease: R = 500000 / (Lux + 10)
+            let resistance = 500000 / (Math.max(1, lux) + 10);
+            if (lux === 0) resistance = 1000000; // Dark resistance high
+            
+            // Calculate Voltage Divider Output (Sensor at bottom)
+            const voltage = VCC * (resistance / (R_FIXED + resistance));
+
+            // Update UI
+            ldrResistanceDisplay.textContent = `${Math.round(resistance)} Ω`;
+            ldrVoltageDisplay.textContent = `${voltage.toFixed(2)} V`;
+            ldrVoltageBar.style.width = `${(voltage / VCC) * 100}%`;
+            
+            // Update visual light effect
+            lightOverlay.style.opacity = (lux / 1000) * 0.8;
+        }
+
+        luxSlider.addEventListener('input', updateLDR);
+
+
+        // --- Potentiometer Logic ---
+        const potSlider = document.getElementById('potSlider');
+        const potValueDisplay = document.getElementById('potValueDisplay');
+        const potResistanceDisplay = document.getElementById('potResistance');
+        const potVoltageDisplay = document.getElementById('potVoltage');
+        const potVoltageBar = document.getElementById('potVoltageBar');
+        
+        // SVG Elements for animation
+        const potWiperLine = document.getElementById('potWiperLine');
+        const potWiperTri = document.getElementById('potWiperTri');
+        const potNode = document.getElementById('potNode');
+        const potText = document.getElementById('potText');
+
+        function updatePotentiometer() {
+            const percentage = parseInt(potSlider.value);
+            potValueDisplay.textContent = `${percentage}%`;
+
+            // Resistance from wiper to GND
+            const resistance = (percentage / 100) * R_POT_TOTAL;
+            
+            // Voltage is linear with position in a potentiometer wired as a divider
+            const voltage = (percentage / 100) * VCC;
+
+            // Update UI
+            potResistanceDisplay.textContent = `${Math.round(resistance)} Ω`;
+            potVoltageDisplay.textContent = `${voltage.toFixed(2)} V`;
+            potVoltageBar.style.width = `${percentage}%`;
+
+            // Animate Wiper in SVG
+            // Rect is y=40 to y=140 (height 100). 
+            // 0% (GND) is bottom (y=140), 100% (Vcc) is top (y=40). 
+            // Wait, standard pot: usually rotating knob. Linear slider representation:
+            // Let's assume 0% is bottom (0V) and 100% is top (5V) based on Vout logic.
+            // Map 0-100 to Y coordinates 140-40.
+            const newY = 140 - percentage; // Since height is exactly 100 pixels conveniently
+            
+            potWiperLine.setAttribute('d', `M60 ${newY} H100`);
+            potWiperTri.setAttribute('points', `60,${newY} 50,${newY-5} 50,${newY+5}`);
+            potNode.setAttribute('cy', newY);
+            potText.setAttribute('y', newY - 5);
+        }
+
+        potSlider.addEventListener('input', updatePotentiometer);
+
+        // Initialize all
+        updateThermistor();
+        updateLDR();
+        updatePotentiometer();
+
+    </script>
+</body>
+</html>

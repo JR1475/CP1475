@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oscilador LC - Simulación</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+        }
+        
+        .oscilloscope-screen {
+            background: #0a1628;
+            border: 4px solid #2d3748;
+            border-radius: 12px;
+            box-shadow: 
+                inset 0 0 50px rgba(0, 255, 100, 0.1),
+                0 0 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .grid-overlay {
+            background-image: 
+                linear-gradient(rgba(0, 255, 100, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 100, 0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        
+        .glow-green {
+            text-shadow: 0 0 10px rgba(0, 255, 100, 0.8);
+        }
+        
+        .component-capacitor {
+            stroke: #60a5fa;
+            stroke-width: 3;
+            fill: none;
+        }
+        
+        .component-inductor {
+            stroke: #f472b6;
+            stroke-width: 3;
+            fill: none;
+        }
+        
+        .energy-bar {
+            transition: width 0.05s linear;
+        }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: #374151;
+            border-radius: 5px;
+            height: 8px;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #10b981;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+    </style>
+</head>
+<body class="text-white p-4">
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl md:text-4xl font-bold text-center mb-6 text-emerald-400 glow-green">
+            🔌 Oscilador LC - Condensador y Bobina
+        </h1>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Panel de Control -->
+            <div class="bg-gray-800/80 rounded-xl p-5 backdrop-blur">
+                <h2 class="text-xl font-semibold mb-4 text-emerald-300">⚙️ Parámetros del Circuito</h2>
+                
+                <div class="space-y-5">
+                    <!-- Capacitancia -->
+                    <div>
+                        <label class="flex justify-between text-sm mb-2">
+                            <span>Capacitancia (C)</span>
+                            <span id="capacitanceValue" class="text-blue-400 font-mono">100 µF</span>
+                        </label>
+                        <input type="range" id="capacitance" min="10" max="500" value="100" class="w-full">
+                    </div>
+                    
+                    <!-- Inductancia -->
+                    <div>
+                        <label class="flex justify-between text-sm mb-2">
+                            <span>Inductancia (L)</span>
+                            <span id="inductanceValue" class="text-pink-400 font-mono">100 mH</span>
+                        </label>
+                        <input type="range" id="inductance" min="10" max="500" value="100" class="w-full">
+                    </div>
+                    
+                    <!-- Resistencia (amortiguamiento) -->
+                    <div>
+                        <label class="flex justify-between text-sm mb-2">
+                            <span>Resistencia (R)</span>
+                            <span id="resistanceValue" class="text-yellow-400 font-mono">0 Ω</span>
+                        </label>
+                        <input type="range" id="resistance" min="0" max="100" value="0" class="w-full">
+                    </div>
+                    
+                    <!-- Voltaje inicial -->
+                    <div>
+                        <label class="flex justify-between text-sm mb-2">
+                            <span>Voltaje Inicial (V₀)</span>
+                            <span id="voltageValue" class="text-green-400 font-mono">5 V</span>
+                        </label>
+                        <input type="range" id="voltage" min="1" max="12" value="5" class="w-full">
+                    </div>
+                </div>
+                
+                <!-- Frecuencia calculada -->
+                <div class="mt-6 p-4 bg-gray-900/50 rounded-lg">
+                    <h3 class="text-sm text-gray-400 mb-2">Frecuencia de Resonancia</h3>
+                    <p class="text-2xl font-mono text-emerald-400 glow-green" id="frequencyDisplay">15.92 Hz</p>
+                    <p class="text-xs text-gray-500 mt-1">f = 1 / (2π√LC)</p>
+                </div>
+                
+                <!-- Botones de control -->
+                <div class="flex gap-3 mt-5">
+                    <button id="startBtn" class="flex-1 bg-emerald-600 hover:bg-emerald-500 py-2 px-4 rounded-lg font-semibold transition">
+                        ▶️ Iniciar
+                    </button>
+                    <button id="resetBtn" class="flex-1 bg-gray-600 hover:bg-gray-500 py-2 px-4 rounded-lg font-semibold transition">
+                        🔄 Reset
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Osciloscopio -->
+            <div class="lg:col-span-2">
+                <div class="oscilloscope-screen p-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-emerald-400 text-sm font-mono">OSCILOSCOPIO</span>
+                        <div class="flex gap-4 text-xs">
+                            <span class="text-green-400">● Voltaje (V)</span>
+                            <span class="text-yellow-400">● Corriente (I)</span>
+                        </div>
+                    </div>
+                    <div class="relative grid-overlay rounded-lg overflow-hidden">
+                        <canvas id="oscilloscope" class="w-full" height="300"></canvas>
+                        <!-- Línea central -->
+                        <div class="absolute left-0 right-0 top-1/2 border-t border-gray-600 opacity-50"></div>
+                    </div>
+                    <div class="flex justify-between mt-2 text-xs text-gray-400 font-mono">
+                        <span>0 ms</span>
+                        <span>Tiempo →</span>
+                        <span id="timeScale">500 ms</span>
+                    </div>
+                </div>
+                
+                <!-- Diagrama del circuito -->
+                <div class="mt-4 bg-gray-800/80 rounded-xl p-4 backdrop-blur">
+                    <h3 class="text-lg font-semibold mb-3 text-center text-gray-300">Circuito LC</h3>
+                    <div class="flex justify-center">
+                        <svg width="400" height="180" viewBox="0 0 400 180">
+                            <!-- Cables -->
+                            <path d="M 50 90 L 100 90" stroke="#4ade80" stroke-width="2"/>
+                            <path d="M 160 90 L 240 90" stroke="#4ade80" stroke-width="2"/>
+                            <path d="M 300 90 L 350 90" stroke="#4ade80" stroke-width="2"/>
+                            <path d="M 350 90 L 350 140 L 50 140 L 50 90" stroke="#4ade80" stroke-width="2"/>
+                            
+                            <!-- Condensador -->
+                            <line x1="100" y1="60" x2="100" y2="120" class="component-capacitor"/>
+                            <line x1="120" y1="60" x2="120" y2="120" class="component-capacitor"/>
+                            <text x="110" y="45" text-anchor="middle" fill="#60a5fa" font-size="14">C</text>
+                            
+                            <!-- Indicador de carga del condensador -->
+                            <rect id="capCharge" x="102" y="70" width="16" height="40" fill="#60a5fa" opacity="0.5"/>
+                            
+                            <!-- Bobina (inductancia) -->
+                            <path d="M 240 90 Q 250 70, 260 90 Q 270 110, 280 90 Q 290 70, 300 90" class="component-inductor"/>
+                            <text x="270" y="130" text-anchor="middle" fill="#f472b6" font-size="14">L</text>
+                            
+                            <!-- Campo magnético de la bobina -->
+                            <ellipse id="inductorField" cx="270" cy="90" rx="25" ry="15" fill="none" stroke="#f472b6" stroke-width="1" opacity="0"/>
+                            
+                            <!-- Flechas de corriente -->
+                            <g id="currentArrows">
+                                <polygon id="arrow1" points="195,85 205,90 195,95" fill="#fbbf24" opacity="0"/>
+                                <polygon id="arrow2" points="155,145 145,140 155,135" fill="#fbbf24" opacity="0"/>
+                            </g>
+                            
+                            <!-- Etiquetas -->
+                            <text x="200" y="20" text-anchor="middle" fill="#9ca3af" font-size="12">Oscilador LC</text>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Indicadores de energía -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-gray-800/80 rounded-xl p-4 backdrop-blur">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-blue-400">⚡ Energía en Condensador</span>
+                    <span id="capEnergyValue" class="font-mono text-blue-400">100%</span>
+                </div>
+                <div class="h-4 bg-gray-700 rounded-full overflow-hidden">
+                    <div id="capEnergyBar" class="h-full bg-gradient-to-r from-blue-600 to-blue-400 energy-bar" style="width: 100%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">E_C = ½CV²</p>
+            </div>
+            
+            <div class="bg-gray-800/80 rounded-xl p-4 backdrop-blur">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-pink-400">🧲 Energía en Bobina</span>
+                    <span id="indEnergyValue" class="font-mono text-pink-400">0%</span>
+                </div>
+                <div class="h-4 bg-gray-700 rounded-full overflow-hidden">
+                    <div id="indEnergyBar" class="h-full bg-gradient-to-r from-pink-600 to-pink-400 energy-bar" style="width: 0%"></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">E_L = ½LI²</p>
+            </div>
+        </div>
+        
+        <!-- Información -->
+        <div class="mt-6 bg-gray-800/50 rounded-xl p-4 text-sm text-gray-400">
+            <h3 class="text-emerald-400 font-semibold mb-2">📚 ¿Cómo funciona?</h3>
+            <p>El oscilador LC intercambia energía entre el campo eléctrico del condensador y el campo magnético de la bobina. 
+            La frecuencia de oscilación depende de los valores de L y C. Si añades resistencia (R), la oscilación se amortigua gradualmente.</p>
+        </div>
+    </div>
+
+    <script>
+        // Elementos del DOM
+        const canvas = document.getElementById('oscilloscope');
+        const ctx = canvas.getContext('2d');
+        
+        // Controles
+        const capacitanceSlider = document.getElementById('capacitance');
+        const inductanceSlider = document.getElementById('inductance');
+        const resistanceSlider = document.getElementById('resistance');
+        const voltageSlider = document.getElementById('voltage');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        
+        // Displays
+        const capacitanceValue = document.getElementById('capacitanceValue');
+        const inductanceValue = document.getElementById('inductanceValue');
+        const resistanceValue = document.getElementById('resistanceValue');
+        const voltageValue = document.getElementById('voltageValue');
+        const frequencyDisplay = document.getElementById('frequencyDisplay');
+        
+        // Barras de energía
+        const capEnergyBar = document.getElementById('capEnergyBar');
+        const indEnergyBar = document.getElementById('indEnergyBar');
+        const capEnergyValue = document.getElementById('capEnergyValue');
+        const indEnergyValue = document.getElementById('indEnergyValue');
+        
+        // Elementos del circuito animado
+        const capCharge = document.getElementById('capCharge');
+        const inductorField = document.getElementById('inductorField');
+        const arrow1 = document.getElementById('arrow1');
+        const arrow2 = document.getElementById('arrow2');
+        
+        // Estado de la simulación
+        let isRunning = false;
+        let animationId = null;
+        let time = 0;
+        let voltageHistory = [];
+        let currentHistory = [];
+        
+        // Parámetros del circuito
+        let C = 100e-6;  // 100 µF
+        let L = 100e-3;  // 100 mH
+        let R = 0;       // Resistencia
+        let V0 = 5;      // Voltaje inicial
+        
+        // Configurar canvas
+        function resizeCanvas() {
+            canvas.width = canvas.offsetWidth;
+            canvas.height = 300;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // Calcular frecuencia de resonancia
+        function calculateFrequency() {
+            const f = 1 / (2 * Math.PI * Math.sqrt(L * C));
+            return f;
+        }
+        
+        // Actualizar displays
+        function updateDisplays() {
+            C = capacitanceSlider.value * 1e-6;
+            L = inductanceSlider.value * 1e-3;
+            R = resistanceSlider.value;
+            V0 = voltageSlider.value;
+            
+            capacitanceValue.textContent = `${capacitanceSlider.value} µF`;
+            inductanceValue.textContent = `${inductanceSlider.value} mH`;
+            resistanceValue.textContent = `${resistanceSlider.value} Ω`;
+            voltageValue.textContent = `${voltageSlider.value} V`;
+            
+            const freq = calculateFrequency();
+            frequencyDisplay.textContent = freq >= 1000 
+                ? `${(freq/1000).toFixed(2)} kHz` 
+                : `${freq.toFixed(2)} Hz`;
+        }
+        
+        // Calcular voltaje y corriente en el tiempo
+        function calculateValues(t) {
+            const omega = 1 / Math.sqrt(L * C);
+            const alpha = R / (2 * L);
+            
+            let voltage, current;
+            
+            if (R === 0) {
+                // Oscilación sin amortiguamiento
+                voltage = V0 * Math.cos(omega * t);
+                current = (V0 / Math.sqrt(L/C)) * Math.sin(omega * t);
+            } else {
+                // Oscilación amortiguada
+                const omegaD = Math.sqrt(Math.max(0, omega*omega - alpha*alpha));
+                if (omegaD > 0) {
+                    voltage = V0 * Math.exp(-alpha * t) * Math.cos(omegaD * t);
+                    current = (V0 / Math.sqrt(L/C)) * Math.exp(-alpha * t) * Math.sin(omegaD * t);
+                } else {
+                    // Sobreamortiguado
+                    voltage = V0 * Math.exp(-alpha * t);
+                    current = 0;
+                }
+            }
+            
+            return { voltage, current };
+        }
+        
+        // Dibujar osciloscopio
+        function drawOscilloscope() {
+            const width = canvas.width;
+            const height = canvas.height;
+            
+            // Limpiar canvas
+            ctx.fillStyle = '#0a1628';
+            ctx.fillRect(0, 0, width, height);
+            
+            // Dibujar grid
+            ctx.strokeStyle = 'rgba(0, 255, 100, 0.1)';
+            ctx.lineWidth = 1;
+            
+            const gridSize = 40;
+            for (let x = 0; x < width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(width, y);
+                ctx.stroke();
+            }
+            
+            // Línea central
+            ctx.strokeStyle = 'rgba(100, 100, 100, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, height / 2);
+            ctx.lineTo(width, height / 2);
+            ctx.stroke();
+            
+            // Dibujar voltaje
+            if (voltageHistory.length > 1) {
+                ctx.strokeStyle = '#4ade80';
+                ctx.lineWidth = 2;
+                ctx.shadowColor = '#4ade80';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                
+                for (let i = 0; i < voltageHistory.length; i++) {
+                    const x = (i / voltageHistory.length) * width;
+                    const y = height / 2 - (voltageHistory[i] / V0) * (height / 2 - 20);
+                    
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+            
+            // Dibujar corriente
+            if (currentHistory.length > 1) {
+                ctx.strokeStyle = '#fbbf24';
+                ctx.lineWidth = 2;
+                ctx.shadowColor = '#fbbf24';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                
+                const maxCurrent = V0 / Math.sqrt(L/C);
+                
+                for (let i = 0; i < currentHistory.length; i++) {
+                    const x = (i / currentHistory.length) * width;
+                    const y = height / 2 - (currentHistory[i] / maxCurrent) * (height / 2 - 20);
+                    
+                    if (i === 0) ctx.moveTo(x, y);
+                    else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        // Actualizar animación del circuito
+        function updateCircuitAnimation(voltage, current) {
+            const normalizedV = Math.abs(voltage / V0);
+            const maxCurrent = V0 / Math.sqrt(L/C);
+            const normalizedI = Math.abs(current / maxCurrent);
+            
+            // Carga del condensador
+            const chargeHeight = 40 * normalizedV;
+            capCharge.setAttribute('height', chargeHeight);
+            capCharge.setAttribute('y', 90 - chargeHeight/2);
+            capCharge.setAttribute('opacity', 0.3 + normalizedV * 0.7);
+            
+            // Campo magnético de la bobina
+            inductorField.setAttribute('opacity', normalizedI * 0.8);
+            inductorField.setAttribute('rx', 25 + normalizedI * 10);
+            
+            // Flechas de corriente
+            const arrowOpacity = Math.min(1, Math.abs(current) / maxCurrent);
+            arrow1.setAttribute('opacity', arrowOpacity);
+            arrow2.setAttribute('opacity', arrowOpacity);
+            
+            // Dirección de las flechas
+            if (current > 0) {
+                arrow1.setAttribute('points', '195,85 205,90 195,95');
+                arrow2.setAttribute('points', '155,145 145,140 155,135');
+            } else {
+                arrow1.setAttribute('points', '205,85 195,90 205,95');
+                arrow2.setAttribute('points', '145,145 155,140 145,135');
+            }
+            
+            // Barras de energía
+            const capEnergy = normalizedV * normalizedV * 100;
+            const indEnergy = normalizedI * normalizedI * 100;
+            
+            capEnergyBar.style.width = `${capEnergy}%`;
+            indEnergyBar.style.width = `${indEnergy}%`;
+            capEnergyValue.textContent = `${capEnergy.toFixed(1)}%`;
+            indEnergyValue.textContent = `${indEnergy.toFixed(1)}%`;
+        }
+        
+        // Loop de animación
+        function animate() {
+            if (!isRunning) return;
+            
+            const freq = calculateFrequency();
+            const period = 1 / freq;
+            const dt = period / 100; // 100 muestras por período
+            
+            time += dt;
+            
+            const { voltage, current } = calculateValues(time);
+            
+            // Agregar a historial
+            voltageHistory.push(voltage);
+            currentHistory.push(current);
+            
+            // Mantener máximo 500 puntos
+            const maxPoints = 500;
+            if (voltageHistory.length > maxPoints) {
+                voltageHistory.shift();
+                currentHistory.shift();
+            }
+            
+            drawOscilloscope();
+            updateCircuitAnimation(voltage, current);
+            
+            animationId = requestAnimationFrame(animate);
+        }
+        
+        // Iniciar simulación
+        function start() {
+            if (isRunning) {
+                isRunning = false;
+                startBtn.textContent = '▶️ Iniciar';
+                cancelAnimationFrame(animationId);
+            } else {
+                isRunning = true;
+                startBtn.textContent = '⏸️ Pausar';
+                animate();
+            }
+        }
+        
+        // Resetear simulación
+        function reset() {
+            isRunning = false;
+            startBtn.textContent = '▶️ Iniciar';
+            cancelAnimationFrame(animationId);
+            
+            time = 0;
+            voltageHistory = [];
+            currentHistory = [];
+            
+            drawOscilloscope();
+            updateCircuitAnimation(V0, 0);
+        }
+        
+        // Event listeners
+        capacitanceSlider.addEventListener('input', () => {
+            updateDisplays();
+            if (!isRunning) reset();
+        });
+        
+        inductanceSlider.addEventListener('input', () => {
+            updateDisplays();
+            if (!isRunning) reset();
+        });
+        
+        resistanceSlider.addEventListener('input', () => {
+            updateDisplays();
+        });
+        
+        voltageSlider.addEventListener('input', () => {
+            updateDisplays();
+            if (!isRunning) reset();
+        });
+        
+        startBtn.addEventListener('click', start);
+        resetBtn.addEventListener('click', reset);
+        
+        // Inicialización
+        updateDisplays();
+        drawOscilloscope();
+        updateCircuitAnimation(V0, 0);
+    </script>
+</body>
+</html>
