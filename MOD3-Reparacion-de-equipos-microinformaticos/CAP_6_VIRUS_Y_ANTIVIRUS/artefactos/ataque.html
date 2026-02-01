@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Interactivo de Malware</title>
+    <style>
+        :root {
+            --primary: #00ff88;
+            --danger: #ff4444;
+            --warning: #ffbb33;
+            --dark-bg: #1a1a1a;
+            --panel-bg: #2d2d2d;
+            --text-color: #ffffff;
+            --accent: #00ccff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--panel-bg);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #444;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon-shield {
+            width: 24px;
+            height: 24px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+        }
+
+        main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Panel de Control */
+        aside {
+            width: 300px;
+            background-color: var(--panel-bg);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            border-right: 2px solid #444;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+
+        .control-group {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .control-group h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            color: var(--accent);
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #3d3d3d;
+            border: 1px solid #555;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #4d4d4d;
+        }
+
+        button.btn-attack {
+            background-color: var(--danger);
+            border: none;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        button.btn-attack:hover {
+            background-color: #cc0000;
+            transform: scale(1.02);
+        }
+
+        button.btn-reset {
+            background-color: var(--accent);
+            border: none;
+            color: #000;
+            font-weight: bold;
+        }
+
+        /* Área de Simulación */
+        #simulation-area {
+            flex: 1;
+            position: relative;
+            background-color: #000;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* Panel de Información Flotante */
+        #info-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            background: rgba(45, 45, 45, 0.95);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            transform: translateY(150%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #info-panel.visible {
+            transform: translateY(0);
+        }
+
+        #info-panel h2 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        #info-panel p {
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            color: #ddd;
+        }
+
+        #log-container {
+            height: 100px;
+            overflow-y: auto;
+            background: #000;
+            border: 1px solid #444;
+            padding: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            margin-top: 10px;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+            border-bottom: 1px solid #222;
+            padding-bottom: 2px;
+        }
+        .log-entry.danger { color: var(--danger); }
+        .log-entry.info { color: var(--accent); }
+        .log-entry.warn { color: var(--warning); }
+
+        /* Estado del sistema */
+        #system-status {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .status-item {
+            text-align: center;
+        }
+        .status-val {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        .status-label {
+            font-size: 0.7rem;
+            color: #888;
+        }
+
+        /* Toast de notificación */
+        #toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        #toast.show { opacity: 1; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            main { flex-direction: column; }
+            aside { width: 100%; height: 250px; flex-shrink: 0; }
+            #info-panel { width: 90%; right: 5%; bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1><span class="icon-shield"></span> Simulador Cibernético</h1>
+        <div style="font-size: 0.9rem; color: #888;">Entorno de pruebas aislado</div>
+    </header>
+
+    <main>
+        <aside>
+            <div class="control-group">
+                <h3>Configuración del Ataque</h3>
+                <label for="malware-type">Seleccionar Agente Malicioso:</label>
+                <select id="malware-type">
+                    <option value="" disabled selected>Elige una opción...</option>
+                    <option value="virus">Virus</option>
+                    <option value="worm">Gusano (Worm)</option>
+                    <option value="trojan">Troyano (Trojan)</option>
+                    <option value="rootkit">Rootkit</option>
+                    <option value="keylogger">Keylogger</option>
+                    <option value="ransomware">Ransomware</option>
+                </select>
+
+                <div id="description-preview" style="font-size: 0.8rem; color: #aaa; margin-bottom: 15px; min-height: 40px;">
+                    Selecciona un tipo de malware para ver una descripción breve.
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3>Control de Simulación</h3>
+                <button id="btn-start" class="btn-attack" disabled>Iniciar Ataque</button>
+                <button id="btn-reset" class="btn-reset" disabled>Reiniciar Sistema</button>
+            </div>
+
+            <div class="control-group">
+                <h3>Estado del Sistema</h3>
+                <div id="system-status">
+                    <div class="status-item">
+                        <div class="status-val" id="status-files">100%</div>
+                        <div class="status-label">Integridad</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-val" id="status-cpu">0%</div>
+                        <div class="status-label">CPU Uso</div>
+                    </div>
+                    <div class="status-item">
+                        <div class="status-val" id="status-net">0%</div>
+                        <div class="status-label">Red</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div id="simulation-area">
+            <canvas id="simCanvas"></canvas>
+            
+            <div id="toast">Notificación</div>
+
+            <div id="info-panel">
+                <h2 id="panel-title">Título del Malware</h2>
+                <p id="panel-desc">Descripción del comportamiento.</p>
+                <div class="control-group" style="background: transparent; border: none; padding: 0;">
+                    <h3 style="margin-bottom: 5px;">Registro de Eventos:</h3>
+                    <div id="log-container"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- Configuración y Estado ---
+        const canvas = document.getElementById('simCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let animationId;
+        
+        // Elementos del DOM
+        const select = document.getElementById('malware-type');
+        const btnStart = document.getElementById('btn-start');
+        const btnReset = document.getElementById('btn-reset');
+        const descPreview = document.getElementById('description-preview');
+        const logContainer = document.getElementById('log-container');
+        const infoPanel = document.getElementById('info-panel');
+        const panelTitle = document.getElementById('panel-title');
+        const panelDesc = document.getElementById('panel-desc');
+        const toast = document.getElementById('toast');
+        
+        // Estados numéricos
+        let stats = {
+            integrity: 100,
+            cpu: 5, // Uso base
+            network: 0
+        };
+
+        // Entidades de la simulación
+        let files = [];
+        let networkNodes = [];
+        let malwareAgent = null;
+        let particles = [];
+        let isRunning = false;
+        let simulationStep = 0;
+
+        // Datos de Malware
+        const malwareData = {
+            virus: {
+                title: "Virus Informático",
+                desc: "Programa malicioso que se adjunta a un archivo legítimo y requiere acción del usuario para ejecutarse. Se replica infectando otros archivos en el sistema.",
+                preview: "Se necesita una acción del usuario (ejecutar archivo) para empezar. Infecta archivos adyacentes."
+            },
+            worm: {
+                title: "Gusano (Worm)",
+                desc: "Software autónomo que se replica a sí mismo para propagarse a otras computadoras. A menudo utiliza vulnerabilidades de red para dispersarse sin intervención del usuario.",
+                preview: "Se propaga automáticamente a través de la red a otros nodos vulnerables."
+            },
+            trojan: {
+                title: "Troyano (Trojan)",
+                desc: "Se disfraza de software útil para engañar al usuario y que lo instale. A diferencia del virus, no se replica, sino que abre una 'puerta trasera' para que un atacante tome el control.",
+                preview: "Se instala legalmente pero ocultamente ejecuta funciones maliciosas (puerta trasera)."
+            },
+            rootkit: {
+                title: "Rootkit",
+                desc: "Conjunto de herramientas diseñadas para ocultar la presencia de otros malware y mantener el acceso privilegiado (root/admin) en el sistema, volviéndose invisible para el antivirus.",
+                preview: "Se oculta en el núcleo del sistema (kernel), modificando permisos y volviéndose invisible."
+            },
+            keylogger: {
+                title: "Keylogger",
+                desc: "Tipo de malware que registra las pulsaciones del teclado. Su objetivo es robar contraseñas, números de tarjetas de crédito y otra información sensible escrita por el usuario.",
+                preview: "Se ejecuta en segundo plano y captura el tráfico de entrada de teclado simulado."
+            },
+            ransomware: {
+                title: "Ransomware (Secuestro)",
+                desc: "Cifra los archivos del usuario, bloqueando el acceso a ellos, y exige un pago (rescate) para proporcionar la clave de descifre.",
+                preview: "Cifra archivos uno a uno hasta que el sistema queda inutilizado. Muestra nota de rescate."
+            }
+        };
+
+        // --- Clases de Objetos Gráficos ---
+
+        class Icon {
+            constructor(x, y, type, color = '#00ccff') {
+                this.x = x;
+                this.y = y;
+                this.type = type; // 'file', 'pc', 'server', 'malware'
+                this.color = color;
+                this.size = 30;
+                this.angle = 0;
+                this.infected = false;
+                this.encryption = 0; // 0 a 1 (para ransomware)
+                this.hidden = false; // (para rootkit)
+            }
+
+            draw(ctx) {
+                if (this.hidden && this.type !== 'malware' && isRunning) {
+                    // Si está oculto por rootkit, dibujar algo "falso" o transparente
+                    ctx.globalAlpha = 0.1;
+                } else {
+                    ctx.globalAlpha = 1.0;
+                }
+
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                
+                // Color base según estado
+                let drawColor = this.color;
+                if (this.infected) drawColor = '#ff4444'; // Rojo infectado
+                if (this.encryption > 0) drawColor = '#ff9900'; // Naranja cifrando
+                if (this.encryption >= 1) drawColor = '#555'; // Gris cifrado
+
+                ctx.fillStyle = drawColor;
+                ctx.strokeStyle = drawColor;
+                ctx.lineWidth = 2;
+
+                switch(this.type) {
+                    case 'pc':
+                    case 'server':
+                        // Dibujar Torre/Monitor
+                        ctx.beginPath();
+                        ctx.rect(-15, -10, 30, 20);
+                        ctx.stroke();
+                        ctx.beginPath();
+                        ctx.rect(-10, 10, 20, 5);
+                        ctx.fill();
+                        if (this.type === 'server') {
+                            ctx.beginPath();
+                            ctx.moveTo(0, -12); ctx.lineTo(0, -20);
+                            ctx.stroke();
+                            // Luces parpadeantes
+                            if (simulationStep % 30 < 15) {
+                                ctx.fillStyle = '#0f0';
+                                ctx.fillRect(-5, -2, 2, 2);
+                            }
+                        }
+                        break;
+                    case 'file':
+                        // Dibujar documento
+                        ctx.beginPath();
+                        ctx.moveTo(-10, -15);
+                        ctx.lineTo(5, -15);
+                        ctx.lineTo(10, -10);
+                        ctx.lineTo(10, 15);
+                        ctx.lineTo(-10, 15);
+                        ctx.closePath();
+                        ctx.fill();
+                        // Líneas de texto
+                        ctx.fillStyle = '#fff';
+                        ctx.fillRect(-5, -5, 10, 2);
+                        ctx.fillRect(-5, 0, 10, 2);
+                        ctx.fillRect(-5, 5, 6, 2);
+                        
+                        // Efecto Ransomware (Candado)
+                        if (this.encryption > 0) {
+                            ctx.fillStyle = '#000';
+                            ctx.font = '16px Arial';
+                            ctx.fillText('🔒', -8, 5);
+                        }
+                        break;
+                    case 'malware':
+                        // Dibujar bicho/virus abstracto
+                        this.angle += 0.05;
+                        ctx.rotate(this.angle);
+                        ctx.beginPath();
+                        ctx.arc(0, 0, 10, 0, Math.PI * 2);
+                        ctx.fill();
+                        // Pinchos
+                        for(let i=0; i<8; i++) {
+                            ctx.rotate(Math.PI/4);
+                            ctx.beginPath();
+                            ctx.moveTo(10, 0);
+                            ctx.lineTo(18, 0);
+                            ctx.stroke();
+                        }
+                        break;
+                }
+                ctx.restore();
+            }
+        }
+
+        class Packet {
+            constructor(fromX, fromY, toX, toY, type) {
+                this.x = fromX;
+                this.y = fromY;
+                this.targetX = toX;
+                this.targetY = toY;
+                this.type = type; // 'exploit', 'scan', 'data', 'keylog'
+                this.speed = 3;
+                this.finished = false;
+                
+                const angle = Math.atan2(toY - fromY, toX - fromX);
+                this.vx = Math.cos(angle) * this.speed;
+                this.vy = Math.sin(angle) * this.speed;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                const dist = Math.hypot(this.targetX - this.x, this.targetY - this.y);
+                if (dist < this.speed) {
+                    this.finished = true;
+                    this.x = this.targetX;
+                    this.y = this.targetY;
+                }
+            }
+
+            draw(ctx) {
+                ctx.beginPath();
+                ctx.fillStyle = this.type === 'data' ? '#00ff88' : '#ff00ff';
+                ctx.arc(this.x, this.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        // --- Inicialización ---
+
+        function resizeCanvas() {
+            const container = document.getElementById('simulation-area');
+            width = canvas.width = container.clientWidth;
+            height = canvas.height = container.clientHeight;
+            if (!isRunning) initScenario('network'); // Dibuja algo inicial
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function initScenario(type) {
+            files = [];
+            networkNodes = [];
+            particles = [];
+            malwareAgent = null;
+            stats.integrity = 100;
+            stats.cpu = 5;
+            stats.network = 0;
+            updateStatsUI();
+            clearLog();
+
+            // Crear topología básica de red
+            const centerX = width / 2;
+            const centerY = height / 2;
+            
+            // Servidor Central
+            const server = new Icon(centerX, centerY, 'server');
+            networkNodes.push(server);
+
+            // Computadoras cliente
+            const positions = [
+                {x: centerX - 150, y: centerY - 100},
+                {x: centerX + 150, y: centerY - 100},
+                {x: centerX - 150, y: centerY + 100},
+                {x: centerX + 150, y: centerY + 100}
+            ];
+
+            positions.forEach((pos, index) => {
+                const pc = new Icon(pos.x, pos.y, 'pc');
+                networkNodes.push(pc);
+                
+                // Añadir archivos dentro de cada PC
+                for(let i=0; i<3; i++) {
+                    files.push(new Icon(pos.x + (Math.random()*40 - 20), pos.y + 60 + (i*20), 'file'));
+                }
+            });
+        }
+
+        // --- Lógica de Simulación por Tipo ---
+
+        function startSimulation() {
+            const type = select.value;
+            if (!type) return;
+
+            if (isRunning) return;
+            isRunning = true;
+            simulationStep = 0;
+
+            // Reiniciar escenario
+            initScenario();
+            
+            // Configuraciones específicas
+            btnStart.disabled = true;
+            btnReset.disabled = false;
+            select.disabled = true;
+            
+            infoPanel.classList.add('visible');
+            panelTitle.innerText = malwareData[type].title;
+            panelDesc.innerText = malwareData[type].desc;
+            addLog(`Iniciando simulación de: ${malwareData[type].title}`, 'warn');
+
+            switch(type) {
+                case 'virus':
+                    runVirusSimulation();
+                    break;
+                case 'worm':
+                    runWormSimulation();
+                    break;
+                case 'trojan':
+                    runTrojanSimulation();
+                    break;
+                case 'rootkit':
+                    runRootkitSimulation();
+                    break;
+                case 'keylogger':
+                    runKeyloggerSimulation();
+                    break;
+                case 'ransomware':
+                    runRansomwareSimulation();
+                    break;
+            }
+
+            loop();
+        }
+
+        function runVirusSimulation() {
+            // El virus comienza en un archivo específico
+            const targetFile = files[0];
+            malwareAgent = new Icon(targetFile.x, targetFile.y, 'malware', '#ff4444');
+            targetFile.infected = true;
+            addLog("Virus adjuntado a 'documento_vacaciones.pdf'. Ejecutando...", "danger");
+
+            setTimeout(() => {
+                addLog("Buscando archivos ejecutables cercanos...", "info");
+            }, 1000);
+        }
+
+        function runWormSimulation() {
+            // El gusano aparece en una PC externa e intenta conectar
+            const startNode = networkNodes[0];
+            malwareAgent = new Icon(startNode.x - 200, startNode.y, 'malware', '#ff00ff');
+            addLog("Gusano detectado en red externa. Escaneando puertos...", "warn");
+            
+            stats.network = 20;
+            updateStatsUI();
+        }
+
+        function runTrojanSimulation() {
+            // El troyano se parece a un archivo normal
+            const fakeFile = files[2];
+            fakeFile.color = '#00ff00'; // Parece seguro
+            addLog("Usuario descarga 'instalador_gratis.exe'", "info");
+            setTimeout(() => {
+                addLog("Instalando componentes...", "info");
+                // Crear agente oculto
+                malwareAgent = new Icon(fakeFile.x, fakeFile.y, 'malware', '#ff4444');
+                addLog("¡Troyano instalado! Abriendo puerto trasero...", "danger");
+                addLog("Conexión remota establecida con C&C Server", "danger");
+            }, 2000);
+        }
+
+        function runRootkitSimulation() {
+            addLog("Iniciando inyección de código a nivel de Kernel...", "warn");
+            malwareAgent = new Icon(width/2, height/2, 'malware', '#000');
+            malwareAgent.color = '#333'; // Casi invisible
+            stats.cpu = 40;
+            updateStatsUI();
+        }
+
+        function runKeyloggerSimulation() {
+            malwareAgent = new Icon(width/2, height/2 + 50, 'malware', '#ffff00');
+            addLog("Servicio de teclado activo. Hook instalado.", "info");
+            // Simular escritura
+            let keys = ["u", "s", "e", "r", "1", "2", "3", "Enter"];
+            let idx = 0;
+            const keyInterval = setInterval(() => {
+                if (!isRunning) { clearInterval(keyInterval); return; }
+                if (idx < keys.length) {
+                    addLog(`Tecla capturada: [${keys[idx]}]`, "info");
+                    particles.push(new Packet(width/2, height, width/2 + 150, height - 50, 'keylog'));
+                    idx++;
+                } else {
+                    clearInterval(keyInterval);
+                    addLog("Paquete de datos enviado: 'credentials.log'", "danger");
+                }
+            }, 800);
+        }
+
+        function runRansomwareSimulation() {
+            addLog("Iniciando proceso de cifrado...", "danger");
+            malwareAgent = new Icon(width/2, height/2 + 100, 'malware', '#ff9900');
+        }
+
+        // --- Bucle Principal y Renderizado ---
+
+        function loop() {
+            if (!isRunning) return;
+            animationId = requestAnimationFrame(loop);
+            simulationStep++;
+
+            // Limpiar
+            ctx.clearRect(0, 0, width, height);
+
+            // Dibujar conexiones de red
+            ctx.beginPath();
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            const central = networkNodes[0]; // Servidor
+            for(let i=1; i<networkNodes.length; i++) {
+                ctx.moveTo(central.x, central.y);
+                ctx.lineTo(networkNodes[i].x, networkNodes[i].y);
+            }
+            ctx.stroke();
+
+            // Actualizar y dibujar nodos
+            networkNodes.forEach(node => node.draw(ctx));
+
+            // Actualizar y dibujar archivos
+            files.forEach(file => file.draw(ctx));
+
+            // Actualizar partículas/paquetes
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.update();
+                p.draw(ctx);
+                if (p.finished) particles.splice(i, 1);
+            }
+
+            // Lógica específica por paso
+            const type = select.value;
+            
+            if (type === 'virus') {
+                // El agente busca el siguiente archivo
+                if (simulationStep % 60 === 0) {
+                    const cleanFiles = files.filter(f => !f.infected);
+                    if (cleanFiles.length > 0) {
+                        // Elegir uno cercano (simulación simple)
+                        const victim = cleanFiles[Math.floor(Math.random() * cleanFiles.length)];
+                        particles.push(new Packet(malwareAgent.x, malwareAgent.y, victim.x, victim.y, 'exploit'));
+                        addLog(`Infectando ${victim.constructor.name}...`, "danger");
+                        setTimeout(() => {
+                            victim.infected = true;
+                            // Mover agente visualmente
+                            const moveX = (malwareAgent.x + victim.x) / 2;
+                            const moveY = (malwareAgent.y + victim.y) / 2;
+                            malwareAgent.x = moveX; malwareAgent.y = moveY;
+                        }, 500);
+                    } else {
+                        addLog("Todos los archivos locales infectados.", "warn");
+                    }
+                }
+            } else if (type === 'worm') {
+                // Mover agente hacia el servidor
+                const server = networkNodes[0];
+                const dx = server.x - malwareAgent.x;
+                const dy = server.y - malwareAgent.y;
+                const dist = Math.hypot(dx, dy);
+
+                if (dist > 5) {
+                    malwareAgent.x += (dx/dist) * 2;
+                    malwareAgent.y += (dy/dist) * 2;
+                    stats.network = 80; // Pico de red
+                } else {
+                    // Llegó al servidor
+                    stats.network = 10;
+                    // Infectar nodos vecinos
+                    if (simulationStep % 50 === 0) {
+                        const target = networkNodes[Math.floor(Math.random() * (networkNodes.length - 1)) + 1];
+                        if (!target.infected) {
+                            target.infected = true;
+                            addLog(`Replicando a nodo en ${target.x}, ${target.y}`, "danger");
+                            particles.push(new Packet(server.x, server.y, target.x, target.y, 'data'));
+                        }
+                    }
+                }
+            } else if (type === 'ransomware') {
+                // Cifrar archivos uno por uno
+                if (simulationStep % 40 === 0) {
+                    const target = files.find(f => f.encryption < 1);
+                    if (target) {
+                        target.encryption = 1;
+                        stats.integrity -= 5;
+                        stats.cpu = 90;
+                        addLog(`Cifrando archivo... (${stats.integrity}% restante)`, "danger");
+                        particles.push(new Packet(malwareAgent.x, malwareAgent.y, target.x, target.y, 'exploit'));
+                    } else if (stats.integrity > 0) {
+                        stats.integrity = 0;
+                        addLog("¡SISTEMA BLOQUEADO! Envíe Bitcoin a...", "danger");
+                        showToast("Sistema Secuestrado");
+                        stopSimulationLoop();
+                    }
+                }
+            } else if (type === 'rootkit') {
+                // Hacer desaparecer archivos visualmente
+                if (simulationStep === 100) {
+                    addLog("Ocultando procesos del administrador de tareas...", "warn");
+                    stats.cpu = 10; // Falsificar bajo uso
+                }
+                if (simulationStep === 200) {
+                    addLog("Desactivando servicio de Antivirus...", "danger");
+                    files.forEach(f => f.hidden = true);
+                }
+            }
+
+            // Dibujar Agente Malware
+            if (malwareAgent && (type !== 'rootkit' || simulationStep < 200)) {
+                malwareAgent.draw(ctx);
+            }
+
+            // Actualizar UI
+            if (simulationStep % 10 === 0) updateStatsUI();
+            
+            // Fin de simulación por tiempo/condición
+            if (stats.integrity <= 0 && type === 'ransomware') {
+                // Mantener estado final
+            }
+        }
+
+        function stopSimulationLoop() {
+            cancelAnimationFrame(animationId);
+            // Mantenemos isRunning = true para ver el resultado final, pero paramos la lógica
+        }
+
+        // --- Utilidades ---
+
+        function updateStatsUI() {
+            document.getElementById('status-files').innerText = stats.integrity + '%';
+            document.getElementById('status-files').style.color = stats.integrity < 50 ? 'var(--danger)' : 'var(--primary)';
+            
+            document.getElementById('status-cpu').innerText = stats.cpu + '%';
+            document.getElementById('status-net').innerText = stats.network + '%';
+        }
+
+        function addLog(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `log-entry ${type}`;
+            const time = new Date().toLocaleTimeString().split(' ')[0];
+            div.innerText = `[${time}] ${msg}`;
+            logContainer.appendChild(div);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function clearLog() {
+            logContainer.innerHTML = '';
+        }
+
+        function showToast(msg) {
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // --- Event Listeners ---
+
+        select.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (val) {
+                btnStart.disabled = false;
+                descPreview.innerText = malwareData[val].preview;
+                // Previsualización estática en el canvas
+                initScenario('network');
+                // Dibujar icono preview del malware en el centro
+                const m = new Icon(width/2, height/2, 'malware', '#fff');
+                m.draw(ctx);
+            }
+        });
+
+        btnStart.addEventListener('click', startSimulation);
+
+        btnReset.addEventListener('click', () => {
+            isRunning = false;
+            cancelAnimationFrame(animationId);
+            initScenario('network');
+            select.disabled = false;
+            btnStart.disabled = true;
+            btnReset.disabled = true;
+            infoPanel.classList.remove('visible');
+            descPreview.innerText = "Selecciona un tipo de malware para ver una descripción breve.";
+            addLog("Sistema reiniciado a estado seguro.", "info");
+        });
+
+        // Inicialización
+        resizeCanvas();
+        initScenario('network');
+
+    </script>
+</body>
+</html>
